@@ -1,0 +1,24 @@
+{
+    "name": "lsretail/hospitality",
+    "description": "LS Ecommerce - eCommerce integration of Magento with LS Hospitality",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "version": "0.0.1",
+    "authors": [
+        {
+            "name": "LS Retail",
+            "email": "lsomnikl@lsretail.com"
+        }
+    ],
+    "require": {
+        "lsretail/lsmag-two": "^1.3.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ls\\Hospitality\\": ""
+        },
+        "files": [
+            "registration.php"
+        ]
+    }
+}
