@@ -7,10 +7,9 @@
 
 ## Installation (In Progress):
 
-1. Navigate to your magento2 installation directory and run `composer require "lsretail/hospitality"`
+1. Navigate to your magento2 installation directory and run `composer require "lsretail/hospitality"` .
 2. Run `composer install` to install all the dependencies it needs.
-3. To enable all our modules, run command from command line, `php bin/magento module:enable Ls_Hospitality`
-followed by `php bin/magento setup:upgrade ` and  `php bin/magento setup:di:compile` from Magento 2 instance so that it can update the magento2 database with our modules schema and interceptor files.
+3. To enable all our modules, run command from command line, `php bin/magento module:enable Ls_Hospitality`.
 4. Once done, you will see the list of our modules by running `php bin/magento module:status` which means our module is now good to go.
 5. Run `php bin/magento setup:upgrade ` and  `php bin/magento setup:di:compile` from root directory to update magento2 database with the schema and generate interceptor files.
 6. Once done, you will see the list of our modules in enabled section by running `php bin/magento module:status`.
