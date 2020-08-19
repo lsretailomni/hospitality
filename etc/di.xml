@@ -40,4 +40,10 @@
             </argument>
         </arguments>
     </type>
+    <!-- To add hospitality cron jobs in the admin grid. -->
+    <type name="Ls\Replication\Ui\DataProvider\CronsProvider">
+        <plugin name="ls_hospitaity_add_crons_grid"
+                type="Ls\Hospitality\Plugin\Ui\DataProvider\CronsProvider"/>
+    </type>
+
 </config>
