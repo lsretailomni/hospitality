@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!--Replication API Repository Inferfaces-->
+    <preference for="Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospDealRepository"/>
+    <preference for="Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospDealLineRepository"/>
+    <preference for="Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospRecipeRepository"/>
+    <!--Replication API Data Inferfaces-->
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospDeal"/>
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealLineInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospDealLine"/>
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospRecipe"/>
+
+    <!--Replication API Search Results Inferfaces-->
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealLineSearchResultsInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospDealLineSearchResults"/>
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealSearchResultsInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospDealSearchResults"/>
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeSearchResultsInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospRecipeSearchResults"/>
+
+    <!-- For Collection to be used in the UI Component -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="ls_repl_grids_deals_data_source" xsi:type="string">
+                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\Grid\Collection
+                </item>
+                <item name="ls_repl_grids_dealline_data_source" xsi:type="string">
+                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\Grid\Collection
+                </item>
+                <item name="ls_repl_grids_recipe_data_source" xsi:type="string">
+                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\Grid\Collection
+                </item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- To add hospitality cron jobs in the admin grid. -->
+    <type name="Ls\Replication\Ui\DataProvider\CronsProvider">
+        <plugin name="ls_hospitaity_add_crons_grid"
+                type="Ls\Hospitality\Plugin\Ui\DataProvider\CronsProvider"/>
+    </type>
+
+</config>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="flat_replication">
+        <job name="repl_hierarchy_hosp_deal_line" instance="Ls\Replication\Cron\ReplEcommHierarchyHospDealLineTask" method="execute">
+            <schedule>*/4 * * * *</schedule>
+        </job>
+
+        <job name="repl_hierarchy_hosp_recipe" instance="Ls\Replication\Cron\ReplEcommHierarchyHospRecipeTask" method="execute">
+            <schedule>*/4 * * * *</schedule>
+        </job>
+
+        <job name="repl_hierarchy_hosp_deal" instance="Ls\Replication\Cron\ReplEcommHierarchyHospDealTask" method="execute">
+            <schedule>*/4 * * * *</schedule>
+        </job>
+    </group>
+<!--    <group id="replication">
+        <job name="repl_attributes" instance="Ls\Replication\Cron\AttributesCreateTask" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>-->
+</config>

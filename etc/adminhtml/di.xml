@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchy_hosp_deal</argument>
+            <argument name="resourceModel" xsi:type="string">Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchy_hosp_deal_line</argument>
+            <argument name="resourceModel" xsi:type="string">
+                Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchy_hosp_recipe</argument>
+            <argument name="resourceModel" xsi:type="string">
+                Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe
+            </argument>
+        </arguments>
+    </virtualType>
+</config>

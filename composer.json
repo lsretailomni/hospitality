@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "lsretail/lsmag-two": "^1.3.2"
+        "lsretail/lsmag-two": "^1.4.0"
     },
     "autoload": {
         "psr-4": {
