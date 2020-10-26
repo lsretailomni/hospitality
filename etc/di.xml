@@ -8,6 +8,9 @@
                 type="Ls\Replication\Model\ReplHierarchyHospDealLineRepository"/>
     <preference for="Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospRecipeRepository"/>
+    <preference for="Ls\Replication\Api\ReplHierarchyHospModifierRepositoryInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospModifierRepository"/>
+
     <!--Replication API Data Inferfaces-->
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDeal"/>
@@ -15,6 +18,8 @@
                 type="Ls\Replication\Model\ReplHierarchyHospDealLine"/>
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospRecipe"/>
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospModifierInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospModifier"/>
 
     <!--Replication API Search Results Inferfaces-->
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealLineSearchResultsInterface"
@@ -23,6 +28,8 @@
                 type="Ls\Replication\Model\ReplHierarchyHospDealSearchResults"/>
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeSearchResultsInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospRecipeSearchResults"/>
+    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospModifierSearchResultsInterface"
+                type="Ls\Replication\Model\ReplHierarchyHospModifierSearchResults"/>
 
     <!-- For Collection to be used in the UI Component -->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
@@ -36,6 +43,9 @@
                 </item>
                 <item name="ls_repl_grids_recipe_data_source" xsi:type="string">
                     Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\Grid\Collection
+                </item>
+                <item name="ls_repl_grids_modifier_data_source" xsi:type="string">
+                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospModifier\Grid\Collection
                 </item>
             </argument>
         </arguments>
