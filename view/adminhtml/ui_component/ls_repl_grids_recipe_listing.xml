@@ -207,6 +207,19 @@
                 </item>
             </argument>
         </column>
+
+        <column name="ParentNode">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Parent Node</item>
+                    <item name="sortOrder" xsi:type="number">23</item>
+                </item>
+            </argument>
+        </column>
+
         <column name="ImageId">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -237,17 +250,6 @@
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">Line No</item>
                     <item name="sortOrder" xsi:type="number">21</item>
-                </item>
-            </argument>
-        </column>
-        <column name="ParentNode">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Parent Node</item>
-                    <item name="sortOrder" xsi:type="number">23</item>
                 </item>
             </argument>
         </column>
