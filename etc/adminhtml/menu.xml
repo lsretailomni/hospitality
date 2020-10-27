@@ -12,12 +12,17 @@
              action="ls_repl/grids/deals"/>
 
         <add id="Ls_Hospitality::deal_line_grid" title="Deal Line" translate="title" module="Ls_Hospitality"
-             sortOrder="15"
+             sortOrder="20"
              resource="Ls_Hospitality::deal_line_grid" parent="Ls_Hospitality::replication_grid_group"
              action="ls_repl/grids/dealline"/>
 
-        <add id="Ls_Hospitality::recipe" title="Recipe" translate="title" module="Ls_Hospitality" sortOrder="15"
+        <add id="Ls_Hospitality::recipe" title="Recipe" translate="title" module="Ls_Hospitality" sortOrder="25"
              resource="Ls_Hospitality::recipe" parent="Ls_Hospitality::replication_grid_group"
              action="ls_repl/grids/recipe"/>
+
+        <add id="Ls_Hospitality::modifier" title="Item Modifiers" translate="title" module="Ls_Hospitality"
+             sortOrder="30"
+             resource="Ls_Hospitality::modifier" parent="Ls_Hospitality::replication_grid_group"
+             action="ls_repl/grids/modifier"/>
     </menu>
 </config>
