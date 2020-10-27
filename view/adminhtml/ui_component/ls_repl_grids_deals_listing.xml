@@ -116,6 +116,8 @@
                 </item>
             </argument>
         </column>
+
+
         <column name="DealLineNo">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -174,17 +176,6 @@
                 </item>
             </argument>
         </column>
-        <column name="DealDescription">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Deal Description</item>
-                    <item name="sortOrder" xsi:type="number">9</item>
-                </item>
-            </argument>
-        </column>
 
         <column name="Description">
             <argument name="data" xsi:type="array">
@@ -209,6 +200,19 @@
                 </item>
             </argument>
         </column>
+
+        <column name="ModifierCode">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Modifier Code</item>
+                    <item name="sortOrder" xsi:type="number">12</item>
+                </item>
+            </argument>
+        </column>
+
         <column name="ImageId">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -220,14 +224,13 @@
                 </item>
             </argument>
         </column>
-
-        <column name="ItemDescription">
+        <column name="AddedAmount">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Item Description</item>
+                    <item name="label" xsi:type="string" translate="true">Added Amount</item>
                     <item name="sortOrder" xsi:type="number">15</item>
                 </item>
             </argument>
@@ -265,6 +268,19 @@
                 </item>
             </argument>
         </column>
+
+        <column name="MaxSelection">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Max Selection</item>
+                    <item name="sortOrder" xsi:type="number">22</item>
+                </item>
+            </argument>
+        </column>
+
         <column name="ParentNode">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -273,28 +289,6 @@
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">Parent Node</item>
                     <item name="sortOrder" xsi:type="number">23</item>
-                </item>
-            </argument>
-        </column>
-        <column name="Price">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Price</item>
-                    <item name="sortOrder" xsi:type="number">7</item>
-                </item>
-            </argument>
-        </column>
-        <column name="PriceWithVat">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Price With Vat</item>
-                    <item name="sortOrder" xsi:type="number">7</item>
                 </item>
             </argument>
         </column>
@@ -320,6 +314,19 @@
                 </item>
             </argument>
         </column>
+
+        <column name="DealModSizeGroupIndex">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Deal ModSize Group Index</item>
+                    <item name="sortOrder" xsi:type="number">9</item>
+                </item>
+            </argument>
+        </column>
+
         <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date"
                 component="Magento_Ui/js/grid/columns/date">
             <settings>

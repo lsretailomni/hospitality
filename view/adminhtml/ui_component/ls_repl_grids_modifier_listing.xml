@@ -4,26 +4,27 @@
     <!--Declare data source, columns list, button...-->
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
-            <item name="provider" xsi:type="string">ls_repl_grids_recipe_listing.ls_repl_grids_recipe_data_source</item>
-            <item name="deps" xsi:type="string">ls_repl_grids_recipe_listing.ls_repl_grids_recipe_data_source</item>
+            <item name="provider" xsi:type="string">ls_repl_grids_modifier_listing.ls_repl_grids_modifier_data_source
+            </item>
+            <item name="deps" xsi:type="string">ls_repl_grids_modifier_listing.ls_repl_grids_modifier_data_source</item>
         </item>
-        <item name="spinner" xsi:type="string">ls_repl_grids_recipe_columns</item>
+        <item name="spinner" xsi:type="string">ls_repl_grids_modifier_columns</item>
     </argument>
-    <dataSource name="ls_repl_grids_recipe_data_source">
+    <dataSource name="ls_repl_grids_modifier_data_source">
         <!--The data source-->
         <argument name="dataProvider" xsi:type="configurableObject">
             <argument name="class" xsi:type="string">
                 Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider
             </argument>
-            <argument name="name" xsi:type="string">ls_repl_grids_recipe_data_source</argument>
-            <argument name="primaryFieldName" xsi:type="string">repl_hierarchy_hosp_recipe_id</argument>
+            <argument name="name" xsi:type="string">ls_repl_grids_modifier_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">repl_hierarchy_hosp_modifier_id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
                     <item name="update_url" xsi:type="url" path="mui/index/render"/>
                     <item name="storageConfig" xsi:type="array">
-                        <item name="indexField" xsi:type="string">repl_hierarchy_hosp_recipe_id</item>
+                        <item name="indexField" xsi:type="string">repl_hierarchy_hosp_modifier_id</item>
                     </item>
                 </item>
             </argument>
@@ -40,7 +41,7 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="storageConfig" xsi:type="array">
-                        <item name="namespace" xsi:type="string">ls_repl_grids_recipe_listing</item>
+                        <item name="namespace" xsi:type="string">ls_repl_grids_modifier_listing</item>
                     </item>
                 </item>
             </argument>
@@ -50,7 +51,7 @@
                 <item name="config" xsi:type="array">
                     <item name="columnsData" xsi:type="array">
                         <item name="provider" xsi:type="string">
-                            ls_repl_grids_recipe_listing.ls_repl_grids_recipe_listing.ls_repl_grids_recipe_columns
+                            ls_repl_grids_modifier_listing.ls_repl_grids_modifier_listing.ls_repl_grids_modifier_columns
                         </item>
                     </item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/controls/columns</item>
@@ -63,12 +64,12 @@
                 <item name="config" xsi:type="array">
                     <item name="storageConfig" xsi:type="array">
                         <item name="provider" xsi:type="string">
-                            ls_repl_grids_recipe_listing.ls_repl_grids_recipe_listing.listing_top.bookmarks
+                            ls_repl_grids_modifier_listing.ls_repl_grids_modifier_listing.listing_top.bookmarks
                         </item>
                         <item name="namespace" xsi:type="string">current.paging</item>
                     </item>
                     <item name="selectProvider" xsi:type="string">
-                        ls_repl_grids_recipe_listing.ls_repl_grids_recipe_listing.ls_repl_grids_recipe_columns.ids
+                        ls_repl_grids_modifier_listing.ls_repl_grids_modifier_listing.ls_repl_grids_modifier_columns.ids
                     </item>
                 </item>
             </argument>
@@ -85,7 +86,7 @@
         </filters>
     </listingToolbar>
 
-    <columns name="ls_repl_grids_recipe_columns">
+    <columns name="ls_repl_grids_modifier_columns">
         <!--The list of columns-->
         <actionsColumn name="scroll" class="Ls\Replication\Ui\Component\Listing\Column\ScrollActions">
             <argument name="data" xsi:type="array">
@@ -105,14 +106,58 @@
                 </item>
             </argument>
         </column>
-        <column name="RecipeNo">
+        <column name="ItemNo">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Recipe No</item>
+                    <item name="label" xsi:type="string" translate="true">Item No</item>
+                    <item name="sortOrder" xsi:type="number">16</item>
+                </item>
+            </argument>
+        </column>
+        <column name="ParentItem">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Parent Item</item>
+                    <item name="sortOrder" xsi:type="number">8</item>
+                </item>
+            </argument>
+        </column>
+        <column name="AlwaysCharge">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Always Charge</item>
                     <item name="sortOrder" xsi:type="number">2</item>
+                </item>
+            </argument>
+        </column>
+        <column name="AmountPercent">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Amount Percent</item>
+                    <item name="sortOrder" xsi:type="number">3</item>
+                </item>
+            </argument>
+        </column>
+        <column name="Code">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Code</item>
+                    <item name="sortOrder" xsi:type="number">3</item>
                 </item>
             </argument>
         </column>
@@ -127,17 +172,7 @@
                 </item>
             </argument>
         </column>
-        <column name="Exclusion">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Exclusion</item>
-                    <item name="sortOrder" xsi:type="number">3</item>
-                </item>
-            </argument>
-        </column>
+
         <column name="processed" class="Ls\Replication\Ui\Component\Listing\Column\ColorStatus">
             <argument name="data" xsi:type="array">
                 <item name="options" xsi:type="object">Ls\Replication\Model\ProcessedStatus</item>
@@ -159,40 +194,6 @@
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="sortOrder" xsi:type="number">5</item>
                     <item name="label" xsi:type="string" translate="true">Omni to Flat</item>
-                </item>
-            </argument>
-        </column>
-        <column name="is_failed" class="Ls\Replication\Ui\Component\Listing\Column\ColorStatus">
-            <argument name="data" xsi:type="array">
-                <item name="options" xsi:type="object">Ls\Replication\Model\FailedStatus</item>
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">select</item>
-                    <item name="dataType" xsi:type="string">select</item>
-                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
-                    <item name="sortOrder" xsi:type="number">6</item>
-                    <item name="label" xsi:type="string" translate="true">Failed Status</item>
-                </item>
-            </argument>
-        </column>
-        <column name="IsDeleted">
-            <argument name="data" xsi:type="array">
-                <item name="options" xsi:type="object">Ls\Replication\Model\IsDeletedStatus</item>
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">select</item>
-                    <item name="dataType" xsi:type="string">select</item>
-                    <item name="sortOrder" xsi:type="number">7</item>
-                    <item name="label" xsi:type="string" translate="true">Deleted Status</item>
-                </item>
-            </argument>
-        </column>
-        <column name="ExclusionPrice">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">ExclusionPrice</item>
-                    <item name="sortOrder" xsi:type="number">8</item>
                 </item>
             </argument>
         </column>
@@ -220,46 +221,69 @@
             </argument>
         </column>
 
-        <column name="ImageId">
+        <column name="IsDeleted">
             <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">Ls\Replication\Model\IsDeletedStatus</item>
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Image Id</item>
-                    <item name="sortOrder" xsi:type="number">13</item>
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="sortOrder" xsi:type="number">7</item>
+                    <item name="label" xsi:type="string" translate="true">Deleted Status</item>
                 </item>
             </argument>
         </column>
-        <column name="ItemNo">
+        <column name="MaxSelection">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Item No</item>
-                    <item name="sortOrder" xsi:type="number">16</item>
+                    <item name="label" xsi:type="string" translate="true">Max Selection</item>
+                    <item name="sortOrder" xsi:type="number">8</item>
                 </item>
             </argument>
         </column>
-        <column name="LineNo">
+        <column name="MinSelection">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Line No</item>
+                    <item name="label" xsi:type="string" translate="true">Min Selection</item>
+                    <item name="sortOrder" xsi:type="number">8</item>
+                </item>
+            </argument>
+        </column>
+        <column name="PriceType">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Price Type</item>
+                    <item name="sortOrder" xsi:type="number">8</item>
+                </item>
+            </argument>
+        </column>
+
+        <column name="SubCode">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Sub Code</item>
                     <item name="sortOrder" xsi:type="number">21</item>
                 </item>
             </argument>
         </column>
-        <column name="QuantityPer">
+        <column name="Type">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Quantity Per</item>
+                    <item name="label" xsi:type="string" translate="true">Type</item>
                     <item name="sortOrder" xsi:type="number">7</item>
                 </item>
             </argument>
@@ -272,6 +296,18 @@
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">Unit Of Measure</item>
                     <item name="sortOrder" xsi:type="number">29</item>
+                </item>
+            </argument>
+        </column>
+        <column name="is_failed" class="Ls\Replication\Ui\Component\Listing\Column\ColorStatus">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">Ls\Replication\Model\FailedStatus</item>
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="sortOrder" xsi:type="number">6</item>
+                    <item name="label" xsi:type="string" translate="true">Failed Status</item>
                 </item>
             </argument>
         </column>

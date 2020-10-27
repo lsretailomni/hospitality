@@ -9,9 +9,11 @@
                         <resource id="Ls_Hospitality::deals_grid" title="Deals Replication" translate="title"
                                   sortOrder="10"/>
                         <resource id="Ls_Hospitality::deal_line_grid" title="Deal Line Replication" translate="title"
-                                  sortOrder="10"/>
+                                  sortOrder="20"/>
                         <resource id="Ls_Hospitality::recipe" title="Recipe Replication" translate="title"
-                                  sortOrder="10"/>
+                                  sortOrder="30"/>
+                        <resource id="Ls_Hospitality::modifier" title="Item Modifier Replication" translate="title"
+                                  sortOrder="40"/>
                     </resource>
                 </resource>
             </resource>
