@@ -8,8 +8,8 @@
                 type="Ls\Replication\Model\ReplHierarchyHospDealLineRepository"/>
     <preference for="Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospRecipeRepository"/>
-    <preference for="Ls\Replication\Api\ReplHierarchyHospModifierRepositoryInterface"
-                type="Ls\Replication\Model\ReplHierarchyHospModifierRepository"/>
+    <preference for="Ls\Replication\Api\ReplItemModifierRepositoryInterface"
+                type="Ls\Replication\Model\ReplItemModifierRepository"/>
 
     <!--Replication API Data Inferfaces-->
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealInterface"
@@ -18,8 +18,8 @@
                 type="Ls\Replication\Model\ReplHierarchyHospDealLine"/>
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospRecipe"/>
-    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospModifierInterface"
-                type="Ls\Replication\Model\ReplHierarchyHospModifier"/>
+    <preference for="Ls\Replication\Api\Data\ReplItemModifierInterface"
+                type="Ls\Replication\Model\ReplItemModifier"/>
 
     <!--Replication API Search Results Inferfaces-->
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealLineSearchResultsInterface"
@@ -28,8 +28,8 @@
                 type="Ls\Replication\Model\ReplHierarchyHospDealSearchResults"/>
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeSearchResultsInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospRecipeSearchResults"/>
-    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospModifierSearchResultsInterface"
-                type="Ls\Replication\Model\ReplHierarchyHospModifierSearchResults"/>
+    <preference for="Ls\Replication\Api\Data\ReplItemModifierSearchResultsInterface"
+                type="Ls\Replication\Model\ReplItemModifierSearchResults"/>
 
     <!-- For Collection to be used in the UI Component -->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
@@ -45,7 +45,7 @@
                     Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\Grid\Collection
                 </item>
                 <item name="ls_repl_grids_modifier_data_source" xsi:type="string">
-                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospModifier\Grid\Collection
+                    Ls\Replication\Model\ResourceModel\ReplItemModifier\Grid\Collection
                 </item>
             </argument>
         </arguments>
