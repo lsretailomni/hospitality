@@ -22,4 +22,10 @@
             <schedule>*/4 * * * *</schedule>
         </job>
     </group>
+
+    <group id="replication">
+        <job name="process_item_modifier" instance="Ls\Hospitality\Cron\ProcessItemModifier" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>
 </config>
