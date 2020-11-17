@@ -1,0 +1,16 @@
+<div id="service-mode-wrapper">
+    <?php if ($block->getServiceMode()) : ?>
+        <strong><?php echo __('Service Mode') ?>:</strong>
+        <span class="price">
+            <?php echo $block->getServiceMode(); ?>
+        </span>
+    <?php endif; ?>
+</div>
+<script type="text/javascript">
+    require(
+        ['jquery'],
+        function ($) {
+            $('#service-mode-wrapper').appendTo('.order-shipping-method .admin__page-section-item-content div:last-child');
+        }
+    );
+</script>
