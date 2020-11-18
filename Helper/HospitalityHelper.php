@@ -2,8 +2,8 @@
 
 namespace Ls\Hospitality\Helper;
 
-use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use \Ls\Replication\Helper\ReplicationHelper;
+use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use Ls\Replication\Model\ReplItemModifierRepository;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
@@ -30,30 +30,30 @@ class HospitalityHelper extends AbstractHelper
     public $configurationHelper;
 
     /**
-     * @var ReplicationHelper
+     * @var ReplItemModifierRepository
      */
-    public $replicationHelper;
+    public $itemModifierRepository;
 
     /**
      * HospitalityHelper constructor.
      * @param Context $context
      * @param Configuration $configurationHelper
-     * @param ReplicationHelper $replicationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ProductRepository $productRepository
+     * @param ReplItemModifierRepository $itemModifierRepository
      */
     public function __construct(
         Context $context,
         Configuration $configurationHelper,
-        ReplicationHelper $replicationHelper,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
+        ReplItemModifierRepository $itemModifierRepository
     ) {
         parent::__construct($context);
-        $this->configurationHelper   = $configurationHelper;
-        $this->replicationHelper     = $replicationHelper;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->productRepository     = $productRepository;
+        $this->configurationHelper    = $configurationHelper;
+        $this->searchCriteriaBuilder  = $searchCriteriaBuilder;
+        $this->productRepository      = $productRepository;
+        $this->itemModifierRepository = $itemModifierRepository;
     }
 
     /**
@@ -77,10 +77,10 @@ class HospitalityHelper extends AbstractHelper
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
         $selectedOrderHospSubLine   = [];
         foreach ($selectedOptionsOfQuoteItem as $option) {
-            $itemSubLineCode = $this->replicationHelper->getItemSubLineCode($option['label']);
+            $itemSubLineCode = $this->getItemSubLineCode($option['label']);
             $decodedValue    = htmlspecialchars_decode($option['value']);
             foreach (array_map('trim', explode(',', $decodedValue)) as $optionValue) {
-                $itemModifier = $this->replicationHelper->getItemModifier(
+                $itemModifier = $this->getItemModifier(
                     $lsrId,
                     $itemSubLineCode,
                     $optionValue,
@@ -148,5 +148,35 @@ class HospitalityHelper extends AbstractHelper
             }
         }
         return true;
+    }
+
+    /**
+     * @param $label
+     * @return mixed|string
+     */
+    public function getItemSubLineCode($label)
+    {
+        $subString = explode('ls_mod_', $label);
+        return strtoupper(str_replace("_", " ", end($subString)));
+    }
+
+    /**
+     * @param $navId
+     * @param $code
+     * @param $value
+     * @param $uom
+     * @return mixed
+     */
+    public function getItemModifier($navId, $code, $value, $uom)
+    {
+        $itemModifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
+                ->addFilter('Code', $code)
+                ->addFilter('Description', $value)
+                ->addFilter('UnitOfMeasure', $uom)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+        return $itemModifier->getItems();
     }
 }
