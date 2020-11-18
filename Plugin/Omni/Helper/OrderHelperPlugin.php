@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Order Helper Plugin
  */
-class OrderHelper
+class OrderHelperPlugin
 {
     /**
      * @var LoggerInterface

@@ -53,21 +53,26 @@
     <!-- To add hospitality cron jobs in the admin grid. -->
     <type name="Ls\Replication\Ui\DataProvider\CronsProvider">
         <plugin name="ls_hospitaity_add_crons_grid"
-                type="Ls\Hospitality\Plugin\Ui\DataProvider\CronsProvider"/>
+                type="Ls\Hospitality\Plugin\Ui\DataProvider\CronsProviderPlugin"/>
     </type>
     <!-- To override basket helper from core -->
     <type name="Ls\Omni\Helper\BasketHelper">
         <plugin name="ls_hospitaity_omni_baskethelper"
-                type="Ls\Hospitality\Plugin\Omni\Helper\BasketHelper"/>
+                type="Ls\Hospitality\Plugin\Omni\Helper\BasketHelperPlugin"/>
     </type>
     <!-- To override item helper from core -->
     <type name="Ls\Omni\Helper\ItemHelper">
         <plugin name="ls_hospitaity_omni_itemhelper"
-                type="Ls\Hospitality\Plugin\Omni\Helper\ItemHelper"/>
+                type="Ls\Hospitality\Plugin\Omni\Helper\ItemHelperPlugin"/>
     </type>
     <!-- To override order helper from core -->
     <type name="Ls\Omni\Helper\OrderHelper">
         <plugin name="ls_hospitaity_omni_orderhelper"
-                type="Ls\Hospitality\Plugin\Omni\Helper\OrderHelper"/>
+                type="Ls\Hospitality\Plugin\Omni\Helper\OrderHelperPlugin"/>
+    </type>
+    <!-- To remove dash delimiter in case of custom option -->
+    <type name="Magento\ConfigurableProduct\Model\Product\Type\Configurable">
+        <plugin name="remove_delimiter_custom_option"
+                type="Ls\Hospitality\Plugin\Product\Type\ConfigurablePlugin"/>
     </type>
 </config>
