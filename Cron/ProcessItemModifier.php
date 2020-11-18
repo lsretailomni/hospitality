@@ -104,7 +104,7 @@ class ProcessItemModifier
     /**
      * @throws InputException
      */
-    public function syncItemImages()
+    public function ProcessItemModifiers()
     {
         $batchSize = $this->replicationHelper->getItemModifiersBatchSize();
         $sortOrder = $this->replicationHelper->getSortOrderObject();
