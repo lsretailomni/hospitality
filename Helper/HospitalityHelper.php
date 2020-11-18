@@ -2,8 +2,8 @@
 
 namespace Ls\Hospitality\Helper;
 
-use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use Ls\Replication\Model\ReplItemModifierRepository;
+use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use \Ls\Replication\Model\ReplItemModifierRepository;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
