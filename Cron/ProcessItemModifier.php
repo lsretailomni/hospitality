@@ -2,15 +2,19 @@
 
 namespace Ls\Hospitality\Cron;
 
-use Exception;
 use Ls\Core\Model\LSR;
+use Ls\Replication\Api\ReplItemModifierRepositoryInterface;
 use Ls\Replication\Helper\ReplicationHelper;
 use Ls\Replication\Logger\Logger;
-use Magento\Catalog\Api\Data\ProductInterface;
+use Ls\Replication\Model\ResourceModel\ReplItemModifier\CollectionFactory as ReplItemModifierCollectionFactory;
+use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
+use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
+use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
+use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterfaceFactory;
+use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\InputException;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Exception\StateException;
 use Magento\Store\Api\Data\StoreInterface;
 
 /**
@@ -37,14 +41,44 @@ class ProcessItemModifier
     /** @var StoreInterface $store */
     public $store;
 
+    /** @var ReplItemModifierCollectionFactory */
+    public $replItemModifierCollectionFactory;
+
+    /** @var ReplItemModifierRepositoryInterface */
+    public $replItemModifierRepositoryInterface;
+
+    /** @var ProductRepositoryInterface */
+    public $productRepository;
+
+    /** @var ProductCustomOptionInterfaceFactory */
+    public $customOptionFactory;
+
+    /** @var ProductCustomOptionRepositoryInterface */
+    public $optionRepository;
+
+    /** @var ProductCustomOptionValuesInterfaceFactory */
+    public $customOptionValueFactory;
+
     public function __construct(
         ReplicationHelper $replicationHelper,
         Logger $logger,
-        LSR $LSR
+        LSR $LSR,
+        ReplItemModifierCollectionFactory $replItemModifierCollectionFactory,
+        ReplItemModifierRepositoryInterface $replItemModifierRepositoryInterface,
+        ProductRepositoryInterface $productRepository,
+        ProductCustomOptionRepositoryInterface $optionRepository,
+        ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
+        ProductCustomOptionInterfaceFactory $customOptionFactory
     ) {
-        $this->logger            = $logger;
-        $this->replicationHelper = $replicationHelper;
-        $this->lsr               = $LSR;
+        $this->logger                              = $logger;
+        $this->replicationHelper                   = $replicationHelper;
+        $this->lsr                                 = $LSR;
+        $this->replItemModifierCollectionFactory   = $replItemModifierCollectionFactory;
+        $this->replItemModifierRepositoryInterface = $replItemModifierRepositoryInterface;
+        $this->productRepository                   = $productRepository;
+        $this->customOptionFactory                 = $customOptionFactory;
+        $this->customOptionValueFactory            = $customOptionValueFactory;
+        $this->optionRepository                    = $optionRepository;
     }
 
     /**
@@ -73,7 +107,7 @@ class ProcessItemModifier
                         $this->store->getId()
                     );
                     $this->logger->debug('Running ProcessItemModifier Task for store ' . $this->store->getName());
-                    $this->syncItemImages();
+                    $this->processItemModifiers();
                     $this->replicationHelper->updateCronStatus(
                         $this->cronStatus,
                         LSR::SC_SUCCESS_CRON_ITEM_MODIFIER,
@@ -97,94 +131,135 @@ class ProcessItemModifier
     public function executeManually($storeData = null)
     {
         $this->execute($storeData);
-        $remainingRecords = (int)$this->getRemainingRecords($storeData);
+        $remainingRecords = (int)$this->getRemainingRecords($storeData, true);
         return [$remainingRecords];
     }
 
     /**
      * @throws InputException
      */
-    public function ProcessItemModifiers()
+    public function processItemModifiers()
     {
         $batchSize = $this->replicationHelper->getItemModifiersBatchSize();
-        $sortOrder = $this->replicationHelper->getSortOrderObject();
-        /** Get Images for only those items which are already processed */
-        $filters  = [
-            ['field' => 'main_table.TableName', 'value' => 'Item%', 'condition_type' => 'like'],
-            ['field' => 'main_table.TableName', 'value' => 'Item Category', 'condition_type' => 'neq'],
+        $filters   = [
             ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
         ];
+
         $criteria = $this->replicationHelper->buildCriteriaForArrayWithAlias(
             $filters,
             $batchSize,
-            false
+            1
         );
-
-        /** @var  $collection */
-        $collection = $this->replImageLinkCollectionFactory->create();
-
-        /** we only need unique product Id's which has any images to modify */
-        $this->replicationHelper->setCollectionPropertiesPlusJoin(
+        /** @var \Ls\Replication\Model\ResourceModel\ReplItemModifier\Collection $collection */
+        $collection = $this->replItemModifierCollectionFactory->create();
+        $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
             $collection,
             $criteria,
-            'KeyValue',
+            'nav_id',
+            null,
             'catalog_product_entity',
-            'sku',
-            true,
-            true
+            'sku'
         );
-        $collection->getSelect()->order('main_table.processed ASC');
-        if ($collection->getSize() > 0) {
-            // Right now the only thing we have to do is flush all the images and do it again.
-            /** @var ReplImageLink $itemImage */
-            foreach ($collection->getItems() as $itemImage) {
-                try {
-                    $checkIsNotVariant = true;
-                    $itemSku           = $itemImage->getKeyValue();
-                    $itemSku           = str_replace(',', '-', $itemSku);
+        $dataToProcess = [];
 
-                    $explodeSku = explode("-", $itemSku);
-                    if (count($explodeSku) > 1) {
-                        $checkIsNotVariant = false;
-                    }
-                    $sku           = $explodeSku[0];
-                    $uomCodesTotal = $this->getUomCodes($sku);
-                    if (!empty($uomCodesTotal)) {
-                        if (count($uomCodesTotal[$sku]) > 1) {
-                            $uomCodesNotProcessed = $this->getNewOrUpdatedProductUoms(-1, $sku);
-                            if (count($uomCodesNotProcessed) == 0) {
-                                $this->processImages($itemImage, $sortOrder, $itemSku);
-                                $baseUnitOfMeasure = $this->replicationHelper->getBaseUnitOfMeasure($sku);
-                                foreach ($uomCodesTotal[$sku] as $uomCode) {
-                                    if ($checkIsNotVariant || $baseUnitOfMeasure != $uomCode) {
-                                        $this->processImages($itemImage, $sortOrder, $itemSku, $uomCode);
+        if ($collection->getSize() > 0) {
+            /** @var \Ls\Replication\Model\ReplItemModifier $itemModifier */
+            foreach ($collection->getItems() as $itemModifier) {
+                $dataToProcess[$itemModifier->getNavId()][$itemModifier->getCode()][$itemModifier->getSubCode()] = $itemModifier;
+            }
+
+            if (!empty($dataToProcess)) {
+                // loop against each Product.
+                foreach ($dataToProcess as $itemSKU => $optionArray) {
+                    // generate options.
+                    $productOptions = [];
+                    $this->logger->debug('For Product ID  for option is ' . $itemSKU . ' and Options are ');
+                    if (!empty($optionArray)) {
+                        // get Product Repository;
+                        /** @var  $product */
+                        try {
+                            $product = $this->productRepository->get(
+                                $itemSKU,
+                                true,
+                                $this->store->getId()
+                            );
+                            $product->setHasOptions(1);
+
+                            $product = $this->productRepository->save($product);
+                            foreach ($optionArray as $optionCode => $optionValuesArray) {
+
+                                $this->logger->debug('-- Key for option is ' . $optionCode . ' and value is ');
+                                if (!empty($optionValuesArray)) {
+
+                                    /** @var ProductCustomOptionInterface $productOption */
+                                    $productOption = $this->customOptionFactory->create();
+
+                                    $optionData = [];
+                                    /** @var \Ls\Replication\Model\ReplItemModifier $optionValueData */
+                                    foreach ($optionValuesArray as $subcode => $optionValueData) {
+                                        /** @var ProductCustomOptionValuesInterface $optionValue */
+                                        $optionValue = $this->customOptionValueFactory->create();
+                                        $optionValue->setTitle($optionValueData->getDescription())
+                                            ->setPriceType('fixed')
+                                            ->setSortOrder($subcode)
+                                            ->setPrice($optionValueData->getAmountPercent());
+                                        $optionData['values'][] = $optionValue;
+                                        if ($optionValueData->getExplanatoryHeaderText() != '') {
+                                            $optionData['title'] = $optionValueData->getExplanatoryHeaderText();
+                                        } else {
+                                            $optionData['title'] = $optionValueData->getCode();
+                                        }
+                                        $optionValueData->setProcessed(1)
+                                            ->setProcessedAt($this->replicationHelper->getDateTime())
+                                            ->setIsUpdated(0);
+
+                                        $this->replItemModifierRepositoryInterface->save($optionValueData);
+
+                                        $this->logger->debug('-- -- Code is  ' . $subcode . ' and value is ');
+                                        //$this->logger->debug(var_export($optionValueData, true));
                                     }
+                                    /**
+                                     * TODO set type dynamic based on minimum and maximum value
+                                     * set require based on minimum and maximum value
+                                     * set title based from first option text.
+                                     */
+                                    try {
+                                        $productOption->setTitle($optionData['title'])
+                                            ->setPrice('')
+                                            ->setPriceType('fixed')
+                                            ->setValues($optionData['values'])
+                                            ->setIsRequire(0)
+                                            ->setType('drop_down')
+                                            ->setProductSku($itemSKU);
+                                        $savedProductOption = $this->optionRepository->save($productOption);
+                                        $product->addOption($savedProductOption);
+
+                                    } catch (\Exception $e) {
+                                        $this->logger->debug($e->getMessage());
+                                        $this->logger->debug(
+                                            'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
+                                        );
+                                    }
+
                                 }
                             }
-                        } else {
-                            $this->processImages($itemImage, $sortOrder, $itemSku);
+                        } catch (\Exception $e) {
+                            $this->logger->debug($e->getMessage());
+                            $this->logger->debug(
+                                'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
+                            );
                         }
-                    } else {
-                        $this->processImages($itemImage, $sortOrder, $itemSku);
                     }
-                } catch (Exception $e) {
-                    $this->logger->debug(
-                        'Problem with Image Synchronization : ' . $itemImage->getKeyValue() . ' in ' . __METHOD__
-                    );
-                    $this->logger->debug($e->getMessage());
-                    $itemImage->setData('processed_at', $this->replicationHelper->getDateTime());
-                    $itemImage->setData('is_failed', 1);
-                    $itemImage->setData('processed', 1);
-                    $itemImage->setData('is_updated', 0);
-                    // @codingStandardsIgnoreLine
-                    $this->replImageLinkRepositoryInterface->save($itemImage);
+
+                    /*                    $this->logger->debug('Key is ' . $itemSKU . ' and value is ');
+                                        $this->logger->debug(var_export($optionArray, true));*/
+                    //break;
                 }
             }
             $remainingItems = (int)$this->getRemainingRecords($this->store);
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
-            $this->replicationHelper->flushByTypeCode('full_page');
         } else {
             $this->cronStatus = true;
         }
@@ -195,113 +270,31 @@ class ProcessItemModifier
      * @return int
      */
     public function getRemainingRecords(
-        $storeData
+        $storeData,
+        $forceReload = false
     ) {
-        if (!$this->remainingRecords) {
-            $filters  = [
-                ['field' => 'main_table.TableName', 'value' => 'Item%', 'condition_type' => 'like'],
-                ['field' => 'main_table.TableName', 'value' => 'Item Category', 'condition_type' => 'neq'],
-                ['field' => 'main_table.scope_id', 'value' => $storeData->getId(), 'condition_type' => 'eq']
+        if (!$this->remainingRecords || $forceReload) {
+
+            $filters = [
+                ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
             ];
-            $criteria = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+
+            $criteria   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
                 $filters,
                 -1,
-                false
+                1
             );
-            /** @var  $collection */
-            $collection = $this->replImageLinkCollectionFactory->create();
-            /** We only need sku which has any images to modify */
-            $this->replicationHelper->setCollectionPropertiesPlusJoin(
+            $collection = $this->replItemModifierCollectionFactory->create();
+            $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
                 $collection,
                 $criteria,
-                'KeyValue',
+                'nav_id',
+                null,
                 'catalog_product_entity',
-                'sku',
-                true,
-                true
+                'sku'
             );
             $this->remainingRecords = $collection->getSize();
         }
         return $this->remainingRecords;
-    }
-
-    /**
-     * @param ReplImageLinkSearchResults $imagesToUpdate
-     * @param ProductInterface $productData
-     * @throws InputException
-     * @throws LocalizedException
-     * @throws StateException
-     */
-    public function processMediaGalleryImages(
-        $imagesToUpdate, $productData
-    ) {
-        $encodedImages = [];
-        try {
-            $encodedImages = $this->getMediaGalleryEntries(
-                $imagesToUpdate->getItems()
-            );
-        } catch (Exception $e) {
-            $this->logger->debug(
-                'Problem getting encoded Images in : ' . __METHOD__
-            );
-            $this->logger->debug($e->getMessage());
-        }
-
-        if (!empty($encodedImages)) {
-            try {
-                $encodedImages = $this->convertToRequiredFormat($encodedImages);
-                $this->mediaGalleryProcessor->processMediaGallery(
-                    $productData,
-                    $encodedImages
-                );
-                $this->updateHandler->execute($productData);
-            } catch (Exception $e) {
-                $this->logger->debug(
-                    'Problem while converting the images or Gallery CreateHandler in : ' . __METHOD__
-                );
-                $this->logger->debug($e->getMessage());
-            }
-        }
-    }
-
-    /**
-     * @param $itemImage
-     * @param $sortOrder
-     * @param $itemSku
-     * @param null $uomCode
-     * @throws InputException
-     * @throws LocalizedException
-     * @throws StateException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function processImages(
-        $itemImage, $sortOrder, $itemSku, $uomCode = null
-    ) {
-        if (!empty($uomCode)) {
-            $itemSku = $itemSku . '-' . $uomCode;
-        }
-        try {
-            $productData = $this->productRepository->get($itemSku, true, $this->store->getId(), true);
-            $productData->setData('store_id', 0);
-        } catch (NoSuchEntityException $e) {
-            return;
-        }
-
-        // Check for all images.
-        $filtersForAllImages  = [
-            ['field' => 'KeyValue', 'value' => $itemImage->getKeyValue(), 'condition_type' => 'eq'],
-            ['field' => 'TableName', 'value' => $itemImage->getTableName(), 'condition_type' => 'eq'],
-            ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
-        ];
-        $criteriaForAllImages = $this->replicationHelper->buildCriteriaForDirect(
-            $filtersForAllImages,
-            -1,
-            false
-        )->setSortOrders([$sortOrder]);
-        /** @var ReplImageLinkSearchResults $newImagestoProcess */
-        $newImagesToProcess = $this->replImageLinkRepositoryInterface->getList($criteriaForAllImages);
-        if ($newImagesToProcess->getTotalCount() > 0) {
-            $this->processMediaGalleryImages($newImagesToProcess, $productData);
-        }
     }
 }
