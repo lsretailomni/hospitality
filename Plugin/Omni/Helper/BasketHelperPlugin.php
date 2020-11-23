@@ -11,6 +11,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
+use \Ls\Omni\Helper\BasketHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
@@ -37,12 +38,12 @@ class BasketHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\BasketHelper $subject
+     * @param BasketHelper $subject
      * @param Entity\OneList $list
      * @return Entity\OneList[]
      * @throws NoSuchEntityException
      */
-    public function beforeSaveToOmni(\Ls\Omni\Helper\BasketHelper $subject, Entity\OneList $list)
+    public function beforeSaveToOmni(BasketHelper $subject, Entity\OneList $list)
     {
         $industry = $subject->lsr->getCurrentIndustry();
         $list->setIsHospitality($industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY);
@@ -50,7 +51,7 @@ class BasketHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\BasketHelper $subject
+     * @param BasketHelper $subject
      * @param callable $proceed
      * @param Quote $quote
      * @param Entity\OneList $oneList
@@ -58,7 +59,7 @@ class BasketHelperPlugin
      * @throws NoSuchEntityException|InvalidEnumException
      */
     public function aroundSetOneListQuote(
-        \Ls\Omni\Helper\BasketHelper $subject,
+        BasketHelper $subject,
         callable $proceed,
         Quote $quote,
         Entity\OneList $oneList
@@ -100,13 +101,25 @@ class BasketHelperPlugin
                 $variant_id = null;
             }
             $oneListSubLinesArray = [];
-            foreach ($this->hospitalityHelper->getItemModifierGivenQuoteItem($quoteItem) as $itemModifier) {
-                $oneListSubLine         = (new Entity\OneListItemSubLine())
-                    ->setModifierGroupCode($itemModifier['ModifierGroupCode'])
-                    ->setModifierSubCode($itemModifier['ModifierSubCode'])
-                    ->setQuantity(1)
-                    ->setType(SubLineType::MODIFIER);
-                $oneListSubLinesArray[] = $oneListSubLine;
+            $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem($quoteItem);
+            if (!empty($selectedSubLines['modifier'])) {
+                foreach ($selectedSubLines['modifier'] as $subLine) {
+                    $oneListSubLine         = (new Entity\OneListItemSubLine())
+                        ->setModifierGroupCode($subLine['ModifierGroupCode'])
+                        ->setModifierSubCode($subLine['ModifierSubCode'])
+                        ->setQuantity(1)
+                        ->setType(SubLineType::MODIFIER);
+                    $oneListSubLinesArray[] = $oneListSubLine;
+                }
+            }
+            if (!empty($selectedSubLines['recipe'])) {
+                foreach ($selectedSubLines['recipe'] as $subLine) {
+                    $oneListSubLine         = (new Entity\OneListItemSubLine())
+                        ->setItemId($subLine['ItemId'])
+                        ->setQuantity(0)
+                        ->setType(SubLineType::MODIFIER);
+                    $oneListSubLinesArray[] = $oneListSubLine;
+                }
             }
             // @codingStandardsIgnoreLine
             $list_item    = (new Entity\OneListItem())
@@ -130,14 +143,14 @@ class BasketHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\BasketHelper $subject
+     * @param BasketHelper $subject
      * @param callable $proceed
      * @param Entity\OneList $oneList
      * @return Entity\OneListCalculateResponse|Entity\OneListHospCalculateResponse|Entity\Order|Entity\OrderHosp|ResponseInterface|null
      * @throws NoSuchEntityException
      * @throws InvalidEnumException
      */
-    public function aroundCalculate(\Ls\Omni\Helper\BasketHelper $subject, callable $proceed, Entity\OneList $oneList)
+    public function aroundCalculate(BasketHelper $subject, callable $proceed, Entity\OneList $oneList)
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($oneList);
@@ -208,14 +221,14 @@ class BasketHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\BasketHelper $subject
+     * @param BasketHelper $subject
      * @param callable $proceed
      * @param $item
      * @return string
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      */
-    public function aroundGetItemRowTotal(\Ls\Omni\Helper\BasketHelper $subject, callable $proceed, $item)
+    public function aroundGetItemRowTotal(BasketHelper $subject, callable $proceed, $item)
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
@@ -247,7 +260,7 @@ class BasketHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\BasketHelper $subject
+     * @param BasketHelper $subject
      * @param callable $proceed
      * @param $couponCode
      * @return Entity\OneListCalculateResponse|Entity\Order|Phrase|string
@@ -256,7 +269,7 @@ class BasketHelperPlugin
      * @throws LocalizedException
      * @throws Exception
      */
-    public function aroundSetCouponCode(\Ls\Omni\Helper\BasketHelper $subject, callable $proceed, $couponCode)
+    public function aroundSetCouponCode(BasketHelper $subject, callable $proceed, $couponCode)
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($couponCode);
