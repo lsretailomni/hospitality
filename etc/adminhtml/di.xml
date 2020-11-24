@@ -30,12 +30,12 @@
         </arguments>
     </virtualType>
 
-    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchyHospModifier\Grid\Collection"
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplItemModifier\Grid\Collection"
                  type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
-            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchy_hosp_modifier</argument>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_item_modifier</argument>
             <argument name="resourceModel" xsi:type="string">
-                Ls\Replication\Model\ResourceModel\ReplHierarchyHospModifier
+                Ls\Replication\Model\ResourceModel\ReplItemModifier
             </argument>
         </arguments>
     </virtualType>
