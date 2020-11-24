@@ -15,9 +15,9 @@ class CronsProvider
     public function afterReadCronFile(\Ls\Replication\Ui\DataProvider\CronsProvider $subject, $result)
     {
         try {
-            $filePath          = $subject->moduleDirReader->getModuleDir('etc', 'Ls_Hospitality') . '/crontab.xml';
-            $parsedArray       = $subject->parser->load($filePath)->xmlToArray();
-            $hospitalityJobs[] = $parsedArray['config']['_value']['group'];
+            $filePath        = $subject->moduleDirReader->getModuleDir('etc', 'Ls_Hospitality') . '/crontab.xml';
+            $parsedArray     = $subject->parser->load($filePath)->xmlToArray();
+            $hospitalityJobs = $parsedArray['config']['_value']['group'];
             // merge both data.
             return array_merge($hospitalityJobs, $result);
         } catch (\Exception $e) {

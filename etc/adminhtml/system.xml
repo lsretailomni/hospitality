@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="ls_mag">
+            <group id="replication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <field id="item_modifier_batch_size" translate="label" type="text" sortOrder="2" showInDefault="40"
+                       showInWebsite="0" showInStore="0">
+                    <label>Item Modifiers Batch Size</label>
+                    <comment>Select how much Modifiers you want to process in a single job</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
