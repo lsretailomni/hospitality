@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="checkout.root">
+            <arguments>
+                <argument name="jsLayout" xsi:type="array">
+                    <item name="components" xsi:type="array">
+                        <item name="checkout" xsi:type="array">
+                            <item name="children" xsi:type="array">
+                                <item name="steps" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="shipping-step" xsi:type="array">
+                                            <item name="children" xsi:type="array">
+                                                <item name="shippingAddress" xsi:type="array">
+                                                    <item name="children" xsi:type="array">
+                                                        <item name="shippingAdditional" xsi:type="array">
+                                                            <item name="component" xsi:type="string">uiComponent</item>
+                                                            <item name="displayArea" xsi:type="string">shippingAdditional</item>
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="ls-shipping-option-wrapper" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Ls_Hospitality/js/view/checkout/shipping/service-mode-shipping-option</item>
+                                                                    <item name="provider" xsi:type="string">checkoutProvider</item>
+                                                                    <item name="sortOrder" xsi:type="string">0</item>
+                                                                    <item name="children" xsi:type="array">
+                                                                        <item name="shipping-option" xsi:type="array">
+                                                                            <item name="component" xsi:type="string">uiComponent</item>
+                                                                            <item name="displayArea" xsi:type="string">additionalShippingOptionField</item>
+                                                                            <item name="children" xsi:type="array">
+                                                                                <item name="service-mode" xsi:type="array">
+                                                                                    <item name="component" xsi:type="string">Ls_Hospitality/js/view/checkout/shipping/service-mode-options</item>
+                                                                                    <item name="config" xsi:type="array">
+                                                                                        <item name="customScope" xsi:type="string">serviceModeOptions</item>
+                                                                                        <item name="id" xsi:type="string">service-mode</item>
+                                                                                        <item name="template" xsi:type="string">ui/form/field</item>
+                                                                                        <item name="elementTmpl" xsi:type="string">ui/form/element/select</item>
+                                                                                    </item>
+                                                                                    <item name="dataScope" xsi:type="string">serviceModeOption.service-mode</item>
+                                                                                    <item name="label" xsi:type="string" translate="true">Service Mode</item>
+                                                                                    <item name="provider" xsi:type="string">checkoutProvider</item>
+                                                                                    <item name="visible" xsi:type="boolean">true</item>
+                                                                                    <item name="validation" xsi:type="array">
+                                                                                        <item name="required-entry" xsi:type="boolean">true</item>
+                                                                                        <item name="validate-no-empty" xsi:type="boolean">true</item>
+                                                                                    </item>
+                                                                                    <item name="sortOrder" xsi:type="number">0</item>
+                                                                                </item>
+                                                                            </item>
+                                                                        </item>
+                                                                    </item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
+                                                    </item>
+                                                </item>
+                                            </item>
+                                        </item>
+                                    </item>
+                                </item>
+                            </item>
+                        </item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

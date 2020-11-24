@@ -75,4 +75,9 @@
         <plugin name="remove_delimiter_custom_option"
                 type="Ls\Hospitality\Plugin\Product\Type\ConfigurablePlugin"/>
     </type>
+    <!-- For Service Mode -->
+    <type name="Magento\Checkout\Model\ShippingInformationManagement">
+        <plugin name="ls_hospitality_saveServiceModeToQuote"
+                type="Ls\Hospitality\Plugin\Checkout\Model\ShippingInformationManagement"/>
+    </type>
 </config>

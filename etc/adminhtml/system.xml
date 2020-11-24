@@ -3,6 +3,20 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="ls_mag">
+            <tab>ls_retail</tab>
+            <resource>Ls_Core::config</resource>
+            <group id="service_mode" translate="label" type="text" sortOrder="100" showInWebsite="1">
+                <label>Service Mode</label>
+                <field id="status" translate="label" type="select" sortOrder="1"
+                       showInWebsite="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="options" translate="label" type="text" sortOrder="2" showInWebsite="1">
+                    <label>Service Mode Options</label>
+                    <comment>Comma separated values for e.g Dine-In,Takeaway e.t.c</comment>
+                </field>
+            </group>
             <group id="replication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
                    showInStore="1">
                 <field id="item_modifier_batch_size" translate="label" type="text" sortOrder="2" showInDefault="40"
