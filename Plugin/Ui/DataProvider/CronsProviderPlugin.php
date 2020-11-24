@@ -4,9 +4,9 @@ namespace Ls\Hospitality\Plugin\Ui\DataProvider;
 
 
 /**
- * Class ProductDataProvider
+ * Class CronsProviderPlugin
  */
-class CronsProvider
+class CronsProviderPlugin
 {
 
     /**
