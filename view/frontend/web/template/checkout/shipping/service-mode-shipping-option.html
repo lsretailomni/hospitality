@@ -1,0 +1,7 @@
+<!-- ko if: isDisplay() -->
+<div class="ls-additional-shipping-option-wrapper field _required" data-bind="visible: showAdditionalOption()" style="display: none;">
+    <!-- ko foreach: element.getRegion('additionalShippingOptionField') -->
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <!--/ko-->
+</div>
+<!-- /ko -->

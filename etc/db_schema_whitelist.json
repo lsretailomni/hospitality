@@ -1,0 +1,12 @@
+{
+    "quote": {
+        "column": {
+            "service_mode": true
+        }
+    },
+    "sales_order": {
+        "column": {
+            "service_mode": true
+        }
+    }
+}

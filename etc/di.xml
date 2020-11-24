@@ -70,4 +70,9 @@
         <plugin name="ls_hospitaity_omni_orderhelper"
                 type="Ls\Hospitality\Plugin\Omni\Helper\OrderHelper"/>
     </type>
+    <!-- For Service Mode -->
+    <type name="Magento\Checkout\Model\ShippingInformationManagement">
+        <plugin name="ls_hospitality_saveServiceModeToQuote"
+                type="Ls\Hospitality\Plugin\Checkout\Model\ShippingInformationManagement"/>
+    </type>
 </config>

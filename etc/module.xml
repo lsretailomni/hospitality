@@ -3,6 +3,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Ls_Hospitality">
         <sequence>
+            <module name="Magento_Checkout"/>
             <module name="Ls_Core"/>
             <module name="Ls_Customer"/>
             <module name="Ls_Omni"/>

@@ -1,0 +1,54 @@
+"Deal Line Replication","Deal Line Replication"
+"Deals Replication","Deals Replication"
+"Item Modifier Replication","Item Modifier Replication"
+"Recipe Replication","Recipe Replication"
+"Coupon Code is not valid for these item(s)","Coupon Code is not valid for these item(s)"
+Save,Save
+"Service Mode","Service Mode"
+"Please Select","Please Select"
+"Please select service mode for order such as dine-in or takeaway.","Please select service mode for order such as dine-in or takeaway."
+"Hospitality Grids","Hospitality Grids"
+Deals,Deals
+"Deal Line","Deal Line"
+Recipe,Recipe
+"Item Modifiers","Item Modifiers"
+Enabled,Enabled
+"Service Mode Options","Service Mode Options"
+"All Store Views","All Store Views"
+"Store View","Store View"
+Scroll,Scroll
+Store,Store
+"Deal No","Deal No"
+"Deal Line No","Deal Line No"
+"Flat to Magento","Flat to Magento"
+"Omni to Flat","Omni to Flat"
+"Failed Status","Failed Status"
+"Deleted Status","Deleted Status"
+"Deal Line Code","Deal Line Code"
+Description,Description
+"Hierarchy Code","Hierarchy Code"
+"Parent Node","Parent Node"
+"Image Id","Image Id"
+"Item No","Item No"
+"Line No","Line No"
+"Min Selection","Min Selection"
+"Max Selection","Max Selection"
+"Unit Of Measure","Unit Of Measure"
+"Variant Code","Variant Code"
+"Added Amount","Added Amount"
+"Created Date","Created Date"
+"Updated Date","Updated Date"
+"Processed Date","Processed Date"
+"Modifier Code","Modifier Code"
+"Deal ModSize Group Index","Deal ModSize Group Index"
+"Parent Item","Parent Item"
+"Always Charge","Always Charge"
+"Amount Percent","Amount Percent"
+Code,Code
+"Price Type","Price Type"
+"Sub Code","Sub Code"
+Type,Type
+"Recipe No","Recipe No"
+Exclusion,Exclusion
+ExclusionPrice,ExclusionPrice
+"Quantity Per","Quantity Per"

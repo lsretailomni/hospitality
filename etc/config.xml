@@ -6,6 +6,10 @@
             <ls_industry>
                 <ls_choose_industry>hospitality</ls_choose_industry>
             </ls_industry>
+            <service_mode>
+                <status>1</status>
+                <options>Dine-in,Takeaway</options>
+            </service_mode>
         </ls_mag>
     </default>
 </config>
