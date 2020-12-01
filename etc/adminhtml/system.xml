@@ -24,6 +24,11 @@
                     <label>Item Modifiers Batch Size</label>
                     <comment>Select how much Modifiers you want to process in a single job</comment>
                 </field>
+                <field id="item_recipe_batch_size" translate="label" type="text" sortOrder="3" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Item Recipe Batch Size</label>
+                    <comment>Select how much Recipes you want to process in a single job</comment>
+                </field>
             </group>
         </section>
     </system>
