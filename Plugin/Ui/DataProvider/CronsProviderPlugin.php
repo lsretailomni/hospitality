@@ -2,7 +2,6 @@
 
 namespace Ls\Hospitality\Plugin\Ui\DataProvider;
 
-
 /**
  * Class CronsProviderPlugin
  */

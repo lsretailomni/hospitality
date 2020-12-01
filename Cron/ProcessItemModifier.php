@@ -142,6 +142,7 @@ class ProcessItemModifier
      */
     public function processItemModifiers()
     {
+        //TODO cover the delete scenario.
         $batchSize = $this->replicationHelper->getItemModifiersBatchSize();
         $filters   = [
             ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
@@ -188,21 +189,15 @@ class ProcessItemModifier
                 foreach ($dataToProcess as $itemSKU => $optionArray) {
                     // generate options.
                     $productOptions = [];
-                    $this->logger->debug('For Product ID  for option is ' . $itemSKU . ' and Options are ');
                     if (!empty($optionArray)) {
                         // get Product Repository;
                         /** @var  $product */
                         try {
-                            $product = $this->productRepository->get(
+                            $product         = $this->productRepository->get(
                                 $itemSKU,
                                 true,
                                 $this->store->getId()
                             );
-                            /*                            if(!$product->getHasOptions()){
-                                                            // set the product to have options
-                                                        }
-                                                        $product->setHasOptions(1);
-                                                        $product         = $this->productRepository->save($product);*/
                             $existingOptions = $this->optionRepository->getProductOptions($product);
                             foreach ($optionArray as $optionCode => $optionValuesArray) {
                                 $isOptionExist         = false;
@@ -218,16 +213,11 @@ class ProcessItemModifier
                                         }
                                     }
                                 }
-                                if ($isOptionExist) {
-                                    // TODO add update/delete logic here
-                                    $this->logger->debug('!!--' . $optionCode . ' Aready exist');
-                                } else {
-                                    // Create new object instead
+                                if (!$isOptionExist) {
                                     /** @var ProductCustomOptionInterface $productOption */
                                     $productOption = $this->customOptionFactory->create();
-                                    $this->logger->debug('--' . $optionCode . ' not exist');
                                 }
-                                $this->logger->debug('-- Key for option is ' . $optionCode . ' and value is ');
+                                $optionNeedsToBeUpdated = false;
                                 if (!empty($optionValuesArray)) {
 
                                     $optionData = [];
@@ -240,7 +230,6 @@ class ProcessItemModifier
                                         } else {
                                             $title = $optionValueData->getCode();
                                         }
-
                                         /**
                                          * Dev Notes:
                                          * For the Option Values, we are only checking the duplication based on title.
@@ -255,7 +244,8 @@ class ProcessItemModifier
                                             }
                                         }
                                         if (!$isOptionValueExist) {
-                                            $optionValue = $this->customOptionValueFactory->create();
+                                            $optionNeedsToBeUpdated = true;
+                                            $optionValue            = $this->customOptionValueFactory->create();
                                             $optionValue->setTitle($optionValueData->getDescription())
                                                 ->setPriceType('fixed')
                                                 ->setSortOrder($subcode)
@@ -269,8 +259,6 @@ class ProcessItemModifier
                                             ->setIsUpdated(0);
 
                                         $this->replItemModifierRepositoryInterface->save($optionValueData);
-
-                                        $this->logger->debug('-- -- Code is  ' . $subcode . ' and value is ');
                                         //$this->logger->debug(var_export($optionValueData, true));
                                     }
                                     /**
@@ -278,40 +266,37 @@ class ProcessItemModifier
                                      * set require based on minimum and maximum value
                                      * set title based from first option text.
                                      */
-                                    try {
-                                        // check if Option
-                                        //TODO fix the ls_modifier_recipe_id
-                                        $productOption->setTitle($optionData['title'])
-                                            ->setPrice('')
-                                            ->setPriceType('fixed')
-                                            ->setValues($optionData['values'])
-                                            ->setIsRequire(0)
-                                            ->setType('drop_down')
-                                            ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
-                                            ->setProductSku($itemSKU);
-                                        $savedProductOption = $this->optionRepository->save($productOption);
-                                        $product->addOption($savedProductOption);
+                                    if ($optionNeedsToBeUpdated) {
+                                        try {
+                                            // check if Option
+                                            $productOption->setTitle($optionData['title'])
+                                                ->setPrice('')
+                                                ->setPriceType('fixed')
+                                                ->setValues($optionData['values'])
+                                                ->setIsRequire(0)
+                                                ->setType('drop_down')
+                                                ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
+                                                ->setProductSku($itemSKU);
+                                            $savedProductOption = $this->optionRepository->save($productOption);
+                                            $product->addOption($savedProductOption);
 
-                                    } catch (\Exception $e) {
-                                        $this->logger->debug($e->getMessage());
-                                        $this->logger->debug(
-                                            'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
-                                        );
+                                        } catch (\Exception $e) {
+                                            $this->logger->error($e->getMessage());
+                                            $this->logger->error(
+                                                'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
+                                            );
+                                        }
                                     }
 
                                 }
                             }
                         } catch (\Exception $e) {
-                            $this->logger->debug($e->getMessage());
-                            $this->logger->debug(
+                            $this->logger->error($e->getMessage());
+                            $this->logger->error(
                                 'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
                             );
                         }
                     }
-
-                    /*                    $this->logger->debug('Key is ' . $itemSKU . ' and value is ');
-                                        $this->logger->debug(var_export($optionArray, true));*/
-                    //break;
                 }
             }
             $remainingItems = (int)$this->getRemainingRecords($this->store);

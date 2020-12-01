@@ -32,5 +32,4 @@ interface ProductCustomOptionInterface extends ParentProductCustomOptionInterfac
      * @return $this
      */
     public function setLsModifierRecipeId($lsModifierRecipeId);
-    
 }
