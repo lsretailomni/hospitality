@@ -59,6 +59,8 @@ class ProcessItemModifier
     /** @var ProductCustomOptionValuesInterfaceFactory */
     public $customOptionValueFactory;
 
+    public static $triggerFunctionToSkip = ['Infocode'];
+
     public function __construct(
         ReplicationHelper $replicationHelper,
         Logger $logger,
@@ -165,7 +167,13 @@ class ProcessItemModifier
         if ($collection->getSize() > 0) {
             /** @var \Ls\Replication\Model\ReplItemModifier $itemModifier */
             foreach ($collection->getItems() as $itemModifier) {
-                $dataToProcess[$itemModifier->getNavId()][$itemModifier->getCode()][$itemModifier->getSubCode()] = $itemModifier;
+                /**
+                 * There are types of Modifiers which we dont need to process
+                 * i-e All modifiers whose TriggerFunction = Infocode
+                 **/
+                if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
+                    $dataToProcess[$itemModifier->getNavId()][$itemModifier->getCode()][$itemModifier->getSubCode()] = $itemModifier;
+                }
             }
 
             if (!empty($dataToProcess)) {
