@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Cron;
 
-use Ls\Core\Model\LSR;
+use Ls\Hospitality\Model\LSR;
 use Ls\Replication\Api\ReplItemModifierRepositoryInterface;
 use Ls\Replication\Helper\ReplicationHelper;
 use Ls\Replication\Logger\Logger;
@@ -173,6 +173,13 @@ class ProcessItemModifier
                  **/
                 if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
                     $dataToProcess[$itemModifier->getNavId()][$itemModifier->getCode()][$itemModifier->getSubCode()] = $itemModifier;
+                } else {
+                    // close these values as we will not process those because of InfoCodes
+                    $itemModifier->setProcessed(1)
+                        ->setProcessedAt($this->replicationHelper->getDateTime())
+                        ->setIsUpdated(0);
+
+                    $this->replItemModifierRepositoryInterface->save($itemModifier);
                 }
             }
 
@@ -191,32 +198,72 @@ class ProcessItemModifier
                                 true,
                                 $this->store->getId()
                             );
-                            $product->setHasOptions(1);
-
-                            $product = $this->productRepository->save($product);
+                            /*                            if(!$product->getHasOptions()){
+                                                            // set the product to have options
+                                                        }
+                                                        $product->setHasOptions(1);
+                                                        $product         = $this->productRepository->save($product);*/
+                            $existingOptions = $this->optionRepository->getProductOptions($product);
                             foreach ($optionArray as $optionCode => $optionValuesArray) {
-
-                                $this->logger->debug('-- Key for option is ' . $optionCode . ' and value is ');
-                                if (!empty($optionValuesArray)) {
-
+                                $isOptionExist         = false;
+                                $ls_modifier_recipe_id = $this->replicationHelper->formatMidifier(
+                                    LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode
+                                );
+                                if (!empty($existingOptions)) {
+                                    foreach ($existingOptions as $existingOption) {
+                                        if ($existingOption->getData('ls_modifier_recipe_id') == $ls_modifier_recipe_id) {
+                                            $isOptionExist = true;
+                                            $productOption = $existingOption;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if ($isOptionExist) {
+                                    // TODO add update/delete logic here
+                                    $this->logger->debug('!!--' . $optionCode . ' Aready exist');
+                                } else {
+                                    // Create new object instead
                                     /** @var ProductCustomOptionInterface $productOption */
                                     $productOption = $this->customOptionFactory->create();
+                                    $this->logger->debug('--' . $optionCode . ' not exist');
+                                }
+                                $this->logger->debug('-- Key for option is ' . $optionCode . ' and value is ');
+                                if (!empty($optionValuesArray)) {
 
                                     $optionData = [];
                                     /** @var \Ls\Replication\Model\ReplItemModifier $optionValueData */
                                     foreach ($optionValuesArray as $subcode => $optionValueData) {
+                                        $existingOptionValues = $productOption->getValues();
                                         /** @var ProductCustomOptionValuesInterface $optionValue */
-                                        $optionValue = $this->customOptionValueFactory->create();
-                                        $optionValue->setTitle($optionValueData->getDescription())
-                                            ->setPriceType('fixed')
-                                            ->setSortOrder($subcode)
-                                            ->setPrice($optionValueData->getAmountPercent());
-                                        $optionData['values'][] = $optionValue;
                                         if ($optionValueData->getExplanatoryHeaderText() != '') {
-                                            $optionData['title'] = $optionValueData->getExplanatoryHeaderText();
+                                            $title = $optionValueData->getExplanatoryHeaderText();
                                         } else {
-                                            $optionData['title'] = $optionValueData->getCode();
+                                            $title = $optionValueData->getCode();
                                         }
+
+                                        /**
+                                         * Dev Notes:
+                                         * For the Option Values, we are only checking the duplication based on title.
+                                         */
+                                        $isOptionValueExist = false;
+                                        if (!empty($existingOptionValues)) {
+                                            foreach ($existingOptionValues as $existingOptionValue) {
+                                                if ($existingOptionValue->getTitle() == $optionValueData->getDescription()) {
+                                                    $isOptionValueExist = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (!$isOptionValueExist) {
+                                            $optionValue = $this->customOptionValueFactory->create();
+                                            $optionValue->setTitle($optionValueData->getDescription())
+                                                ->setPriceType('fixed')
+                                                ->setSortOrder($subcode)
+                                                ->setPrice($optionValueData->getAmountPercent());
+                                            $optionData['values'][] = $optionValue;
+                                            $optionData['title']    = $title;
+                                        }
+
                                         $optionValueData->setProcessed(1)
                                             ->setProcessedAt($this->replicationHelper->getDateTime())
                                             ->setIsUpdated(0);
@@ -232,12 +279,15 @@ class ProcessItemModifier
                                      * set title based from first option text.
                                      */
                                     try {
+                                        // check if Option
+                                        //TODO fix the ls_modifier_recipe_id
                                         $productOption->setTitle($optionData['title'])
                                             ->setPrice('')
                                             ->setPriceType('fixed')
                                             ->setValues($optionData['values'])
                                             ->setIsRequire(0)
                                             ->setType('drop_down')
+                                            ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
                                             ->setProductSku($itemSKU);
                                         $savedProductOption = $this->optionRepository->save($productOption);
                                         $product->addOption($savedProductOption);
