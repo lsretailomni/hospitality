@@ -2,10 +2,11 @@
 
 namespace Ls\Hospitality\Helper;
 
-use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use \Ls\Replication\Model\ReplHierarchyHospRecipeRepository;
-use \Ls\Replication\Model\ReplItemModifierRepository;
+use Ls\Hospitality\Model\LSR;
+use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
+use Ls\Replication\Model\ReplHierarchyHospRecipeRepository;
+use Ls\Replication\Model\ReplItemModifierRepository;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
@@ -41,6 +42,9 @@ class HospitalityHelper extends AbstractHelper
      */
     public $recipeRepository;
 
+    /** @var ReplItemUnitOfMeasure */
+    public $replItemUomRepository;
+
     /**
      * HospitalityHelper constructor.
      * @param Context $context
@@ -56,7 +60,8 @@ class HospitalityHelper extends AbstractHelper
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ProductRepository $productRepository,
         ReplItemModifierRepository $itemModifierRepository,
-        ReplHierarchyHospRecipeRepository $recipeRepository
+        ReplHierarchyHospRecipeRepository $recipeRepository,
+        ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
     ) {
         parent::__construct($context);
         $this->configurationHelper    = $configurationHelper;
@@ -64,6 +69,7 @@ class HospitalityHelper extends AbstractHelper
         $this->productRepository      = $productRepository;
         $this->itemModifierRepository = $itemModifierRepository;
         $this->recipeRepository       = $recipeRepository;
+        $this->replItemUomRepository  = $replItemUnitOfMeasureRepository;
     }
 
     /**
@@ -81,25 +87,38 @@ class HospitalityHelper extends AbstractHelper
         /** @var Interceptor $product */
         $product = array_pop($productList);
 
-        $uom                        = $product->getData('uom');
-        $itemSku                    = explode("-", $sku);
-        $lsrId                      = $itemSku[0];
+        $uom = $product->getAttributeText('lsr_uom');
+
+        /**
+         * Business Logic ***
+         * For configurable based products, we are storing values based on UoM Description
+         * However in the Modifiers, we are storing data based on UoM Code.
+         * So in order to have a proper filter, we need to check if UoM is not empty then get the Code for specific item
+         * based on description.
+         */
+
+        // get UoM Code by Description.
+        $itemSku = explode("-", $sku);
+        $lsrId   = $itemSku[0];
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
         $selectedOrderHospSubLine   = [];
         foreach ($selectedOptionsOfQuoteItem as $option) {
-            $itemSubLineCode = $option['label'];
-            $decodedValue    = htmlspecialchars_decode($option['value']);
+            if (isset($option['ls_modifier_recipe_id'])) {
+                $itemSubLineCode = $option['ls_modifier_recipe_id'];
+            } else {
+                $itemSubLineCode = $option['label'];
+            }
+            $decodedValue = htmlspecialchars_decode($option['value']);
             foreach (array_map('trim', explode(',', $decodedValue)) as $optionValue) {
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
                     $recipe = $this->getRecipe($lsrId, $optionValue);
                     if (!empty($recipe)) {
                         $itemId                               = reset($recipe)->getItemNo();
-                        $selectedOrderHospSubLine['recipe'][] =
-                            ['ItemId' => $itemId];
+                        $selectedOrderHospSubLine['recipe'][] = ['ItemId' => $itemId];
                     }
                 } else {
-                    $formattedItemSubLineCode = $this->getItemSubLineCode($option['label']);
-                    $itemModifier    = $this->getItemModifier(
+                    $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
+                    $itemModifier             = $this->getItemModifier(
                         $lsrId,
                         $formattedItemSubLineCode,
                         $optionValue,
@@ -190,7 +209,7 @@ class HospitalityHelper extends AbstractHelper
     public function getItemSubLineCode($label)
     {
         $subString = explode(LSR::LSR_ITEM_MODIFIER_PREFIX, $label);
-        return strtoupper(str_replace("_", " ", end($subString)));
+        return end($subString);
     }
 
     /**
@@ -202,15 +221,40 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getItemModifier($navId, $code, $value, $uom)
     {
+        // removing this for now.
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
+            ->addFilter('Description', $value)
+            ->addFilter('Code', $code);
+        if ($uom) {
+            $searchCriteria->addFilter('UnitOfMeasure', $uom);
+        }
         $itemModifier = $this->itemModifierRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
-                ->addFilter('Code', $code)
-                ->addFilter('Description', $value)
-                ->addFilter('UnitOfMeasure', $uom)
-                ->setPageSize(1)->setCurrentPage(1)
+            $searchCriteria->setPageSize(1)
+                ->setCurrentPage(1)
                 ->create()
         );
         return $itemModifier->getItems();
+    }
+
+    /**
+     * @param $navId
+     * @param $code
+     * @param $value
+     * @param $uom
+     * @return mixed
+     */
+    public function getUoMCodeByDescription($navId, $description)
+    {
+        // removing this for now.
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('ItemId', $navId)
+            ->addFilter('Description', $description);
+        $itemUom = $this->replItemUomRepository->getList(
+            $searchCriteria->setPageSize(1)
+                ->setCurrentPage(1)
+                ->create()
+        );
+
+        return $itemUom->getItems();
     }
 
     /**
