@@ -6,6 +6,10 @@
             <ls_industry>
                 <ls_choose_industry>hospitality</ls_choose_industry>
             </ls_industry>
+            <replication>
+                <item_modifier_batch_size>200</item_modifier_batch_size>
+                <item_recipe_batch_size>200</item_recipe_batch_size>
+            </replication>
             <service_mode>
                 <status>1</status>
                 <options>Dine-in,Takeaway</options>

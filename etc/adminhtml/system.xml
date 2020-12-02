@@ -17,6 +17,19 @@
                     <comment>Comma separated values for e.g Dine-In,Takeaway e.t.c</comment>
                 </field>
             </group>
+            <group id="replication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <field id="item_modifier_batch_size" translate="label" type="text" sortOrder="2" showInDefault="40"
+                       showInWebsite="0" showInStore="0">
+                    <label>Item Modifiers Batch Size</label>
+                    <comment>Select how much Modifiers you want to process in a single job</comment>
+                </field>
+                <field id="item_recipe_batch_size" translate="label" type="text" sortOrder="3" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Item Recipe Batch Size</label>
+                    <comment>Select how much Recipes you want to process in a single job</comment>
+                </field>
+            </group>
         </section>
     </system>
 </config>

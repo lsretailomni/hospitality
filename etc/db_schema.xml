@@ -7,4 +7,10 @@
     <table name="sales_order" resource="sales" engine="innodb" comment="Sales Flat Order">
         <column xsi:type="text" name="service_mode" nullable="true" comment="Service Mode"/>
     </table>
+    <table name="catalog_product_option" resource="default" engine="innodb" comment="Catalog Product Option Table">
+        <column xsi:type="varchar" name="ls_modifier_recipe_id" nullable="true" length="100" comment="Combination of LS Modifier and Recipe ID"/>
+        <index referenceId="LS_CATALOG_PRODUCT_OPTION_MODIFIER_ID" indexType="btree">
+            <column name="ls_modifier_recipe_id"/>
+        </index>
+    </table>
 </schema>
