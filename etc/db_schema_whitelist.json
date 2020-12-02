@@ -8,5 +8,13 @@
         "column": {
             "service_mode": true
         }
+    },
+    "catalog_product_option": {
+        "column": {
+            "ls_modifier_recipe_id": true
+        },
+        "index": {
+            "CATALOG_PRODUCT_OPTION_LS_MODIFIER_RECIPE_ID": true
+        }
     }
 }
