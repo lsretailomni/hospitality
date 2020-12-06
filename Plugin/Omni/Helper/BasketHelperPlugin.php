@@ -91,6 +91,7 @@ class BasketHelperPlugin
 
             $barcode = $product->getData('barcode');
 
+            /** TODO this is wrong, the data should be coming from lsr_uom not uom */
             $uom   = $product->getData('uom');
             $parts = explode('-', $sku);
             // first element is lsr_id

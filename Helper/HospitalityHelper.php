@@ -87,7 +87,9 @@ class HospitalityHelper extends AbstractHelper
         /** @var Interceptor $product */
         $product = array_pop($productList);
 
-        $uom = $product->getAttributeText('lsr_uom');
+        $uom     = $product->getAttributeText('lsr_uom');
+        $itemSku = explode("-", $sku);
+        $lsrId   = $itemSku[0];
 
         /**
          * Business Logic ***
@@ -96,10 +98,14 @@ class HospitalityHelper extends AbstractHelper
          * So in order to have a proper filter, we need to check if UoM is not empty then get the Code for specific item
          * based on description.
          */
-
-        // get UoM Code by Description.
-        $itemSku = explode("-", $sku);
-        $lsrId   = $itemSku[0];
+        $uoMCode = null;
+        if ($uom) {
+            // only try if UoM is not null
+            // get UoM code based on Description
+            $uoMCode = $this->getUoMCodeByDescription($lsrId, $uom);
+        }
+        // if found UoM code by description then replace else continue.
+        $uom                        = $uoMCode ? $uoMCode : $uom;
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
         $selectedOrderHospSubLine   = [];
         foreach ($selectedOptionsOfQuoteItem as $option) {
@@ -248,13 +254,15 @@ class HospitalityHelper extends AbstractHelper
         // removing this for now.
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('ItemId', $navId)
             ->addFilter('Description', $description);
-        $itemUom = $this->replItemUomRepository->getList(
+        $itemUom        = $this->replItemUomRepository->getList(
             $searchCriteria->setPageSize(1)
                 ->setCurrentPage(1)
                 ->create()
         );
-
-        return $itemUom->getItems();
+        if ($itemUom->getTotalCount() > 0) {
+            return $itemUom->getItems()[0]->getCode();
+        }
+        return null;
     }
 
     /**
