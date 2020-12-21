@@ -3,7 +3,7 @@
 ## Compatibility (In Progress)
 1. Magento Commerce/Enterprise 2.3.5 - 2.4.1
 2. LS Central 16.x - 17.x
-3. LS Omni 4.11.x - 4.12.x
+3. LS Omni 4.11.x - 4.13.x
 
 ## Installation (In Progress):
 
