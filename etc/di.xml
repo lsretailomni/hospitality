@@ -80,4 +80,11 @@
         <plugin name="ls_hospitality_saveServiceModeToQuote"
                 type="Ls\Hospitality\Plugin\Checkout\Model\ShippingInformationManagement"/>
     </type>
+
+    <!-- To return ls_modifier_recipe_id in the options data. -->
+    <type name="Magento\Catalog\Helper\Product\Configuration">
+        <plugin name="ls_hospitality_return_ls_modifier_recipe_id"
+                type="Ls\Hospitality\Plugin\Catalog\Helper\Product\ConfigurationPlugin"/>
+    </type>
+
 </config>

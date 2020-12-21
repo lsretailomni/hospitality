@@ -201,9 +201,7 @@ class ProcessItemModifier
                             $existingOptions = $this->optionRepository->getProductOptions($product);
                             foreach ($optionArray as $optionCode => $optionValuesArray) {
                                 $isOptionExist         = false;
-                                $ls_modifier_recipe_id = $this->replicationHelper->formatMidifier(
-                                    LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode
-                                );
+                                $ls_modifier_recipe_id = LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode;
                                 if (!empty($existingOptions)) {
                                     foreach ($existingOptions as $existingOption) {
                                         if ($existingOption->getData('ls_modifier_recipe_id') == $ls_modifier_recipe_id) {
