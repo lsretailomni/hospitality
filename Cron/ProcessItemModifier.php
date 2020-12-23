@@ -2,11 +2,11 @@
 
 namespace Ls\Hospitality\Cron;
 
-use Ls\Hospitality\Model\LSR;
-use Ls\Replication\Api\ReplItemModifierRepositoryInterface;
-use Ls\Replication\Helper\ReplicationHelper;
-use Ls\Replication\Logger\Logger;
-use Ls\Replication\Model\ResourceModel\ReplItemModifier\CollectionFactory as ReplItemModifierCollectionFactory;
+use \Ls\Hospitality\Model\LSR;
+use \Ls\Replication\Api\ReplItemModifierRepositoryInterface;
+use \Ls\Replication\Helper\ReplicationHelper;
+use \Ls\Replication\Logger\Logger;
+use \Ls\Replication\Model\ResourceModel\ReplItemModifier\CollectionFactory as ReplItemModifierCollectionFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
@@ -61,6 +61,18 @@ class ProcessItemModifier
 
     public static $triggerFunctionToSkip = ['Infocode'];
 
+    /**
+     * ProcessItemModifier constructor.
+     * @param ReplicationHelper $replicationHelper
+     * @param Logger $logger
+     * @param LSR $LSR
+     * @param ReplItemModifierCollectionFactory $replItemModifierCollectionFactory
+     * @param ReplItemModifierRepositoryInterface $replItemModifierRepositoryInterface
+     * @param ProductRepositoryInterface $productRepository
+     * @param ProductCustomOptionRepositoryInterface $optionRepository
+     * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
+     * @param ProductCustomOptionInterfaceFactory $customOptionFactory
+     */
     public function __construct(
         ReplicationHelper $replicationHelper,
         Logger $logger,
@@ -85,8 +97,7 @@ class ProcessItemModifier
 
     /**
      * @param null $storeData
-     * @throws InputException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function execute($storeData = null)
     {
@@ -127,7 +138,6 @@ class ProcessItemModifier
     /**
      * @param null $storeData
      * @return array
-     * @throws InputException
      * @throws NoSuchEntityException
      */
     public function executeManually($storeData = null)
@@ -138,7 +148,7 @@ class ProcessItemModifier
     }
 
     /**
-     * @throws InputException
+     * Item modifier processing
      */
     public function processItemModifiers()
     {
@@ -308,6 +318,7 @@ class ProcessItemModifier
 
     /**
      * @param $storeData
+     * @param false $forceReload
      * @return int
      */
     public function getRemainingRecords(

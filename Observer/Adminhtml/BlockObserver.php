@@ -38,7 +38,6 @@ class BlockObserver implements ObserverInterface
             if ($order->getShippingMethod() != 'clickandcollect_clickandcollect') {
                 return $this;
             }
-
             $serviceMode = $this->coreTemplate
                 ->setServiceMode($order->getServiceMode())
                 ->setTemplate('Ls_Hospitality::order/view/service-mode.phtml')
