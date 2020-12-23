@@ -4,7 +4,6 @@ namespace Ls\Hospitality\Observer\Adminhtml;
 
 use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\View\Element\Template;
 
 /**
@@ -44,7 +43,7 @@ class BlockObserver implements ObserverInterface
                 ->setServiceMode($order->getServiceMode())
                 ->setTemplate('Ls_Hospitality::order/view/service-mode.phtml')
                 ->toHtml();
-            $html        = $observer->getTransport()->getOutput().$serviceMode;
+            $html        = $observer->getTransport()->getOutput() . $serviceMode;
             $observer->getTransport()->setOutput($html);
         }
     }
