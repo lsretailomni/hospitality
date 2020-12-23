@@ -65,7 +65,7 @@ class BasketHelperPlugin
         Entity\OneList $oneList
     ) {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($oneList);
+            return $proceed($quote, $oneList);
         }
 
         $quoteItems = $quote->getAllVisibleItems();
