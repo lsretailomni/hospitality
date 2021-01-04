@@ -10,4 +10,9 @@
             </argument>
         </arguments>
     </type>
+
+    <!-- For Service Mode  -->
+    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+        <plugin name="hosp_checkout_layout_processor" type="Ls\Hospitality\Plugin\Checkout\Model\LayoutProcessorPlugin" sortOrder="1"/>
+    </type>
 </config>
