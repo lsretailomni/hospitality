@@ -2,11 +2,11 @@
 
 namespace Ls\Hospitality\Cron;
 
-use Ls\Hospitality\Model\LSR;
-use Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface;
-use Ls\Replication\Helper\ReplicationHelper;
-use Ls\Replication\Logger\Logger;
-use Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\CollectionFactory as ReplHierarchyHospRecipeCollectionFactory;
+use \Ls\Hospitality\Model\LSR;
+use \Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface;
+use \Ls\Replication\Helper\ReplicationHelper;
+use \Ls\Replication\Logger\Logger;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\CollectionFactory as ReplHierarchyHospRecipeCollectionFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterfaceFactory;
@@ -58,6 +58,18 @@ class ProcessItemRecipe
     /** @var ProductCustomOptionValuesInterfaceFactory */
     public $customOptionValueFactory;
 
+    /**
+     * ProcessItemRecipe constructor.
+     * @param ReplicationHelper $replicationHelper
+     * @param Logger $logger
+     * @param LSR $LSR
+     * @param ReplHierarchyHospRecipeCollectionFactory $replHierarchyHospRecipeCollectionFactory
+     * @param ReplHierarchyHospRecipeRepositoryInterface $replHierarchyHospRecipeRepositoryInterface
+     * @param ProductRepositoryInterface $productRepository
+     * @param ProductCustomOptionRepositoryInterface $optionRepository
+     * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
+     * @param ProductCustomOptionInterfaceFactory $customOptionFactory
+     */
     public function __construct(
         ReplicationHelper $replicationHelper,
         Logger $logger,
@@ -83,7 +95,7 @@ class ProcessItemRecipe
     /**
      * @param null $storeData
      * @throws InputException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function execute($storeData = null)
     {
@@ -135,7 +147,7 @@ class ProcessItemRecipe
     }
 
     /**
-     * @throws InputException
+     * Item Recipies processing
      */
     public function processItemRecipies()
     {
@@ -283,6 +295,7 @@ class ProcessItemRecipe
 
     /**
      * @param $storeData
+     * @param false $forceReload
      * @return int
      */
     public function getRemainingRecords(

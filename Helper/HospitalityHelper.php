@@ -2,11 +2,11 @@
 
 namespace Ls\Hospitality\Helper;
 
-use Ls\Hospitality\Model\LSR;
-use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
-use Ls\Replication\Model\ReplHierarchyHospRecipeRepository;
-use Ls\Replication\Model\ReplItemModifierRepository;
+use \Ls\Hospitality\Model\LSR;
+use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
+use \Ls\Replication\Model\ReplHierarchyHospRecipeRepository;
+use \Ls\Replication\Model\ReplItemModifierRepository;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
@@ -53,6 +53,7 @@ class HospitalityHelper extends AbstractHelper
      * @param ProductRepository $productRepository
      * @param ReplItemModifierRepository $itemModifierRepository
      * @param ReplHierarchyHospRecipeRepository $recipeRepository
+     * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
      */
     public function __construct(
         Context $context,
@@ -244,10 +245,8 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * @param $navId
-     * @param $code
-     * @param $value
-     * @param $uom
-     * @return mixed
+     * @param $description
+     * @return |null
      */
     public function getUoMCodeByDescription($navId, $description)
     {

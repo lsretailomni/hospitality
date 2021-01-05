@@ -1,19 +1,25 @@
 <?php
-/**
- * Copyright © 2020 LS Retail ehf. All rights reserved.
- * See COPYING.txt for license details.
- * @author: Zeeshan Khuwaja <zeeshan.khuwaja@lsretail.com>
- */
 
 namespace Ls\Hospitality\Plugin\Catalog\Helper\Product;
 
-use Ls\Hospitality\Model\LSR as LSRModel;
+use \Ls\Hospitality\Model\LSR as LSRModel;
+use Magento\Catalog\Helper\Product\Configuration;
+use Magento\Catalog\Model\Product\Configuration\Item\ItemInterface;
+use Magento\Catalog\Model\Product\Option\Type\DefaultType;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 
+/**
+ * ConfigurationPlugin to add after plugin
+ */
 class ConfigurationPlugin
 {
 
+    /**
+     * @var LSRModel
+     */
     public $lsr;
 
     /** @var */
@@ -27,10 +33,18 @@ class ConfigurationPlugin
         $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
     }
 
+    /**
+     * @param Configuration $subject
+     * @param $result
+     * @param ItemInterface $item
+     * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function afterGetCustomOptions(
-        \Magento\Catalog\Helper\Product\Configuration $subject,
+        Configuration $subject,
         $result,
-        \Magento\Catalog\Model\Product\Configuration\Item\ItemInterface $item
+        ItemInterface $item
     ) {
         if (!$this->lsr->isHospitalityStore()) {
             return $result;
@@ -44,7 +58,7 @@ class ConfigurationPlugin
                 $option = $product->getOptionById($optionId);
                 if ($option) {
                     $itemOption = $item->getOptionByCode('option_' . $option->getId());
-                    /** @var $group \Magento\Catalog\Model\Product\Option\Type\DefaultType */
+                    /** @var $group DefaultType */
                     $group = $option->groupFactory($option->getType())
                         ->setOption($option)
                         ->setConfigurationItem($item)
@@ -84,5 +98,4 @@ class ConfigurationPlugin
 
         return $options;
     }
-
 }

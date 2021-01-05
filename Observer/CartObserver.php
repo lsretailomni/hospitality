@@ -6,12 +6,18 @@ use Exception;
 use \Ls\Core\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\OneList;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * CartObserver Observer
  */
 class CartObserver extends \Ls\Omni\Observer\CartObserver
 {
+    /**
+     * @param Observer $observer
+     * @return $this|CartObserver|void
+     * @throws NoSuchEntityException
+     */
     public function execute(Observer $observer)
     {
         /*
