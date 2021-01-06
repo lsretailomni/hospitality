@@ -13,7 +13,6 @@ use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterfaceFactory;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
 
@@ -111,8 +110,8 @@ class ProcessItemModifier
             foreach ($stores as $store) {
                 $this->lsr->setStoreId($store->getId());
                 $this->store = $store;
-                if ($this->lsr->isLSR($this->store->getId()
-                    && $this->lsr->isHospitalityStore($store->getId()))
+                if ($this->lsr->isLSR($this->store->getId())
+                    && $this->lsr->isHospitalityStore($store->getId())
                 ) {
                     $this->replicationHelper->updateConfigValue(
                         $this->replicationHelper->getDateTime(),
@@ -209,6 +208,10 @@ class ProcessItemModifier
                                 $this->store->getId()
                             );
                             $existingOptions = $this->optionRepository->getProductOptions($product);
+                            if (!$product->getHasOptions()) {
+                                $product->setHasOptions(1);
+                                $product = $this->productRepository->save($product);
+                            }
                             foreach ($optionArray as $optionCode => $optionValuesArray) {
                                 $isOptionExist         = false;
                                 $ls_modifier_recipe_id = LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode;

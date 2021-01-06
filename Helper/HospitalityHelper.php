@@ -5,7 +5,7 @@ namespace Ls\Hospitality\Helper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
-use \Ls\Replication\Model\ReplHierarchyHospRecipeRepository;
+use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ReplItemModifierRepository;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
@@ -38,7 +38,7 @@ class HospitalityHelper extends AbstractHelper
     public $itemModifierRepository;
 
     /**
-     * @var ReplHierarchyHospRecipeRepository
+     * @var ReplItemRecipeRepository
      */
     public $recipeRepository;
 
@@ -52,7 +52,7 @@ class HospitalityHelper extends AbstractHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ProductRepository $productRepository
      * @param ReplItemModifierRepository $itemModifierRepository
-     * @param ReplHierarchyHospRecipeRepository $recipeRepository
+     * @param ReplItemRecipeRepository $recipeRepository
      * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
      */
     public function __construct(
@@ -61,7 +61,7 @@ class HospitalityHelper extends AbstractHelper
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ProductRepository $productRepository,
         ReplItemModifierRepository $itemModifierRepository,
-        ReplHierarchyHospRecipeRepository $recipeRepository,
+        ReplItemRecipeRepository $recipeRepository,
         ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
     ) {
         parent::__construct($context);
