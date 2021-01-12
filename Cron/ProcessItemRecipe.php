@@ -3,10 +3,10 @@
 namespace Ls\Hospitality\Cron;
 
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface;
+use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Logger\Logger;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\CollectionFactory as ReplHierarchyHospRecipeCollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplItemRecipe\CollectionFactory as ReplItemRecipeCollectionFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterfaceFactory;
@@ -40,11 +40,11 @@ class ProcessItemRecipe
     /** @var StoreInterface $store */
     public $store;
 
-    /** @var ReplHierarchyHospRecipeCollectionFactory */
-    public $replHierarchyHospRecipeCollectionFactory;
+    /** @var ReplItemRecipeCollectionFactory */
+    public $replItemRecipeCollectionFactory;
 
-    /** @var ReplHierarchyHospRecipeRepositoryInterface */
-    public $replHierarchyHospRecipeRepositoryInterface;
+    /** @var ReplItemRecipeRepositoryInterface */
+    public $replItemRecipeRepositoryInterface;
 
     /** @var ProductRepositoryInterface */
     public $productRepository;
@@ -63,8 +63,8 @@ class ProcessItemRecipe
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
      * @param LSR $LSR
-     * @param ReplHierarchyHospRecipeCollectionFactory $replHierarchyHospRecipeCollectionFactory
-     * @param ReplHierarchyHospRecipeRepositoryInterface $replHierarchyHospRecipeRepositoryInterface
+     * @param ReplItemRecipeCollectionFactory $replItemRecipeCollectionFactory
+     * @param ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface
      * @param ProductRepositoryInterface $productRepository
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
@@ -74,8 +74,8 @@ class ProcessItemRecipe
         ReplicationHelper $replicationHelper,
         Logger $logger,
         LSR $LSR,
-        ReplHierarchyHospRecipeCollectionFactory $replHierarchyHospRecipeCollectionFactory,
-        ReplHierarchyHospRecipeRepositoryInterface $replHierarchyHospRecipeRepositoryInterface,
+        ReplItemRecipeCollectionFactory $replItemRecipeCollectionFactory,
+        ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface,
         ProductRepositoryInterface $productRepository,
         ProductCustomOptionRepositoryInterface $optionRepository,
         ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
@@ -84,8 +84,8 @@ class ProcessItemRecipe
         $this->logger                                     = $logger;
         $this->replicationHelper                          = $replicationHelper;
         $this->lsr                                        = $LSR;
-        $this->replHierarchyHospRecipeCollectionFactory   = $replHierarchyHospRecipeCollectionFactory;
-        $this->replHierarchyHospRecipeRepositoryInterface = $replHierarchyHospRecipeRepositoryInterface;
+        $this->replItemRecipeCollectionFactory   = $replItemRecipeCollectionFactory;
+        $this->replItemRecipeRepositoryInterface = $replItemRecipeRepositoryInterface;
         $this->productRepository                          = $productRepository;
         $this->customOptionFactory                        = $customOptionFactory;
         $this->customOptionValueFactory                   = $customOptionValueFactory;
@@ -109,8 +109,8 @@ class ProcessItemRecipe
             foreach ($stores as $store) {
                 $this->lsr->setStoreId($store->getId());
                 $this->store = $store;
-                if ($this->lsr->isLSR($this->store->getId()
-                    && $this->lsr->isHospitalityStore($store->getId()))
+                if ($this->lsr->isLSR($this->store->getId())
+                    && $this->lsr->isHospitalityStore($store->getId())
                 ) {
                     $this->replicationHelper->updateConfigValue(
                         $this->replicationHelper->getDateTime(),
@@ -162,8 +162,8 @@ class ProcessItemRecipe
             $batchSize,
             1
         );
-        /** @var \Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\Collection $collection */
-        $collection = $this->replHierarchyHospRecipeCollectionFactory->create();
+        /** @var \Ls\Replication\Model\ResourceModel\ReplItemRecipe\Collection $collection */
+        $collection = $this->replItemRecipeCollectionFactory->create();
         $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
             $collection,
             $criteria,
@@ -175,7 +175,7 @@ class ProcessItemRecipe
         $dataToProcess = [];
 
         if ($collection->getSize() > 0) {
-            /** @var \Ls\Replication\Model\ReplHierarchyHospRecipe $itemRecipe */
+            /** @var \Ls\Replication\Model\ReplItemRecipe $itemRecipe */
             foreach ($collection->getItems() as $itemRecipe) {
                 //TODO workaround for UoM
                 $dataToProcess[$itemRecipe->getRecipeNo()][] = $itemRecipe;
@@ -194,7 +194,10 @@ class ProcessItemRecipe
                                 $this->store->getId()
                             );
                             $existingOptions = $this->optionRepository->getProductOptions($product);
-
+                            if (!$product->getHasOptions()) {
+                                $product->setHasOptions(1);
+                                $product = $this->productRepository->save($product);
+                            }
                             // check if Recipe is already included in the options.
                             $isOptionExist         = false;
                             $ls_modifier_recipe_id = LSR::LSR_RECIPE_PREFIX;
@@ -214,7 +217,7 @@ class ProcessItemRecipe
                             $optionNeedsToBeUpdated = false;
 
                             $optionData = [];
-                            /** @var \Ls\Replication\Model\ReplHierarchyHospRecipe $optionValueData */
+                            /** @var \Ls\Replication\Model\ReplItemRecipe $optionValueData */
                             foreach ($optionArray as $optionValueData) {
                                 $existingOptionValues = $productOption->getValues();
                                 /**
@@ -245,7 +248,7 @@ class ProcessItemRecipe
                                     ->setProcessedAt($this->replicationHelper->getDateTime())
                                     ->setIsUpdated(0);
 
-                                $this->replHierarchyHospRecipeRepositoryInterface->save($optionValueData);
+                                $this->replItemRecipeRepositoryInterface->save($optionValueData);
                                 //$this->logger->debug(var_export($optionValueData, true));
                             }
                             /**
@@ -313,7 +316,7 @@ class ProcessItemRecipe
                 -1,
                 1
             );
-            $collection = $this->replHierarchyHospRecipeCollectionFactory->create();
+            $collection = $this->replItemRecipeCollectionFactory->create();
             $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
                 $collection,
                 $criteria,
