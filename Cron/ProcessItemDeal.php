@@ -198,7 +198,12 @@ class ProcessItemDeal
                         ReplEcommHierarchyLeafTask::CONFIG_PATH_STATUS,
                         $store->getId()
                     );
-                    if ($fullReplicationImageLinkStatus == 1 &&
+                    $cronCategoryCheck              = $this->lsr->getStoreConfig(
+                        LSR::SC_SUCCESS_CRON_CATEGORY,
+                        $store->getId()
+                    );
+                    if ($cronCategoryCheck == 1 &&
+                        $fullReplicationImageLinkStatus == 1 &&
                         $fullReplicationDealStatus == 1 &&
                         $fullReplicationDealLineStatus == 1 &&
                         $fullReplicationLeafStatus == 1) {
