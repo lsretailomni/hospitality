@@ -12,7 +12,7 @@
             <schedule>*/4 * * * *</schedule>
         </job>
 
-        <job name="repl_hierarchy_hosp_recipe" instance="Ls\Replication\Cron\ReplEcommHierarchyHospRecipeTask"
+        <job name="repl_item_recipe" instance="Ls\Replication\Cron\ReplEcommItemRecipeTask"
              method="execute">
             <schedule>*/4 * * * *</schedule>
         </job>

@@ -1,33 +1,33 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!--Replication API Repository Inferfaces-->
+    <!--Replication API Repository Interfaces-->
     <preference for="Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDealRepository"/>
     <preference for="Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDealLineRepository"/>
-    <preference for="Ls\Replication\Api\ReplHierarchyHospRecipeRepositoryInterface"
-                type="Ls\Replication\Model\ReplHierarchyHospRecipeRepository"/>
+    <preference for="Ls\Replication\Api\ReplItemRecipeRepositoryInterface"
+                type="Ls\Replication\Model\ReplItemRecipeRepository"/>
     <preference for="Ls\Replication\Api\ReplItemModifierRepositoryInterface"
                 type="Ls\Replication\Model\ReplItemModifierRepository"/>
 
-    <!--Replication API Data Inferfaces-->
+    <!--Replication API Data Interfaces-->
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDeal"/>
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealLineInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDealLine"/>
-    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeInterface"
-                type="Ls\Replication\Model\ReplHierarchyHospRecipe"/>
+    <preference for="Ls\Replication\Api\Data\ReplItemRecipeInterface"
+                type="Ls\Replication\Model\ReplItemRecipe"/>
     <preference for="Ls\Replication\Api\Data\ReplItemModifierInterface"
                 type="Ls\Replication\Model\ReplItemModifier"/>
 
-    <!--Replication API Search Results Inferfaces-->
+    <!--Replication API Search Results Interfaces-->
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealLineSearchResultsInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDealLineSearchResults"/>
     <preference for="Ls\Replication\Api\Data\ReplHierarchyHospDealSearchResultsInterface"
                 type="Ls\Replication\Model\ReplHierarchyHospDealSearchResults"/>
-    <preference for="Ls\Replication\Api\Data\ReplHierarchyHospRecipeSearchResultsInterface"
-                type="Ls\Replication\Model\ReplHierarchyHospRecipeSearchResults"/>
+    <preference for="Ls\Replication\Api\Data\ReplItemRecipeSearchResultsInterface"
+                type="Ls\Replication\Model\ReplItemRecipeSearchResults"/>
     <preference for="Ls\Replication\Api\Data\ReplItemModifierSearchResultsInterface"
                 type="Ls\Replication\Model\ReplItemModifierSearchResults"/>
 
@@ -42,7 +42,7 @@
                     Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\Grid\Collection
                 </item>
                 <item name="ls_repl_grids_recipe_data_source" xsi:type="string">
-                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospRecipe\Grid\Collection
+                    Ls\Replication\Model\ResourceModel\ReplItemRecipe\Grid\Collection
                 </item>
                 <item name="ls_repl_grids_modifier_data_source" xsi:type="string">
                     Ls\Replication\Model\ResourceModel\ReplItemModifier\Grid\Collection
