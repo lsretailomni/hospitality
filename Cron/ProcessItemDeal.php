@@ -204,11 +204,11 @@ class ProcessItemDeal
                         $fullReplicationLeafStatus == 1) {
                         $this->logger->debug('Running ProcessItemDeal Task for store ' . $this->store->getName());
                         $this->processItemDeals();
+                        $this->caterDealLinesAddOrUpdate();
                     }
                     $remainingItems = (int)$this->getRemainingRecords();
                     if ($remainingItems == 0) {
                         $this->cronStatus = true;
-                        $this->caterDealLinesAddOrUpdate();
                     }
                     $this->replicationHelper->updateCronStatus(
                         $this->cronStatus,
@@ -314,6 +314,7 @@ class ProcessItemDeal
                     // @codingStandardsIgnoreLine
                 } catch (Exception $e) {
                     $this->logger->debug($e->getMessage());
+                    $this->logger->debug('Problem with sku: ' . $item->getNavId() . ' in ' . __METHOD__);
                     $item->setData('is_failed', 1);
                 }
             } catch (NoSuchEntityException $e) {
@@ -344,6 +345,7 @@ class ProcessItemDeal
                     // @codingStandardsIgnoreLine
                 } catch (Exception $e) {
                     $this->logger->debug($e->getMessage());
+                    $this->logger->debug('Problem with sku: ' . $item->getNavId() . ' in ' . __METHOD__);
                     $item->setData('is_failed', 1);
                 }
             }
@@ -432,6 +434,7 @@ class ProcessItemDeal
             );
         } catch (Exception $e) {
             $this->logger->debug($e->getMessage());
+            $this->logger->debug('Problem with sku: ' . $product->getSku() . ' in ' . __METHOD__);
             $replHierarchyHospDeal->setData('is_failed', 1);
         }
     }
@@ -456,6 +459,7 @@ class ProcessItemDeal
             );
         } catch (Exception $e) {
             $this->logger->debug($e->getMessage());
+            $this->logger->debug('Problem with sku: ' . $product->getSku() . ' in ' . __METHOD__);
             $replHierarchyHospDeal->setData('is_failed', 1);
         }
     }
