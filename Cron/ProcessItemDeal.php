@@ -27,6 +27,7 @@ use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
 use Magento\Store\Api\Data\StoreInterface;
@@ -278,7 +279,10 @@ class ProcessItemDeal
     }
 
     /**
-     * Process all deal items
+     * @throws InputException
+     * @throws NoSuchEntityException
+     * @throws StateException
+     * @throws LocalizedException
      */
     public function processItemDeals()
     {
@@ -310,6 +314,11 @@ class ProcessItemDeal
                     'is_in_stock'             => $item->getIsActive(),
                     'qty'                     => 100
                 ]);
+                $productData = $this->replicationHelper->getProductAttributes(
+                    $productData,
+                    $item->getNavId(),
+                    $this->store->getId()
+                );
                 try {
                     // @codingStandardsIgnoreLine
                     $this->logger->debug('Trying to save product ' . $item->getNavId() . ' in store ' . $this->store->getName());
@@ -334,13 +343,26 @@ class ProcessItemDeal
                 $product->setVisibility(Visibility::VISIBILITY_BOTH);
                 $product->setWeight(1);
                 $product->setPrice($item->getDealPrice());
-                $product->setAttributeSetId($this->productFactory->create()->getDefaultAttributeSetId());
+
+                $attributeSetId = $this->replicationHelper->getAttributeSetId(
+                    null,
+                    'ls_replication_repl_hierarchy_leaf',
+                    $this->store->getId(),
+                    LSR::SC_REPLICATION_ATTRIBUTE_SET_EXTRAS . '_' .
+                    $this->store->getId()
+                );
+                $product->setAttributeSetId($attributeSetId);
                 $product->setTypeId(Type::TYPE_SIMPLE);
                 $product->setStockData([
                     'use_config_manage_stock' => 1,
                     'is_in_stock'             => $item->getIsActive(),
                     'qty'                     => 100
                 ]);
+                $product = $this->replicationHelper->getProductAttributes(
+                    $product,
+                    $item->getNavId(),
+                    $this->store->getId()
+                );
                 try {
                     // @codingStandardsIgnoreLine
                     $this->logger->debug('Trying to save product ' . $item->getNavId() . ' in store ' . $this->store->getName());
