@@ -30,5 +30,8 @@
         <job name="process_item_recipe" instance="Ls\Hospitality\Cron\ProcessItemRecipe" method="execute">
             <schedule>*/5 * * * *</schedule>
         </job>
+        <job name="process_item_deal" instance="Ls\Hospitality\Cron\ProcessItemDeal" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
     </group>
 </config>

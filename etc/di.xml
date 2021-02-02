@@ -87,4 +87,9 @@
                 type="Ls\Hospitality\Plugin\Catalog\Helper\Product\ConfigurationPlugin"/>
     </type>
 
+    <!-- To get merged collection for images to process -->
+    <type name="Ls\Replication\Cron\SyncImages">
+        <plugin name="ls_hospitality_change_query"
+                type="Ls\Hospitality\Plugin\Cron\SyncImagesPlugin"/>
+    </type>
 </config>
