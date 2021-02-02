@@ -2,10 +2,14 @@
 
 namespace Ls\Hospitality\Cron;
 
+use Exception;
+use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplItemModifierRepositoryInterface;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Logger\Logger;
+use \Ls\Replication\Model\ReplItemModifier;
+use \Ls\Replication\Model\ResourceModel\ReplItemModifier\Collection;
 use \Ls\Replication\Model\ResourceModel\ReplItemModifier\CollectionFactory as ReplItemModifierCollectionFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
@@ -58,6 +62,11 @@ class ProcessItemModifier
     /** @var ProductCustomOptionValuesInterfaceFactory */
     public $customOptionValueFactory;
 
+    /**
+     * @var HospitalityHelper
+     */
+    public $hospitalityHelper;
+
     public static $triggerFunctionToSkip = ['Infocode'];
 
     /**
@@ -71,6 +80,7 @@ class ProcessItemModifier
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
      * @param ProductCustomOptionInterfaceFactory $customOptionFactory
+     * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
         ReplicationHelper $replicationHelper,
@@ -81,7 +91,8 @@ class ProcessItemModifier
         ProductRepositoryInterface $productRepository,
         ProductCustomOptionRepositoryInterface $optionRepository,
         ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
-        ProductCustomOptionInterfaceFactory $customOptionFactory
+        ProductCustomOptionInterfaceFactory $customOptionFactory,
+        HospitalityHelper $hospitalityHelper
     ) {
         $this->logger                              = $logger;
         $this->replicationHelper                   = $replicationHelper;
@@ -92,6 +103,7 @@ class ProcessItemModifier
         $this->customOptionFactory                 = $customOptionFactory;
         $this->customOptionValueFactory            = $customOptionValueFactory;
         $this->optionRepository                    = $optionRepository;
+        $this->hospitalityHelper                   = $hospitalityHelper;
     }
 
     /**
@@ -152,7 +164,7 @@ class ProcessItemModifier
     public function processItemModifiers()
     {
         //TODO cover the delete scenario.
-        $batchSize = $this->replicationHelper->getItemModifiersBatchSize();
+        $batchSize = $this->hospitalityHelper->getItemModifiersBatchSize();
         $filters   = [
             ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
         ];
@@ -162,7 +174,7 @@ class ProcessItemModifier
             $batchSize,
             1
         );
-        /** @var \Ls\Replication\Model\ResourceModel\ReplItemModifier\Collection $collection */
+        /** @var Collection $collection */
         $collection = $this->replItemModifierCollectionFactory->create();
         $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
             $collection,
@@ -175,7 +187,7 @@ class ProcessItemModifier
         $dataToProcess = [];
 
         if ($collection->getSize() > 0) {
-            /** @var \Ls\Replication\Model\ReplItemModifier $itemModifier */
+            /** @var ReplItemModifier $itemModifier */
             foreach ($collection->getItems() as $itemModifier) {
                 /**
                  * There are types of Modifiers which we dont need to process
@@ -230,9 +242,8 @@ class ProcessItemModifier
                                 }
                                 $optionNeedsToBeUpdated = false;
                                 if (!empty($optionValuesArray)) {
-
                                     $optionData = [];
-                                    /** @var \Ls\Replication\Model\ReplItemModifier $optionValueData */
+                                    /** @var ReplItemModifier $optionValueData */
                                     foreach ($optionValuesArray as $subcode => $optionValueData) {
                                         $existingOptionValues = $productOption->getValues();
                                         /** @var ProductCustomOptionValuesInterface $optionValue */
@@ -290,18 +301,16 @@ class ProcessItemModifier
                                                 ->setProductSku($itemSKU);
                                             $savedProductOption = $this->optionRepository->save($productOption);
                                             $product->addOption($savedProductOption);
-
-                                        } catch (\Exception $e) {
+                                        } catch (Exception $e) {
                                             $this->logger->error($e->getMessage());
                                             $this->logger->error(
                                                 'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
                                             );
                                         }
                                     }
-
                                 }
                             }
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->logger->error($e->getMessage());
                             $this->logger->error(
                                 'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
@@ -329,7 +338,6 @@ class ProcessItemModifier
         $forceReload = false
     ) {
         if (!$this->remainingRecords || $forceReload) {
-
             $filters = [
                 ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
             ];

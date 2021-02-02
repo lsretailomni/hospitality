@@ -2,10 +2,14 @@
 
 namespace Ls\Hospitality\Cron;
 
+use Exception;
+use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Logger\Logger;
+use \Ls\Replication\Model\ReplItemRecipe;
+use \Ls\Replication\Model\ResourceModel\ReplItemRecipe\Collection;
 use \Ls\Replication\Model\ResourceModel\ReplItemRecipe\CollectionFactory as ReplItemRecipeCollectionFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
@@ -59,6 +63,11 @@ class ProcessItemRecipe
     public $customOptionValueFactory;
 
     /**
+     * @var HospitalityHelper
+     */
+    public $hospitalityHelper;
+
+    /**
      * ProcessItemRecipe constructor.
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
@@ -69,6 +78,7 @@ class ProcessItemRecipe
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
      * @param ProductCustomOptionInterfaceFactory $customOptionFactory
+     * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
         ReplicationHelper $replicationHelper,
@@ -79,17 +89,19 @@ class ProcessItemRecipe
         ProductRepositoryInterface $productRepository,
         ProductCustomOptionRepositoryInterface $optionRepository,
         ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
-        ProductCustomOptionInterfaceFactory $customOptionFactory
+        ProductCustomOptionInterfaceFactory $customOptionFactory,
+        HospitalityHelper $hospitalityHelper
     ) {
-        $this->logger                                     = $logger;
-        $this->replicationHelper                          = $replicationHelper;
-        $this->lsr                                        = $LSR;
+        $this->logger                            = $logger;
+        $this->replicationHelper                 = $replicationHelper;
+        $this->lsr                               = $LSR;
         $this->replItemRecipeCollectionFactory   = $replItemRecipeCollectionFactory;
         $this->replItemRecipeRepositoryInterface = $replItemRecipeRepositoryInterface;
-        $this->productRepository                          = $productRepository;
-        $this->customOptionFactory                        = $customOptionFactory;
-        $this->customOptionValueFactory                   = $customOptionValueFactory;
-        $this->optionRepository                           = $optionRepository;
+        $this->productRepository                 = $productRepository;
+        $this->customOptionFactory               = $customOptionFactory;
+        $this->customOptionValueFactory          = $customOptionValueFactory;
+        $this->optionRepository                  = $optionRepository;
+        $this->hospitalityHelper                 = $hospitalityHelper;
     }
 
     /**
@@ -147,12 +159,12 @@ class ProcessItemRecipe
     }
 
     /**
-     * Item Recipies processing
+     * Item Recipes processing
      */
     public function processItemRecipies()
     {
         //TODO cover the delete scenario.
-        $batchSize = $this->replicationHelper->getItemRecipeBatchSize();
+        $batchSize = $this->hospitalityHelper->getItemRecipeBatchSize();
         $filters   = [
             ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
         ];
@@ -162,7 +174,7 @@ class ProcessItemRecipe
             $batchSize,
             1
         );
-        /** @var \Ls\Replication\Model\ResourceModel\ReplItemRecipe\Collection $collection */
+        /** @var Collection $collection */
         $collection = $this->replItemRecipeCollectionFactory->create();
         $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
             $collection,
@@ -175,7 +187,7 @@ class ProcessItemRecipe
         $dataToProcess = [];
 
         if ($collection->getSize() > 0) {
-            /** @var \Ls\Replication\Model\ReplItemRecipe $itemRecipe */
+            /** @var ReplItemRecipe $itemRecipe */
             foreach ($collection->getItems() as $itemRecipe) {
                 //TODO workaround for UoM
                 $dataToProcess[$itemRecipe->getRecipeNo()][] = $itemRecipe;
@@ -217,7 +229,7 @@ class ProcessItemRecipe
                             $optionNeedsToBeUpdated = false;
 
                             $optionData = [];
-                            /** @var \Ls\Replication\Model\ReplItemRecipe $optionValueData */
+                            /** @var ReplItemRecipe $optionValueData */
                             foreach ($optionArray as $optionValueData) {
                                 $existingOptionValues = $productOption->getValues();
                                 /**
@@ -270,15 +282,14 @@ class ProcessItemRecipe
                                         ->setSortOrder(99);
                                     $savedProductOption = $this->optionRepository->save($productOption);
                                     $product->addOption($savedProductOption);
-
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     $this->logger->error($e->getMessage());
                                     $this->logger->error(
                                         'Error while creating recipes for product ' . $itemSKU . ' for store ' . $this->store->getName()
                                     );
                                 }
                             }
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->logger->error($e->getMessage());
                             $this->logger->error(
                                 'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
@@ -306,7 +317,6 @@ class ProcessItemRecipe
         $forceReload = false
     ) {
         if (!$this->remainingRecords || $forceReload) {
-
             $filters = [
                 ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
             ];

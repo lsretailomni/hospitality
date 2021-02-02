@@ -5,14 +5,20 @@ namespace Ls\Hospitality\Helper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
-use \Ls\Replication\Model\ReplItemRecipeRepository;
+use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplItemModifierRepository;
+use \Ls\Replication\Model\ReplItemRecipeRepository;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ResourceConnection;
+use Zend_Db_Select;
+use Zend_Db_Select_Exception;
 
 /**
  * Useful helper functions for Hospitality
@@ -46,6 +52,30 @@ class HospitalityHelper extends AbstractHelper
     public $replItemUomRepository;
 
     /**
+     * @var ReplicationHelper
+     */
+    public $replicationHelper;
+
+    /**
+     * @var DealCollectionFactory
+     */
+    public $replHierarchyHospDealCollectionFactory;
+
+    /**
+     * @var DealLineCollectionFactory
+     */
+    public $replHierarchyHospDealLineCollectionFactory;
+    /**
+     * @var ResourceConnection
+     */
+    public $resourceConnection;
+
+    /**
+     * @var LSR
+     */
+    public $lsr;
+
+    /**
      * HospitalityHelper constructor.
      * @param Context $context
      * @param Configuration $configurationHelper
@@ -54,6 +84,11 @@ class HospitalityHelper extends AbstractHelper
      * @param ReplItemModifierRepository $itemModifierRepository
      * @param ReplItemRecipeRepository $recipeRepository
      * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
+     * @param ReplicationHelper $replicationHelper
+     * @param DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory
+     * @param DealCollectionFactory $replHierarchyHospDealCollectionFactory
+     * @param ResourceConnection $resourceConnection
+     * @param LSR $lsr
      */
     public function __construct(
         Context $context,
@@ -62,15 +97,25 @@ class HospitalityHelper extends AbstractHelper
         ProductRepository $productRepository,
         ReplItemModifierRepository $itemModifierRepository,
         ReplItemRecipeRepository $recipeRepository,
-        ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
+        ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository,
+        ReplicationHelper $replicationHelper,
+        DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
+        DealCollectionFactory $replHierarchyHospDealCollectionFactory,
+        ResourceConnection $resourceConnection,
+        LSR $lsr
     ) {
         parent::__construct($context);
-        $this->configurationHelper    = $configurationHelper;
-        $this->searchCriteriaBuilder  = $searchCriteriaBuilder;
-        $this->productRepository      = $productRepository;
-        $this->itemModifierRepository = $itemModifierRepository;
-        $this->recipeRepository       = $recipeRepository;
-        $this->replItemUomRepository  = $replItemUnitOfMeasureRepository;
+        $this->configurationHelper                        = $configurationHelper;
+        $this->searchCriteriaBuilder                      = $searchCriteriaBuilder;
+        $this->productRepository                          = $productRepository;
+        $this->itemModifierRepository                     = $itemModifierRepository;
+        $this->recipeRepository                           = $recipeRepository;
+        $this->replItemUomRepository                      = $replItemUnitOfMeasureRepository;
+        $this->replicationHelper                          = $replicationHelper;
+        $this->replHierarchyHospDealLineCollectionFactory = $replHierarchyHospDealLineCollectionFactory;
+        $this->replHierarchyHospDealCollectionFactory     = $replHierarchyHospDealCollectionFactory;
+        $this->resourceConnection                         = $resourceConnection;
+        $this->lsr                                        = $lsr;
     }
 
     /**
@@ -278,5 +323,80 @@ class HospitalityHelper extends AbstractHelper
                 ->create()
         );
         return $recipe->getItems();
+    }
+
+    /**
+     * @param $store
+     * @return array
+     * @throws Zend_Db_Select_Exception
+     */
+    public function getUpdatedDealLinesRecords($store)
+    {
+        $batchSize = $this->getItemModifiersBatchSize();
+        $filters2  = [
+            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq']
+        ];
+
+        $criteria2   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+            $filters2,
+            $batchSize,
+            1
+        );
+        $collection2 = $this->replHierarchyHospDealLineCollectionFactory->create();
+        $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
+            $collection2,
+            $criteria2,
+            'DealNo',
+            null,
+            'catalog_product_entity',
+            'sku'
+        );
+        $collection2->getSelect()->group('main_table.DealNo')
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->columns(['main_table.DealNo']);
+
+        $filters1 = [
+            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq'],
+            ['field' => 'main_table.Type', 'value' => ['Item', 'Modifier'], 'condition_type' => 'in']
+        ];
+
+        $criteria1   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+            $filters1,
+            $batchSize,
+            1
+        );
+        $collection1 = $this->replHierarchyHospDealCollectionFactory->create();
+        $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
+            $collection1,
+            $criteria1,
+            'DealNo',
+            null,
+            'catalog_product_entity',
+            'sku'
+        );
+        $collection1->getSelect()->group('main_table.DealNo')
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->columns(['main_table.DealNo']);
+        $select = $this->resourceConnection->getConnection()->select()->union(
+            [$collection1->getSelect(), $collection2->getSelect()]
+        );
+//        $query       = $select->__toString();
+        return $this->resourceConnection->getConnection()->fetchAll($select);
+    }
+
+    /**
+     * @return string
+     */
+    public function getItemModifiersBatchSize()
+    {
+        return $this->lsr->getStoreConfig(LSR::SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getItemRecipeBatchSize()
+    {
+        return $this->lsr->getStoreConfig(LSR::SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE);
     }
 }
