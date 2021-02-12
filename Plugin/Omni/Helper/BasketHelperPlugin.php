@@ -3,7 +3,7 @@
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
 use Exception;
-use \Ls\Core\Model\LSR;
+use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
@@ -28,7 +28,6 @@ class BasketHelperPlugin
     public $hospitalityHelper;
 
     /**
-     * BasketHelper constructor.
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
@@ -69,6 +68,7 @@ class BasketHelperPlugin
         }
 
         $quoteItems = $quote->getAllVisibleItems();
+
         if (count($quoteItems) == 0) {
             $subject->unSetCouponCode();
         }
@@ -77,9 +77,10 @@ class BasketHelperPlugin
         $items = new Entity\ArrayOfOneListItem();
 
         $itemsArray = [];
+
         foreach ($quoteItems as $quoteItem) {
             // initialize the default null value
-            $variant = $barcode = null;
+            $barcode = null;
 
             $sku = $quoteItem->getSku();
 
@@ -98,11 +99,25 @@ class BasketHelperPlugin
             $lsr_id = array_shift($parts);
             // second element, if it exists, is variant id
             $variant_id = count($parts) ? array_shift($parts) : null;
+
             if (!is_numeric($variant_id)) {
                 $variant_id = null;
             }
             $oneListSubLinesArray = [];
             $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem($quoteItem);
+
+            if (!empty($selectedSubLines['deal'])) {
+                foreach ($selectedSubLines['deal'] as $subLine) {
+                    $oneListSubLine = (new Entity\OneListItemSubLine())
+                        ->setDealLineId($subLine['DealLineId'] ?? null)
+                        ->setDealModLineId($subLine['DealModLineId'] ?? null)
+                        ->setLineNumber($subLine['LineNumber'] ?? null)
+                        ->setQuantity(1)
+                        ->setType(SubLineType::DEAL);
+                    $oneListSubLinesArray[] = $oneListSubLine;
+                }
+            }
+
             if (!empty($selectedSubLines['modifier'])) {
                 foreach ($selectedSubLines['modifier'] as $subLine) {
                     $oneListSubLine         = (new Entity\OneListItemSubLine())
@@ -113,9 +128,12 @@ class BasketHelperPlugin
                     $oneListSubLinesArray[] = $oneListSubLine;
                 }
             }
+
             if (!empty($selectedSubLines['recipe'])) {
                 foreach ($selectedSubLines['recipe'] as $subLine) {
                     $oneListSubLine         = (new Entity\OneListItemSubLine())
+                        ->setDealLineId($subLine['DealLineId'] ?? null)
+                        ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
                         ->setItemId($subLine['ItemId'])
                         ->setQuantity(0)
                         ->setType(SubLineType::MODIFIER);
@@ -124,6 +142,7 @@ class BasketHelperPlugin
             }
             // @codingStandardsIgnoreLine
             $list_item    = (new Entity\OneListItem())
+                ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                 ->setQuantity($quoteItem->getData('qty'))
                 ->setItemId($lsr_id)
                 ->setId('')
