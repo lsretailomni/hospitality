@@ -128,11 +128,15 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Creating selected sublines from quoteItem
+     *
      * @param $quoteItem
+     * @param $lineNumber
      * @return array
      */
-    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem)
+    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
     {
+        $lineNumber *= 10000;
         $sku = $quoteItem->getSku();
 
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku, 'eq')->create();
@@ -171,7 +175,7 @@ class HospitalityHelper extends AbstractHelper
             if ($mainDealLine) {
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId' => $mainDealLine->getLineNo(),
-                    'LineNumber' => $mainDealLine->getLineNo()
+                    'LineNumber' => $lineNumber
                 ];
             }
 
@@ -204,7 +208,7 @@ class HospitalityHelper extends AbstractHelper
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
                         $recipeData['DealLineId'] = $mainDealLine->getLineNo();
-                        $recipeData['ParentSubLineId'] = $mainDealLine->getLineNo();
+                        $recipeData['ParentSubLineId'] = $lineNumber;
                         $recipe = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
                         $recipe = $this->getRecipe($lsrId, $optionValue);
@@ -271,13 +275,16 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Comparison between quote selected sublines and omni sublines
+     *
      * @param OrderHospLine $line
      * @param $item
+     * @param $index
      * @return bool
      */
-    public function isSameAsSelectedLine(OrderHospLine $line, $item)
+    public function isSameAsSelectedLine(OrderHospLine $line, $item, $index)
     {
-        $selectedOrderHospSubLine = $this->getSelectedOrderHospSubLineGivenQuoteItem($item);
+        $selectedOrderHospSubLine = $this->getSelectedOrderHospSubLineGivenQuoteItem($item, $index);
         $selectedCount = $this->getSelectedSubLinesCount($selectedOrderHospSubLine);
 
         if ($selectedCount != count($line->getSubLines()->getOrderHospSubLine())) {
@@ -319,11 +326,8 @@ class HospitalityHelper extends AbstractHelper
                                     break;
                                 }
                             } else {
-                                if (isset($quoteSubLine['LineNumber']) &&
-                                    $omniSubLine->getLineNumber() == $quoteSubLine['LineNumber']) {
-                                    $found = true;
-                                    break;
-                                }
+                                $found = true;
+                                break;
                             }
                         }
                     }

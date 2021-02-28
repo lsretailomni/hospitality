@@ -6,10 +6,11 @@ use Exception;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
+use Ls\Omni\Helper\ItemHelper;
 use Psr\Log\LoggerInterface;
 
 /**
- * ItemHelperPlugin Plugin
+ * ItemHelper plugin responsible for intercepting required methods
  */
 class ItemHelperPlugin
 {
@@ -43,14 +44,16 @@ class ItemHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\ItemHelper $subject
+     * Setting prices for items
+     *
+     * @param ItemHelper $subject
      * @param callable $proceed
      * @param $quote
      * @param $basketData
      * @return mixed
      */
     public function aroundSetDiscountedPricesForItems(
-        \Ls\Omni\Helper\ItemHelper $subject,
+        ItemHelper $subject,
         callable $proceed,
         $quote,
         $basketData
@@ -67,11 +70,12 @@ class ItemHelperPlugin
                 $baseUnitOfMeasure = $item->getProduct()->getData('uom');
                 $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
                 if (is_array($orderLines)) {
-                    foreach ($orderLines as $line) {
+                    foreach ($orderLines as $index => $line) {
+                        ++$index;
                         if ($itemSku[0] == $line->getItemId() &&
                             $itemSku[1] == $line->getVariantId() &&
                             $uom == $line->getUomId() &&
-                            $this->hospitalityHelper->isSameAsSelectedLine($line, $item)
+                            $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
                         ) {
                             $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
                             if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
@@ -147,14 +151,14 @@ class ItemHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\ItemHelper $subject
+     * @param ItemHelper $subject
      * @param callable $proceed
      * @param $item
      * @param $orderData
      * @param int $type
      * @return array|null
      */
-    public function aroundGetOrderDiscountLinesForItem(\Ls\Omni\Helper\ItemHelper $subject, callable $proceed, $item, $orderData, $type = 1)
+    public function aroundGetOrderDiscountLinesForItem(ItemHelper $subject, callable $proceed, $item, $orderData, $type = 1)
     {
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
