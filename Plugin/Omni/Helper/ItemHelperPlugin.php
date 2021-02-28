@@ -6,7 +6,7 @@ use Exception;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
-use Ls\Omni\Helper\ItemHelper;
+use \Ls\Omni\Helper\ItemHelper;
 use Psr\Log\LoggerInterface;
 
 /**
