@@ -34,8 +34,7 @@ use Magento\Store\Api\Data\StoreInterface;
 use Zend_Db_Select_Exception;
 
 /**
- * Create Items in magento
- * replicated from omni
+ * Create Items in magento replicated from omni
  */
 class ProcessItemDeal
 {
@@ -98,7 +97,6 @@ class ProcessItemDeal
     public $hospitalityHelper;
 
     /**
-     * ProcessItemDeal constructor.
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
      * @param LSR $LSR
@@ -154,13 +152,16 @@ class ProcessItemDeal
     {
         $this->execute($storeData);
         $remainingRecords = (int)$this->getRemainingRecords(true);
+
         return [$remainingRecords];
     }
 
     /**
      * @param null $storeData
      * @throws InputException
+     * @throws LocalizedException
      * @throws NoSuchEntityException
+     * @throws StateException
      * @throws Zend_Db_Select_Exception
      */
     public function execute($storeData = null)
@@ -170,10 +171,12 @@ class ProcessItemDeal
         } else {
             $stores = $this->lsr->getAllStores();
         }
+
         if (!empty($stores)) {
             foreach ($stores as $store) {
                 $this->lsr->setStoreId($store->getId());
                 $this->store = $store;
+
                 if ($this->lsr->isLSR($this->store->getId())
                     && $this->lsr->isHospitalityStore($store->getId())
                 ) {
@@ -203,6 +206,7 @@ class ProcessItemDeal
                         LSR::SC_SUCCESS_CRON_CATEGORY,
                         $store->getId()
                     );
+
                     if ($cronCategoryCheck == 1 &&
                         $fullReplicationImageLinkStatus == 1 &&
                         $fullReplicationDealStatus == 1 &&
@@ -213,6 +217,7 @@ class ProcessItemDeal
                         $this->caterDealLinesAddOrUpdate();
                     }
                     $remainingItems = (int)$this->getRemainingRecords();
+
                     if ($remainingItems == 0) {
                         $this->cronStatus = true;
                     }
@@ -241,6 +246,7 @@ class ProcessItemDeal
             $records                = $this->getDealsToProcess();
             $this->remainingRecords = $records->getTotalCount();
         }
+
         return $this->remainingRecords;
     }
 
@@ -252,6 +258,7 @@ class ProcessItemDeal
     public function caterDealLinesAddOrUpdate()
     {
         $fetchResult = $this->hospitalityHelper->getUpdatedDealLinesRecords($this->store);
+
         if (count($fetchResult) > 0) {
             foreach ($fetchResult as $dealLine) {
                 $product = $this->productRepository->get(
@@ -260,6 +267,7 @@ class ProcessItemDeal
                     $this->store->getId(),
                     true
                 );
+
                 if ($product->getOptions()) {
                     foreach ($product->getOptions() as $option) {
                         $this->optionRepository->delete($option);
@@ -291,6 +299,7 @@ class ProcessItemDeal
             $this->store->getId()
         );
         $replHierarchyLeaves = $this->getDealsToProcess($productBatchSize);
+
         /* @var  ReplHierarchyLeaf $item */
         foreach ($replHierarchyLeaves->getItems() as $item) {
             try {
@@ -300,6 +309,7 @@ class ProcessItemDeal
                     $this->store->getId()
                 );
                 $websitesProduct = $productData->getWebsiteIds();
+
                 /** Check if item exist in the website and assign it if it doesn't exist*/
                 if (!in_array($this->store->getWebsiteId(), $websitesProduct, true)) {
                     $websitesProduct[] = $this->store->getWebsiteId();
@@ -343,6 +353,7 @@ class ProcessItemDeal
                 $product->setVisibility(Visibility::VISIBILITY_BOTH);
                 $product->setWeight(1);
                 $product->setPrice($item->getDealPrice());
+                $product->setData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE, 1);
 
                 $attributeSetId = $this->replicationHelper->getAttributeSetId(
                     null,
@@ -398,6 +409,7 @@ class ProcessItemDeal
             [$this->replicationHelper->getSortOrderObject('LineNo')]
         );
         $replHierarchyHospDeals = $this->replHierarchyHospDealRepository->getList($criteria);
+
         /* @var  ReplHierarchyHospDeal $replHierarchyHospDeal */
         foreach ($replHierarchyHospDeals->getItems() as $replHierarchyHospDeal) {
             if ($replHierarchyHospDeal->getType() == 'Modifier') {
@@ -411,6 +423,7 @@ class ProcessItemDeal
                     [$this->replicationHelper->getSortOrderObject('LineNo')]
                 );
                 $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
+
                 if ($replHierarchyHospDealLines->getTotalCount() > 0) {
                     $this->createCustomOptionsForModifiers(
                         $replHierarchyHospDeal,
@@ -482,7 +495,8 @@ class ProcessItemDeal
                 $replHierarchyHospDeal->getLineNo(),
                 $replHierarchyHospDeal->getDealNo(),
                 $optionValues,
-                $product
+                $product,
+                LSR::LSR_RECIPE_PREFIX
             );
         } catch (Exception $e) {
             $this->logger->debug($e->getMessage());
@@ -499,8 +513,9 @@ class ProcessItemDeal
      * @param $sku
      * @param $values
      * @param $product
-     * @throws InputException
+     * @param null $lsModifierRecipeId
      * @throws CouldNotSaveException
+     * @throws InputException
      * @throws StateException
      */
     public function createCustomOptionAgainstGivenData(
@@ -510,7 +525,8 @@ class ProcessItemDeal
         $sortOrder,
         $sku,
         $values,
-        $product
+        $product,
+        $lsModifierRecipeId = null
     ) {
         $productOption = $this->customOptionFactory->create();
         $productOption->setTitle($description)
@@ -518,9 +534,11 @@ class ProcessItemDeal
             ->setType($type)
             ->setIsRequire($required)
             ->setSortOrder($sortOrder)
-            ->setProductSku($sku);
+            ->setProductSku($sku)
+            ->setData('ls_modifier_recipe_id', $lsModifierRecipeId);
         $savedProductOption = $this->optionRepository->save($productOption);
         $product->addOption($savedProductOption);
+
         if (!$product->getHasOptions()) {
             $product->setHasOptions(1);
             $this->productRepository->save($product);
@@ -535,6 +553,7 @@ class ProcessItemDeal
     public function getCustomOptionsValues($dealLines, $type)
     {
         $optionValues = [];
+
         foreach ($dealLines->getItems() as $i => $dealLine) {
             $optionValue = $this->customOptionValueFactory->create();
             $optionValue->setTitle($dealLine->getDescription())
@@ -543,6 +562,7 @@ class ProcessItemDeal
             $dealLine->setProcessed(1)
                 ->setProcessedAt($this->replicationHelper->getDateTime())
                 ->setIsUpdated(0);
+
             if ($type == 'modifier') {
                 $optionValue->setPrice($dealLine->getAddedAmount());
                 $this->replHierarchyHospDealLineRepository->save($dealLine);
@@ -552,6 +572,7 @@ class ProcessItemDeal
             }
             $optionValues[] = $optionValue;
         }
+
         return $optionValues;
     }
 
@@ -569,6 +590,7 @@ class ProcessItemDeal
             ['field' => 'Type', 'value' => 'Deal', 'condition_type' => 'eq']
         ];
         $criteria = $this->replicationHelper->buildCriteriaForArray($filters, $productBatchSize);
+
         return $this->replHierarchyLeafRepository->getList($criteria);
     }
 }

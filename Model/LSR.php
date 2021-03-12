@@ -10,6 +10,7 @@ use Magento\Store\Model\ScopeInterface;
  */
 class LSR extends \Ls\Core\Model\LSR
 {
+    const LS_ITEM_IS_DEAL_ATTRIBUTE = 'lsr_is_deal';
     const LSR_ITEM_MODIFIER_PREFIX = 'ls_mod_';
     const LSR_RECIPE_PREFIX = 'ls_rec';
     const SERVICE_MODE_ENABLED = 'ls_mag/service_mode/status';
@@ -67,6 +68,7 @@ class LSR extends \Ls\Core\Model\LSR
         if ($storeId === null) {
             $storeId = $this->getCurrentStoreId();
         }
+
         return ($this->getCurrentIndustry($storeId) == self::LS_INDUSTRY_VALUE_HOSPITALITY);
     }
 }

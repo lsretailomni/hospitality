@@ -3,10 +3,11 @@
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
 use Exception;
-use \Ls\Core\Model\LSR;
+use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
+use Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
@@ -18,7 +19,7 @@ use Magento\Framework\Phrase;
 use Magento\Quote\Model\Quote;
 
 /**
- * BasketHelperPlugin Plugin
+ * BasketHelper plugin responsible for intercepting required methods
  */
 class BasketHelperPlugin
 {
@@ -28,7 +29,6 @@ class BasketHelperPlugin
     public $hospitalityHelper;
 
     /**
-     * BasketHelper constructor.
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
@@ -38,19 +38,26 @@ class BasketHelperPlugin
     }
 
     /**
+     * Setting hospitalityMode if it's hospitality
+     *
      * @param BasketHelper $subject
      * @param Entity\OneList $list
      * @return Entity\OneList[]
      * @throws NoSuchEntityException
+     * @throws InvalidEnumException
      */
     public function beforeSaveToOmni(BasketHelper $subject, Entity\OneList $list)
     {
         $industry = $subject->lsr->getCurrentIndustry();
-        $list->setIsHospitality($industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY);
+        $list->setHospitalityMode(
+            $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY ? HospMode::DELIVERY : HospMode::NONE
+        );
         return [$list];
     }
 
     /**
+     * Creating oneList one the basis of items in the quote
+     *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param Quote $quote
@@ -69,6 +76,7 @@ class BasketHelperPlugin
         }
 
         $quoteItems = $quote->getAllVisibleItems();
+
         if (count($quoteItems) == 0) {
             $subject->unSetCouponCode();
         }
@@ -77,9 +85,11 @@ class BasketHelperPlugin
         $items = new Entity\ArrayOfOneListItem();
 
         $itemsArray = [];
-        foreach ($quoteItems as $quoteItem) {
+
+        foreach ($quoteItems as $index => $quoteItem) {
+            ++$index;
             // initialize the default null value
-            $variant = $barcode = null;
+            $barcode = null;
 
             $sku = $quoteItem->getSku();
 
@@ -98,11 +108,25 @@ class BasketHelperPlugin
             $lsr_id = array_shift($parts);
             // second element, if it exists, is variant id
             $variant_id = count($parts) ? array_shift($parts) : null;
+
             if (!is_numeric($variant_id)) {
                 $variant_id = null;
             }
             $oneListSubLinesArray = [];
-            $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem($quoteItem);
+            $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $index);
+
+            if (!empty($selectedSubLines['deal'])) {
+                foreach ($selectedSubLines['deal'] as $subLine) {
+                    $oneListSubLine = (new Entity\OneListItemSubLine())
+                        ->setDealLineId($subLine['DealLineId'] ?? null)
+                        ->setDealModLineId($subLine['DealModLineId'] ?? null)
+                        ->setLineNumber($subLine['LineNumber'] ?? null)
+                        ->setQuantity(1)
+                        ->setType(SubLineType::DEAL);
+                    $oneListSubLinesArray[] = $oneListSubLine;
+                }
+            }
+
             if (!empty($selectedSubLines['modifier'])) {
                 foreach ($selectedSubLines['modifier'] as $subLine) {
                     $oneListSubLine         = (new Entity\OneListItemSubLine())
@@ -113,9 +137,12 @@ class BasketHelperPlugin
                     $oneListSubLinesArray[] = $oneListSubLine;
                 }
             }
+
             if (!empty($selectedSubLines['recipe'])) {
                 foreach ($selectedSubLines['recipe'] as $subLine) {
                     $oneListSubLine         = (new Entity\OneListItemSubLine())
+                        ->setDealLineId($subLine['DealLineId'] ?? null)
+                        ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
                         ->setItemId($subLine['ItemId'])
                         ->setQuantity(0)
                         ->setType(SubLineType::MODIFIER);
@@ -124,6 +151,7 @@ class BasketHelperPlugin
             }
             // @codingStandardsIgnoreLine
             $list_item    = (new Entity\OneListItem())
+                ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                 ->setQuantity($quoteItem->getData('qty'))
                 ->setItemId($lsr_id)
                 ->setId('')
@@ -183,7 +211,7 @@ class BasketHelperPlugin
                 ->setListType(Entity\Enum\ListType::BASKET)
                 ->setItems($listItems)
                 ->setStoreId($storeId)
-                ->setIsHospitality($oneList->getIsHospitality());
+                ->setHospitalityMode(HospMode::DELIVERY);
 
             /** @var Entity\OneListCalculate $entity */
             if ($subject->getCouponCode() != "" and $subject->getCouponCode() != null) {
@@ -246,12 +274,13 @@ class BasketHelperPlugin
         $rowTotal   = "";
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
-        foreach ($orderLines as $line) {
+        foreach ($orderLines as $index => $line) {
+            ++$index;
             if (
                 $itemSku[0] == $line->getItemId() &&
                 $itemSku[1] == $line->getVariantId() &&
                 $uom == $line->getUomId() &&
-                $this->hospitalityHelper->isSameAsSelectedLine($line, $item)
+                $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
             ) {
                 $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
                 break;
