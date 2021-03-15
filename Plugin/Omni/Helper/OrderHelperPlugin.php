@@ -9,6 +9,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
+use Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
 use Psr\Log\LoggerInterface;
@@ -34,13 +35,15 @@ class OrderHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\OrderHelper $subject
+     * Around plugin for preparing the order request
+     *
+     * @param OrderHelper $subject
      * @param callable $proceed
      * @param Model\Order $order
      * @param $oneListCalculateResponse
      * @return Entity\OrderHospCreate
      */
-    public function aroundPrepareOrder(\Ls\Omni\Helper\OrderHelper $subject, callable $proceed, Model\Order $order, $oneListCalculateResponse)
+    public function aroundPrepareOrder(OrderHelper $subject, callable $proceed, Model\Order $order, $oneListCalculateResponse)
     {
         try {
             if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
@@ -56,7 +59,8 @@ class OrderHelperPlugin
             }
             $oneListCalculateResponse
                 ->setCardId($cardId)
-                ->setStoreId($storeId);
+                ->setStoreId($storeId)
+                ->setRestaurantNo($storeId);
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
             //For click and collect we need to remove shipment charge orderline
@@ -73,7 +77,9 @@ class OrderHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\OrderHelper $subject
+     * Around plugin for updating shipping amount
+     *
+     * @param OrderHelper $subject
      * @param callable $proceed
      * @param $orderLines
      * @param $order
@@ -81,7 +87,7 @@ class OrderHelperPlugin
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      */
-    public function aroundUpdateShippingAmount(\Ls\Omni\Helper\OrderHelper $subject, callable $proceed, $orderLines, $order)
+    public function aroundUpdateShippingAmount(OrderHelper $subject, callable $proceed, $orderLines, $order)
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($orderLines, $order);
@@ -104,13 +110,15 @@ class OrderHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\OrderHelper $subject
+     * Around plugin for placing hospitality order
+     *
+     * @param OrderHelper $subject
      * @param callable $proceed
      * @param $request
      * @return Entity\OrderCreateResponse|ResponseInterface
      * @throws NoSuchEntityException
      */
-    public function aroundPlaceOrder(\Ls\Omni\Helper\OrderHelper $subject, callable $proceed, $request)
+    public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($request);
@@ -124,13 +132,15 @@ class OrderHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\OrderHelper $subject
+     * Before plugin for base getOrderDetailsAgainstId
+     *
+     * @param OrderHelper $subject
      * @param $docId
      * @param string $type
      * @return array
      * @throws NoSuchEntityException
      */
-    public function beforeGetOrderDetailsAgainstId(\Ls\Omni\Helper\OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
+    public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return [$docId, $type];

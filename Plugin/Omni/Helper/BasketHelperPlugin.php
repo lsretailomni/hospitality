@@ -2,20 +2,17 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
-use Exception;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
-use Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Phrase;
 use Magento\Quote\Model\Quote;
 
 /**
@@ -38,7 +35,7 @@ class BasketHelperPlugin
     }
 
     /**
-     * Setting hospitalityMode if it's hospitality
+     * Before plugin for setting hospitalityMode if current industry is hospitality
      *
      * @param BasketHelper $subject
      * @param Entity\OneList $list
@@ -56,7 +53,7 @@ class BasketHelperPlugin
     }
 
     /**
-     * Creating oneList one the basis of items in the quote
+     * Around plugin for creating oneList in hospitality on the basis of items in the quote
      *
      * @param BasketHelper $subject
      * @param callable $proceed
@@ -172,6 +169,8 @@ class BasketHelperPlugin
     }
 
     /**
+     * Around plugin for calculating oneList for hospitality
+     *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param Entity\OneList $oneList
@@ -250,6 +249,8 @@ class BasketHelperPlugin
     }
 
     /**
+     * Around plugin for calculating item row total
+     *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param $item
@@ -287,73 +288,5 @@ class BasketHelperPlugin
             }
         }
         return $rowTotal;
-    }
-
-    /**
-     * @param BasketHelper $subject
-     * @param callable $proceed
-     * @param $couponCode
-     * @return Entity\OneListCalculateResponse|Entity\Order|Phrase|string
-     * @throws InvalidEnumException
-     * @throws NoSuchEntityException
-     * @throws LocalizedException
-     * @throws Exception
-     */
-    public function aroundSetCouponCode(BasketHelper $subject, callable $proceed, $couponCode)
-    {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($couponCode);
-        }
-        $couponCode = trim($couponCode);
-        if ($couponCode == "") {
-            $subject->couponCode = '';
-            $subject->setCouponQuote("");
-            $subject->update(
-                $subject->get()
-            );
-            $subject->itemHelper->setDiscountedPricesForItems(
-                $subject->checkoutSession->getQuote(),
-                $subject->getBasketSessionValue()
-            );
-
-            return $status = '';
-        }
-        $subject->couponCode = $couponCode;
-        $status              = $subject->update(
-            $subject->get()
-        );
-
-        $checkCouponAmount = $subject->data->orderBalanceCheck(
-            $subject->checkoutSession->getQuote()->getLsGiftCardNo(),
-            $subject->checkoutSession->getQuote()->getLsGiftCardAmountUsed(),
-            $subject->checkoutSession->getQuote()->getLsPointsSpent(),
-            $status
-        );
-
-        if (!is_object($status) && $checkCouponAmount) {
-            $subject->couponCode = '';
-            $subject->update(
-                $subject->get()
-            );
-            $subject->setCouponQuote($subject->couponCode);
-
-            return $status;
-        }
-        foreach ($status->getOrderLines()->getOrderHospLine() as $basket) {
-            $discountsLines = $basket->getDiscountLines();
-            foreach ($discountsLines as $orderDiscountLine) {
-                if ($orderDiscountLine->getDiscountType() == 'Coupon') {
-                    $status = "success";
-                    $subject->itemHelper->setDiscountedPricesForItems(
-                        $subject->checkoutSession->getQuote(),
-                        $subject->getBasketSessionValue()
-                    );
-                    $subject->setCouponQuote($subject->couponCode);
-                    return $status;
-                }
-            }
-        }
-        $this->setCouponQuote("");
-        return __("Coupon Code is not valid for these item(s)");
     }
 }

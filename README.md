@@ -1,7 +1,7 @@
 # LS Ecommerce - Hospitality (Beta Version)
 
 ## Compatibility (In Progress)
-1. Magento Commerce/Enterprise 2.3.5 - 2.4.1
+1. Magento Commerce/Enterprise 2.3.5 - 2.4.2
 2. LS Central 16.x - 17.x
 3. LS Omni 4.14.x or onwards
 4. [ LS eCommerce - Base package](https://github.com/lsretailomni/lsmag-two) - v1.7.0 or onwards 
