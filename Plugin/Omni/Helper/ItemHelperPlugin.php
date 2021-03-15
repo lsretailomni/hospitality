@@ -63,22 +63,28 @@ class ItemHelperPlugin
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($quote, $basketData);
             }
+
             $itemlist = $subject->cart->getQuote()->getAllVisibleItems();
+
             foreach ($itemlist as $item) {
                 $orderLines        = $basketData->getOrderLines()->getOrderHospLine();
                 $oldItemVariant    = [];
                 $itemSku           = explode("-", $item->getSku());
                 $baseUnitOfMeasure = $item->getProduct()->getData('uom');
                 $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
+
                 if (is_array($orderLines)) {
+
                     foreach ($orderLines as $index => $line) {
                         ++$index;
+
                         if ($itemSku[0] == $line->getItemId() &&
                             $itemSku[1] == $line->getVariantId() &&
                             $uom == $line->getUomId() &&
                             $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
                         ) {
                             $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+
                             if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
                                 // @codingStandardsIgnoreLine
                                 $item->setCustomPrice($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()] ['Amount'] + $this->hospitalityHelper->getAmountGivenLine($line));
@@ -102,6 +108,7 @@ class ItemHelperPlugin
                                 }
                             }
                         }
+
                         // @codingStandardsIgnoreStart
                         if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
                             $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()]['Amount']    =
@@ -133,6 +140,7 @@ class ItemHelperPlugin
 
             if ($quote->getId()) {
                 $cartQuote = $subject->cart->getQuote();
+
                 if (isset($basketData)) {
                     $pointDiscount  = $cartQuote->getLsPointsSpent() * $subject->loyaltyHelper->getPointRate();
                     $giftCardAmount = $cartQuote->getLsGiftCardAmountUsed();
@@ -171,12 +179,15 @@ class ItemHelperPlugin
             $discountInfo = [];
             $customPrice  = 0;
             $uom  = '';
+
             if ($type == 2) {
                 $itemSku = $item->getItemId();
                 $itemSku = explode("-", $itemSku);
+
                 if (count($itemSku) < 2) {
                     $itemSku[1] = $item->getVariantId();
                 }
+
                 $uom = $item->getUomId();
                 $customPrice = $item->getDiscountAmount();
             } else {
@@ -194,6 +205,7 @@ class ItemHelperPlugin
             $check        = false;
             $basketData   = [];
             $discountText = __("Save");
+
             if ($orderData instanceof SalesEntry) {
                 $basketData     = $orderData->getLines();
                 $discountsLines = $orderData->getDiscountLines();
@@ -201,8 +213,10 @@ class ItemHelperPlugin
                 $basketData     = $orderData->getOrderLines();
                 $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
             }
+
             foreach ($basketData as $basket) {
                 if ($basket->getItemId() == $itemSku[0] && $basket->getVariantId() == $itemSku[1] && $uom == $basket->getUomId()) {
+
                     if ($customPrice > 0 && $customPrice != null) {
                         // @codingStandardsIgnoreLine
                         foreach ($discountsLines as $orderDiscountLine) {
@@ -216,6 +230,7 @@ class ItemHelperPlugin
                     }
                 }
             }
+
             if ($check == true) {
                 return [implode($discountInfo), $discountText];
             } else {

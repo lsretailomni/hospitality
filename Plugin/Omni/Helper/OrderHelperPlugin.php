@@ -9,7 +9,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
-use Ls\Omni\Helper\OrderHelper;
+use \Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
 use Psr\Log\LoggerInterface;
@@ -57,6 +57,7 @@ class OrderHelperPlugin
             if (!empty($subject->checkoutSession->getCouponCode())) {
                 $order->setCouponCode($subject->checkoutSession->getCouponCode());
             }
+
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
@@ -70,6 +71,7 @@ class OrderHelperPlugin
             $request = new Entity\OrderHospCreate();
             $oneListCalculateResponse->setOrderLines($orderLinesArray);
             $request->setRequest($oneListCalculateResponse);
+
             return $request;
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
@@ -92,7 +94,9 @@ class OrderHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($orderLines, $order);
         }
+
         $shipmentFeeId = $subject->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID);
+
         if ($order->getShippingAmount() > 0) {
             // @codingStandardsIgnoreLine
             $shipmentOrderLine = new Entity\OrderHospLine();
@@ -106,6 +110,7 @@ class OrderHelperPlugin
                 ->setDiscountAmount($order->getShippingDiscountAmount());
             array_push($orderLines, $shipmentOrderLine);
         }
+
         return $orderLines;
     }
 
@@ -123,11 +128,13 @@ class OrderHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($request);
         }
+
         $response = null;
         // @codingStandardsIgnoreLine
         $operation = new Operation\OrderHospCreate();
         $response  = $operation->execute($request);
         // @codingStandardsIgnoreLine
+
         return $response;
     }
 

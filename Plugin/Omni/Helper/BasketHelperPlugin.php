@@ -49,6 +49,7 @@ class BasketHelperPlugin
         $list->setHospitalityMode(
             $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY ? HospMode::DELIVERY : HospMode::NONE
         );
+
         return [$list];
     }
 
@@ -183,6 +184,7 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($oneList);
         }
+
         // @codingStandardsIgnoreLine
         $storeId = $subject->getDefaultWebStore();
         $cardId  = $oneList->getCardId();
@@ -204,6 +206,7 @@ class BasketHelperPlugin
                 $items->setOneListItem($listItems);
                 $listItems = $items;
             }
+
             // @codingStandardsIgnoreStart
             $oneListRequest = (new Entity\OneList())
                 ->setCardId($cardId)
@@ -230,16 +233,20 @@ class BasketHelperPlugin
             $entity->setOneList($oneListRequest);
             $response = $request->execute($entity);
         }
+
         if (($response == null)) {
             // @codingStandardsIgnoreLine
             $oneListCalResponse = new Entity\OneListCalculateResponse();
+
             return $oneListCalResponse->getResult();
         }
+
         if (property_exists($response, "OneListCalculateResult")) {
             // @codingStandardsIgnoreLine
             $subject->setOneListCalculationInCheckoutSession($response->getResult());
             return $response->getResult();
         }
+
         if (is_object($response)) {
             $subject->setOneListCalculationInCheckoutSession($response->getResult());
             return $response->getResult();
@@ -263,20 +270,25 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
+
         $itemSku = explode("-", $item->getSku());
         $uom     = '';
+
         // @codingStandardsIgnoreLine
         if (count($itemSku) < 2) {
             $itemSku[1] = null;
         }
+
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         // @codingStandardsIgnoreLine
         $uom        = $subject->itemHelper->getUom($itemSku, $baseUnitOfMeasure);
         $rowTotal   = "";
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+
         foreach ($orderLines as $index => $line) {
             ++$index;
+
             if (
                 $itemSku[0] == $line->getItemId() &&
                 $itemSku[1] == $line->getVariantId() &&
@@ -287,6 +299,7 @@ class BasketHelperPlugin
                 break;
             }
         }
+
         return $rowTotal;
     }
 }
