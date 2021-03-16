@@ -2,20 +2,17 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
-use Exception;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
-use Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Phrase;
 use Magento\Quote\Model\Quote;
 
 /**
@@ -38,7 +35,7 @@ class BasketHelperPlugin
     }
 
     /**
-     * Setting hospitalityMode if it's hospitality
+     * Before plugin for setting hospitalityMode if current industry is hospitality
      *
      * @param BasketHelper $subject
      * @param Entity\OneList $list
@@ -52,11 +49,12 @@ class BasketHelperPlugin
         $list->setHospitalityMode(
             $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY ? HospMode::DELIVERY : HospMode::NONE
         );
+
         return [$list];
     }
 
     /**
-     * Creating oneList one the basis of items in the quote
+     * Around plugin for creating oneList in hospitality on the basis of items in the quote
      *
      * @param BasketHelper $subject
      * @param callable $proceed
@@ -172,6 +170,8 @@ class BasketHelperPlugin
     }
 
     /**
+     * Around plugin for calculating oneList for hospitality
+     *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param Entity\OneList $oneList
@@ -184,6 +184,7 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($oneList);
         }
+
         // @codingStandardsIgnoreLine
         $storeId = $subject->getDefaultWebStore();
         $cardId  = $oneList->getCardId();
@@ -205,6 +206,7 @@ class BasketHelperPlugin
                 $items->setOneListItem($listItems);
                 $listItems = $items;
             }
+
             // @codingStandardsIgnoreStart
             $oneListRequest = (new Entity\OneList())
                 ->setCardId($cardId)
@@ -231,16 +233,20 @@ class BasketHelperPlugin
             $entity->setOneList($oneListRequest);
             $response = $request->execute($entity);
         }
+
         if (($response == null)) {
             // @codingStandardsIgnoreLine
             $oneListCalResponse = new Entity\OneListCalculateResponse();
+
             return $oneListCalResponse->getResult();
         }
+
         if (property_exists($response, "OneListCalculateResult")) {
             // @codingStandardsIgnoreLine
             $subject->setOneListCalculationInCheckoutSession($response->getResult());
             return $response->getResult();
         }
+
         if (is_object($response)) {
             $subject->setOneListCalculationInCheckoutSession($response->getResult());
             return $response->getResult();
@@ -250,6 +256,8 @@ class BasketHelperPlugin
     }
 
     /**
+     * Around plugin for calculating item row total
+     *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param $item
@@ -262,20 +270,25 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
+
         $itemSku = explode("-", $item->getSku());
         $uom     = '';
+
         // @codingStandardsIgnoreLine
         if (count($itemSku) < 2) {
             $itemSku[1] = null;
         }
+
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         // @codingStandardsIgnoreLine
         $uom        = $subject->itemHelper->getUom($itemSku, $baseUnitOfMeasure);
         $rowTotal   = "";
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+
         foreach ($orderLines as $index => $line) {
             ++$index;
+
             if (
                 $itemSku[0] == $line->getItemId() &&
                 $itemSku[1] == $line->getVariantId() &&
@@ -286,74 +299,7 @@ class BasketHelperPlugin
                 break;
             }
         }
+
         return $rowTotal;
-    }
-
-    /**
-     * @param BasketHelper $subject
-     * @param callable $proceed
-     * @param $couponCode
-     * @return Entity\OneListCalculateResponse|Entity\Order|Phrase|string
-     * @throws InvalidEnumException
-     * @throws NoSuchEntityException
-     * @throws LocalizedException
-     * @throws Exception
-     */
-    public function aroundSetCouponCode(BasketHelper $subject, callable $proceed, $couponCode)
-    {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($couponCode);
-        }
-        $couponCode = trim($couponCode);
-        if ($couponCode == "") {
-            $subject->couponCode = '';
-            $subject->setCouponQuote("");
-            $subject->update(
-                $subject->get()
-            );
-            $subject->itemHelper->setDiscountedPricesForItems(
-                $subject->checkoutSession->getQuote(),
-                $subject->getBasketSessionValue()
-            );
-
-            return $status = '';
-        }
-        $subject->couponCode = $couponCode;
-        $status              = $subject->update(
-            $subject->get()
-        );
-
-        $checkCouponAmount = $subject->data->orderBalanceCheck(
-            $subject->checkoutSession->getQuote()->getLsGiftCardNo(),
-            $subject->checkoutSession->getQuote()->getLsGiftCardAmountUsed(),
-            $subject->checkoutSession->getQuote()->getLsPointsSpent(),
-            $status
-        );
-
-        if (!is_object($status) && $checkCouponAmount) {
-            $subject->couponCode = '';
-            $subject->update(
-                $subject->get()
-            );
-            $subject->setCouponQuote($subject->couponCode);
-
-            return $status;
-        }
-        foreach ($status->getOrderLines()->getOrderHospLine() as $basket) {
-            $discountsLines = $basket->getDiscountLines();
-            foreach ($discountsLines as $orderDiscountLine) {
-                if ($orderDiscountLine->getDiscountType() == 'Coupon') {
-                    $status = "success";
-                    $subject->itemHelper->setDiscountedPricesForItems(
-                        $subject->checkoutSession->getQuote(),
-                        $subject->getBasketSessionValue()
-                    );
-                    $subject->setCouponQuote($subject->couponCode);
-                    return $status;
-                }
-            }
-        }
-        $this->setCouponQuote("");
-        return __("Coupon Code is not valid for these item(s)");
     }
 }
