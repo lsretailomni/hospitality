@@ -6,10 +6,12 @@ use Exception;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
+use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
+use \Ls\Omni\Helper\ItemHelper;
 use Psr\Log\LoggerInterface;
 
 /**
- * ItemHelperPlugin Plugin
+ * ItemHelper plugin responsible for intercepting required methods
  */
 class ItemHelperPlugin
 {
@@ -43,14 +45,16 @@ class ItemHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\ItemHelper $subject
+     * Around plugin for setting discount prices for items
+     *
+     * @param ItemHelper $subject
      * @param callable $proceed
      * @param $quote
      * @param $basketData
      * @return mixed
      */
     public function aroundSetDiscountedPricesForItems(
-        \Ls\Omni\Helper\ItemHelper $subject,
+        ItemHelper $subject,
         callable $proceed,
         $quote,
         $basketData
@@ -59,21 +63,28 @@ class ItemHelperPlugin
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($quote, $basketData);
             }
+
             $itemlist = $subject->cart->getQuote()->getAllVisibleItems();
+
             foreach ($itemlist as $item) {
                 $orderLines        = $basketData->getOrderLines()->getOrderHospLine();
                 $oldItemVariant    = [];
                 $itemSku           = explode("-", $item->getSku());
                 $baseUnitOfMeasure = $item->getProduct()->getData('uom');
                 $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
+
                 if (is_array($orderLines)) {
-                    foreach ($orderLines as $line) {
+
+                    foreach ($orderLines as $index => $line) {
+                        ++$index;
+
                         if ($itemSku[0] == $line->getItemId() &&
                             $itemSku[1] == $line->getVariantId() &&
                             $uom == $line->getUomId() &&
-                            $this->hospitalityHelper->isSameAsSelectedLine($line, $item)
+                            $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
                         ) {
                             $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+
                             if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
                                 // @codingStandardsIgnoreLine
                                 $item->setCustomPrice($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()] ['Amount'] + $this->hospitalityHelper->getAmountGivenLine($line));
@@ -97,6 +108,7 @@ class ItemHelperPlugin
                                 }
                             }
                         }
+
                         // @codingStandardsIgnoreStart
                         if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
                             $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()]['Amount']    =
@@ -128,6 +140,7 @@ class ItemHelperPlugin
 
             if ($quote->getId()) {
                 $cartQuote = $subject->cart->getQuote();
+
                 if (isset($basketData)) {
                     $pointDiscount  = $cartQuote->getLsPointsSpent() * $subject->loyaltyHelper->getPointRate();
                     $giftCardAmount = $cartQuote->getLsGiftCardAmountUsed();
@@ -147,27 +160,35 @@ class ItemHelperPlugin
     }
 
     /**
-     * @param \Ls\Omni\Helper\ItemHelper $subject
+     * Around plugin for getting the orderDiscountLines for item
+     *
+     * @param ItemHelper $subject
      * @param callable $proceed
      * @param $item
      * @param $orderData
      * @param int $type
      * @return array|null
      */
-    public function aroundGetOrderDiscountLinesForItem(\Ls\Omni\Helper\ItemHelper $subject, callable $proceed, $item, $orderData, $type = 1)
+    public function aroundGetOrderDiscountLinesForItem(ItemHelper $subject, callable $proceed, $item, $orderData, $type = 1)
     {
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($item, $orderData, $type);
             }
+
             $discountInfo = [];
             $customPrice  = 0;
+            $uom  = '';
+
             if ($type == 2) {
                 $itemSku = $item->getItemId();
                 $itemSku = explode("-", $itemSku);
+
                 if (count($itemSku) < 2) {
                     $itemSku[1] = $item->getVariantId();
                 }
+
+                $uom = $item->getUomId();
                 $customPrice = $item->getDiscountAmount();
             } else {
                 $itemSku = $item->getSku();
@@ -175,18 +196,29 @@ class ItemHelperPlugin
                 if (count($itemSku) < 2) {
                     $itemSku[1] = '';
                 }
+                // @codingStandardsIgnoreLine
                 $customPrice = $item->getCustomPrice();
+                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
+                $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
             }
+
             $check        = false;
             $basketData   = [];
             $discountText = __("Save");
-            if ($orderData instanceof OrderHosp) {
-                $basketData = $orderData->getOrderLines();
+
+            if ($orderData instanceof SalesEntry) {
+                $basketData     = $orderData->getLines();
+                $discountsLines = $orderData->getDiscountLines();
+            } elseif ($orderData instanceof OrderHosp) {
+                $basketData     = $orderData->getOrderLines();
+                $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
             }
+
             foreach ($basketData as $basket) {
-                if ($basket->getItemId() == $itemSku[0] && $basket->getVariantId() == $itemSku[1]) {
+                if ($basket->getItemId() == $itemSku[0] && $basket->getVariantId() == $itemSku[1] && $uom == $basket->getUomId()) {
+
                     if ($customPrice > 0 && $customPrice != null) {
-                        $discountsLines = $basket->getDiscountLines();
+                        // @codingStandardsIgnoreLine
                         foreach ($discountsLines as $orderDiscountLine) {
                             if ($basket->getLineNumber() == $orderDiscountLine->getLineNumber()) {
                                 if (!in_array($orderDiscountLine->getDescription() . '<br />', $discountInfo)) {
@@ -198,6 +230,7 @@ class ItemHelperPlugin
                     }
                 }
             }
+
             if ($check == true) {
                 return [implode($discountInfo), $discountText];
             } else {

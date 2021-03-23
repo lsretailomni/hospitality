@@ -3,7 +3,9 @@
 namespace Ls\Hospitality\Helper;
 
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplItemModifierRepository;
@@ -76,7 +78,11 @@ class HospitalityHelper extends AbstractHelper
     public $lsr;
 
     /**
-     * HospitalityHelper constructor.
+     * @var ReplHierarchyHospDealRepositoryInterface
+     */
+    public $replHierarchyHospDealRepository;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -87,6 +93,7 @@ class HospitalityHelper extends AbstractHelper
      * @param ReplicationHelper $replicationHelper
      * @param DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory
      * @param DealCollectionFactory $replHierarchyHospDealCollectionFactory
+     * @param ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository
      * @param ResourceConnection $resourceConnection
      * @param LSR $lsr
      */
@@ -101,6 +108,7 @@ class HospitalityHelper extends AbstractHelper
         ReplicationHelper $replicationHelper,
         DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
         DealCollectionFactory $replHierarchyHospDealCollectionFactory,
+        ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
         ResourceConnection $resourceConnection,
         LSR $lsr
     ) {
@@ -114,16 +122,21 @@ class HospitalityHelper extends AbstractHelper
         $this->replicationHelper                          = $replicationHelper;
         $this->replHierarchyHospDealLineCollectionFactory = $replHierarchyHospDealLineCollectionFactory;
         $this->replHierarchyHospDealCollectionFactory     = $replHierarchyHospDealCollectionFactory;
+        $this->replHierarchyHospDealRepository = $replHierarchyHospDealRepository;
         $this->resourceConnection                         = $resourceConnection;
         $this->lsr                                        = $lsr;
     }
 
     /**
+     * Creating selected sublines from quoteItem
+     *
      * @param $quoteItem
+     * @param $lineNumber
      * @return array
      */
-    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem)
+    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
     {
+        $lineNumber *= 10000;
         $sku = $quoteItem->getSku();
 
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku, 'eq')->create();
@@ -133,9 +146,9 @@ class HospitalityHelper extends AbstractHelper
         /** @var Interceptor $product */
         $product = array_pop($productList);
 
-        $uom     = $product->getAttributeText('lsr_uom');
+        $uom = $product->getAttributeText('lsr_uom');
         $itemSku = explode("-", $sku);
-        $lsrId   = $itemSku[0];
+        $lsrId = $itemSku[0];
 
         /**
          * Business Logic ***
@@ -144,16 +157,45 @@ class HospitalityHelper extends AbstractHelper
          * So in order to have a proper filter, we need to check if UoM is not empty then get the Code for specific item
          * based on description.
          */
-        $uoMCode = null;
+        $uoMCode = $mainDealLine = null;
+
         if ($uom) {
             // only try if UoM is not null
             // get UoM code based on Description
             $uoMCode = $this->getUoMCodeByDescription($lsrId, $uom);
         }
         // if found UoM code by description then replace else continue.
-        $uom                        = $uoMCode ? $uoMCode : $uom;
+        $uom = $uoMCode ? $uoMCode : $uom;
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
-        $selectedOrderHospSubLine   = [];
+        $selectedOrderHospSubLine = [];
+
+        if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
+            $mainDealLine = current($this->getMainDealLine($lsrId));
+
+            if ($mainDealLine) {
+                $selectedOrderHospSubLine['deal'][] = [
+                    'DealLineId' => $mainDealLine->getLineNo(),
+                    'LineNumber' => $lineNumber
+                ];
+            }
+
+            foreach ($selectedOptionsOfQuoteItem as $index => $option) {
+                if (isset($option['ls_modifier_recipe_id'])) {
+                    continue;
+                }
+
+                $selectedOrderHospSubLine['deal'][] = [
+                    'DealLineId' => $this->getCustomOptionSortOrder($product, $option['option_id']),
+                    'DealModLineId' => $this->getCustomOptionValueSortOrder(
+                        $product,
+                        $option['option_id'],
+                        trim($option['value'])
+                    )
+                ];
+                unset($selectedOptionsOfQuoteItem[$index]);
+            }
+        }
+
         foreach ($selectedOptionsOfQuoteItem as $option) {
             if (isset($option['ls_modifier_recipe_id'])) {
                 $itemSubLineCode = $option['ls_modifier_recipe_id'];
@@ -161,29 +203,40 @@ class HospitalityHelper extends AbstractHelper
                 $itemSubLineCode = $option['label'];
             }
             $decodedValue = htmlspecialchars_decode($option['value']);
+
             foreach (array_map('trim', explode(',', $decodedValue)) as $optionValue) {
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
-                    $recipe = $this->getRecipe($lsrId, $optionValue);
+                    if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
+                        $recipeData['DealLineId'] = $mainDealLine->getLineNo();
+                        $recipeData['ParentSubLineId'] = $lineNumber;
+                        $recipe = $this->getRecipe($mainDealLine->getNo(), $optionValue);
+                    } else {
+                        $recipe = $this->getRecipe($lsrId, $optionValue);
+                    }
+
                     if (!empty($recipe)) {
-                        $itemId                               = reset($recipe)->getItemNo();
-                        $selectedOrderHospSubLine['recipe'][] = ['ItemId' => $itemId];
+                        $itemId = reset($recipe)->getItemNo();
+                        $recipeData['ItemId'] = $itemId;
+                        $selectedOrderHospSubLine['recipe'][] = $recipeData;
                     }
                 } else {
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
-                    $itemModifier             = $this->getItemModifier(
+                    $itemModifier = $this->getItemModifier(
                         $lsrId,
                         $formattedItemSubLineCode,
                         $optionValue,
                         $uom
                     );
+
                     if (!empty($itemModifier)) {
-                        $subCode                                = reset($itemModifier)->getSubCode();
+                        $subCode = reset($itemModifier)->getSubCode();
                         $selectedOrderHospSubLine['modifier'][] =
                             ['ModifierGroupCode' => $formattedItemSubLineCode, 'ModifierSubCode' => $subCode];
                     }
                 }
             }
         }
+
         return $selectedOrderHospSubLine;
     }
 
@@ -194,9 +247,15 @@ class HospitalityHelper extends AbstractHelper
     public function getAmountGivenLine(OrderHospLine $line)
     {
         $amount = $line->getAmount();
+
         foreach ($line->getSubLines() as $subLine) {
+            if ($subLine->getType() == SubLineType::DEAL) {
+                continue;
+            }
+
             $amount += $subLine->getAmount();
         }
+
         return $amount;
     }
 
@@ -207,50 +266,79 @@ class HospitalityHelper extends AbstractHelper
     public function getPriceGivenLine(OrderHospLine $line)
     {
         $price = $line->getPrice();
+
         foreach ($line->getSubLines() as $subLine) {
             $price += $subLine->getPrice();
         }
+
         return $price;
     }
 
     /**
+     * Comparison between quote selected sublines and omni sublines
+     *
      * @param OrderHospLine $line
      * @param $item
+     * @param $index
      * @return bool
      */
-    public function isSameAsSelectedLine(OrderHospLine $line, $item)
+    public function isSameAsSelectedLine(OrderHospLine $line, $item, $index)
     {
-        $selectedOrderHospSubLine = $this->getSelectedOrderHospSubLineGivenQuoteItem($item);
-        $selectedCount            = (isset($selectedOrderHospSubLine['modifier']) ? count($selectedOrderHospSubLine['modifier']) : 0) + (isset($selectedOrderHospSubLine['recipe']) ? count($selectedOrderHospSubLine['recipe']) : 0);
+        $selectedOrderHospSubLine = $this->getSelectedOrderHospSubLineGivenQuoteItem($item, $index);
+        $selectedCount = $this->getSelectedSubLinesCount($selectedOrderHospSubLine);
+
         if ($selectedCount != count($line->getSubLines()->getOrderHospSubLine())) {
             return false;
         }
+
         foreach ($line->getSubLines() as $omniSubLine) {
             $found = false;
-            if ((int)$omniSubLine->getQuantity()) {
-                if (!empty($selectedOrderHospSubLine['modifier'])) {
-                    foreach ($selectedOrderHospSubLine['modifier'] as $quoteSubLine) {
-                        if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode'] &&
-                            $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
-                            $found = true;
-                            break;
+
+            if ($omniSubLine->getType() == SubLineType::MODIFIER) {
+                if ((int)$omniSubLine->getQuantity()) {
+                    if (!empty($selectedOrderHospSubLine['modifier'])) {
+                        foreach ($selectedOrderHospSubLine['modifier'] as $quoteSubLine) {
+                            if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode'] &&
+                                $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
+                                $found = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    if (!empty($selectedOrderHospSubLine['recipe'])) {
+                        foreach ($selectedOrderHospSubLine['recipe'] as $quoteSubLine) {
+                            if ($omniSubLine->getItemId() == $quoteSubLine['ItemId']) {
+                                $found = true;
+                                break;
+                            }
                         }
                     }
                 }
-            } else {
-                if (!empty($selectedOrderHospSubLine['recipe'])) {
-                    foreach ($selectedOrderHospSubLine['recipe'] as $quoteSubLine) {
-                        if ($omniSubLine->getItemId() == $quoteSubLine['ItemId']) {
-                            $found = true;
-                            break;
+            } elseif ($omniSubLine->getType() == SubLineType::DEAL) {
+                if (!empty($selectedOrderHospSubLine['deal'])) {
+                    foreach ($selectedOrderHospSubLine['deal'] as $quoteSubLine) {
+                        if ($omniSubLine->getDealLineId() == $quoteSubLine['DealLineId']) {
+                            if ($omniSubLine->getDealModifierLineId()) {
+                                if (isset($quoteSubLine['DealModLineId']) &&
+                                    $omniSubLine->getDealModifierLineId() == $quoteSubLine['DealModLineId']) {
+                                    $found = true;
+                                    break;
+                                }
+                            } else {
+                                $found = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
+
             if (!$found) {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -261,6 +349,7 @@ class HospitalityHelper extends AbstractHelper
     public function getItemSubLineCode($label)
     {
         $subString = explode(LSR::LSR_ITEM_MODIFIER_PREFIX, $label);
+
         return end($subString);
     }
 
@@ -277,6 +366,7 @@ class HospitalityHelper extends AbstractHelper
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
             ->addFilter('Description', $value)
             ->addFilter('Code', $code);
+
         if ($uom) {
             $searchCriteria->addFilter('UnitOfMeasure', $uom);
         }
@@ -285,6 +375,7 @@ class HospitalityHelper extends AbstractHelper
                 ->setCurrentPage(1)
                 ->create()
         );
+
         return $itemModifier->getItems();
     }
 
@@ -303,9 +394,11 @@ class HospitalityHelper extends AbstractHelper
                 ->setCurrentPage(1)
                 ->create()
         );
+
         if ($itemUom->getTotalCount() > 0) {
             return $itemUom->getItems()[0]->getCode();
         }
+
         return null;
     }
 
@@ -322,6 +415,7 @@ class HospitalityHelper extends AbstractHelper
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
+
         return $recipe->getItems();
     }
 
@@ -381,6 +475,7 @@ class HospitalityHelper extends AbstractHelper
             [$collection1->getSelect(), $collection2->getSelect()]
         );
 //        $query       = $select->__toString();
+
         return $this->resourceConnection->getConnection()->fetchAll($select);
     }
 
@@ -398,5 +493,92 @@ class HospitalityHelper extends AbstractHelper
     public function getItemRecipeBatchSize()
     {
         return $this->lsr->getStoreConfig(LSR::SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE);
+    }
+
+    /**
+     * @param $dealNo
+     * @return array
+     */
+    public function getMainDealLine($dealNo)
+    {
+        return $this->replHierarchyHospDealRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('DealNo', $dealNo, 'eq')
+                ->addFilter('Type', 'Item', 'eq')->create()
+        )->getItems();
+    }
+
+    /**
+     * Get selected custom option sort order
+     *
+     * @param $product
+     * @param $optionId
+     * @return int
+     */
+    public function getCustomOptionSortOrder($product, $optionId)
+    {
+        $sortOrder = 1;
+
+        foreach ($product->getOptions() as $o) {
+            if ($o->getOptionId() != $optionId) {
+                continue;
+            }
+            $sortOrder = $o->getSortOrder();
+            break;
+        }
+
+        return $sortOrder;
+    }
+
+    /**
+     * Get selected custom option value sort order
+     *
+     * @param $product
+     * @param $optionId
+     * @param $optionValueTitle
+     * @return int
+     */
+    public function getCustomOptionValueSortOrder($product, $optionId, $optionValueTitle)
+    {
+        $sortOrder = 1;
+
+        foreach ($product->getOptions() as $o) {
+            if ($o->getOptionId() != $optionId) {
+                continue;
+            }
+
+            foreach ($o->getValues() as $value) {
+                if ($value->getTitle() == $optionValueTitle) {
+                    $sortOrder = $value->getSortOrder();
+                    return $sortOrder;
+                }
+            }
+        }
+
+        return $sortOrder;
+    }
+
+    /**
+     * Returns count is the subline type exists
+     *
+     * @param $selectedOrderHospSubLine
+     * @param $typeOfLine
+     * @return int|void
+     */
+    public function getOrderHosSubLineCount($selectedOrderHospSubLine, $typeOfLine)
+    {
+        return (isset($selectedOrderHospSubLine[$typeOfLine]) ? count($selectedOrderHospSubLine[$typeOfLine]) : 0);
+    }
+
+    /**
+     * Returns total count of all the subline types
+     *
+     * @param $selectedOrderHospSubLine
+     * @return int|void
+     */
+    public function getSelectedSubLinesCount($selectedOrderHospSubLine)
+    {
+        return $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'modifier') +
+        $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
+        $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
     }
 }
