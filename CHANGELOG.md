@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2021-03-23
+
+### Added
+
+- Added support for replication and synchronization of hospitality deals. [OMNI-5350](https://solutions.lsretail.com/jira/browse/OMNI-5350)
+- Added support for basket calculation and order creation for hospitality deals. [OMNI-5351](https://solutions.lsretail.com/jira/browse/OMNI-5351)
+ 
+
+
 ## [1.0.0] - 2021-01-13
 
 ### Added
