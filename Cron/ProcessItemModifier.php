@@ -272,8 +272,10 @@ class ProcessItemModifier
                                                 ->setPriceType('fixed')
                                                 ->setSortOrder($subcode)
                                                 ->setPrice($optionValueData->getAmountPercent());
-                                            $optionData['values'][] = $optionValue;
-                                            $optionData['title']    = $title;
+                                            $optionData['values'][]      = $optionValue;
+                                            $optionData['title']         = $title;
+                                            $optionData['min_selection'] = $optionValueData->getMinSelection();
+                                            $optionData['max_selection'] = $optionValueData->getMaxSelection();
                                         }
 
                                         $optionValueData->setProcessed(1)
@@ -283,11 +285,7 @@ class ProcessItemModifier
                                         $this->replItemModifierRepositoryInterface->save($optionValueData);
                                         //$this->logger->debug(var_export($optionValueData, true));
                                     }
-                                    /**
-                                     * TODO set type dynamic based on minimum and maximum value
-                                     * set require based on minimum and maximum value
-                                     * set title based from first option text.
-                                     */
+
                                     if ($optionNeedsToBeUpdated) {
                                         try {
                                             // check if Option
@@ -299,6 +297,12 @@ class ProcessItemModifier
                                                 ->setType('drop_down')
                                                 ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
                                                 ->setProductSku($itemSKU);
+                                            if ($optionData['min_selection'] >= 1) {
+                                                $productOption->setIsRequire(true);
+                                            }
+                                            if ($optionData['max_selection'] > 1) {
+                                                $productOption->setType('multiple');
+                                            }
                                             $savedProductOption = $this->optionRepository->save($productOption);
                                             $product->addOption($savedProductOption);
                                         } catch (Exception $e) {
