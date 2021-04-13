@@ -194,9 +194,11 @@ class ProcessItemModifier
                  * i-e All modifiers whose TriggerFunction = Infocode
                  **/
                 if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
-                    $dataToProcess[$itemModifier->getNavId()][$itemModifier->getCode()][$itemModifier->getSubCode()] = $itemModifier;
+                    $dataToProcess['data'][$itemModifier->getNavId()][$itemModifier->getCode()]
+                    [$itemModifier->getSubCode()] = $itemModifier;
                 } else {
-                    // close these values as we will not process those because of InfoCodes
+                    $dataToProcess[$itemModifier->getTriggerCode()] ['min_select'] = $itemModifier->getMinSelection();
+                    $dataToProcess[$itemModifier->getTriggerCode()] ['max_select'] = $itemModifier->getMaxSelection();
                     $itemModifier->setProcessed(1)
                         ->setProcessedAt($this->replicationHelper->getDateTime())
                         ->setIsUpdated(0);
@@ -207,7 +209,7 @@ class ProcessItemModifier
 
             if (!empty($dataToProcess)) {
                 // loop against each Product.
-                foreach ($dataToProcess as $itemSKU => $optionArray) {
+                foreach ($dataToProcess['data'] as $itemSKU => $optionArray) {
                     // generate options.
                     $productOptions = [];
                     if (!empty($optionArray)) {
@@ -272,10 +274,9 @@ class ProcessItemModifier
                                                 ->setPriceType('fixed')
                                                 ->setSortOrder($subcode)
                                                 ->setPrice($optionValueData->getAmountPercent());
-                                            $optionData['values'][]      = $optionValue;
-                                            $optionData['title']         = $title;
-                                            $optionData['min_selection'] = $optionValueData->getMinSelection();
-                                            $optionData['max_selection'] = $optionValueData->getMaxSelection();
+                                            $optionData['values'][] = $optionValue;
+                                            $optionData['title']    = $title;
+                                            $optionData ['code']    = $optionValueData->getCode();
                                         }
 
                                         $optionValueData->setProcessed(1)
@@ -297,10 +298,10 @@ class ProcessItemModifier
                                                 ->setType('drop_down')
                                                 ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
                                                 ->setProductSku($itemSKU);
-                                            if ($optionData['min_selection'] >= 1) {
+                                            if ($dataToProcess[$optionData['code']]['min_select'] >= 1) {
                                                 $productOption->setIsRequire(true);
                                             }
-                                            if ($optionData['max_selection'] > 1) {
+                                            if ($dataToProcess[$optionData['code']]['max_select'] > 1) {
                                                 $productOption->setType('multiple');
                                             }
                                             $savedProductOption = $this->optionRepository->save($productOption);
