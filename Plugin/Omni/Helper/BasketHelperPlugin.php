@@ -6,16 +6,13 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
-use Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
-use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 
