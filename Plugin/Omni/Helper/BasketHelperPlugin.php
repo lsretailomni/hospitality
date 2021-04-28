@@ -6,12 +6,16 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
+use Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
+use Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
+use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 
@@ -45,7 +49,7 @@ class BasketHelperPlugin
      */
     public function beforeSaveToOmni(BasketHelper $subject, Entity\OneList $list)
     {
-        $industry = $subject->lsr->getCurrentIndustry();
+        $industry = $subject->lsr->getCurrentIndustry($subject->getCorrectStoreIdFromCheckoutSession() ?? null);
         $list->setHospitalityMode(
             $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY ? HospMode::DELIVERY : HospMode::NONE
         );
@@ -69,7 +73,7 @@ class BasketHelperPlugin
         Quote $quote,
         Entity\OneList $oneList
     ) {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+        if ($subject->lsr->getCurrentIndustry($quote->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($quote, $oneList);
         }
 
@@ -175,13 +179,16 @@ class BasketHelperPlugin
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param Entity\OneList $oneList
-     * @return Entity\OneListCalculateResponse|Entity\OneListHospCalculateResponse|Entity\Order|Entity\OrderHosp|ResponseInterface|null
+     * @return Entity\OneListCalculateResponse|Entity\OneListHospCalculateResponse|Entity\Order|OrderHosp|ResponseInterface|null
      * @throws NoSuchEntityException
      * @throws InvalidEnumException
      */
     public function aroundCalculate(BasketHelper $subject, callable $proceed, Entity\OneList $oneList)
     {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+        if ($subject->lsr->getCurrentIndustry(
+                $subject->getCorrectStoreIdFromCheckoutSession() ?? null
+            ) != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
             return $proceed($oneList);
         }
 
