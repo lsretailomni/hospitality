@@ -8,7 +8,7 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
-use Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
+use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
