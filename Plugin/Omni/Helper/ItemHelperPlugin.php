@@ -107,6 +107,14 @@ class ItemHelperPlugin
                                     $item->setOriginalCustomPrice(null);
                                 }
                             }
+                            $item->setTaxAmount($line->getTaxAmount())
+                                ->setBaseTaxAmount($line->getTaxAmount())
+                                ->setPriceInclTax($unitPrice)
+                                ->setBasePriceInclTax($unitPrice)
+                                ->setRowTotal($line->getNetAmount())
+                                ->setBaseRowTotal($line->getNetAmount())
+                                ->setRowTotalInclTax($line->getAmount())
+                                ->setBaseRowTotalInclTax($line->getAmount());
                         }
 
                         // @codingStandardsIgnoreStart
@@ -133,7 +141,6 @@ class ItemHelperPlugin
                     }
                 }
                 $item->getProduct()->setIsSuperMode(true);
-                $item->calcRowTotal();
                 // @codingStandardsIgnoreLine
                 $subject->itemResourceModel->save($item);
             }
