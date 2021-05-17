@@ -202,7 +202,7 @@ class HospitalityHelper extends AbstractHelper
             } else {
                 $itemSubLineCode = $option['label'];
             }
-            $decodedValue = htmlspecialchars_decode($option['value']);
+            $decodedValue = htmlspecialchars_decode($option['value'], ENT_QUOTES);
 
             foreach (array_map('trim', explode(',', $decodedValue)) as $optionValue) {
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
