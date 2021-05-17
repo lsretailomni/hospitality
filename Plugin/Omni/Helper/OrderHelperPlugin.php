@@ -155,4 +155,31 @@ class OrderHelperPlugin
             return [$docId, DocumentIdType::HOSP_ORDER];
         }
     }
+
+    /**
+     * Around plugin for placing hospitality order
+     *
+     * @param OrderHelper $subject
+     * @param callable $proceed
+     * @param $request
+     * @return Entity\OrderCreateResponse|ResponseInterface
+     * @throws NoSuchEntityException
+     */
+    public function aroundOrderCancel(OrderHelper $subject, callable $proceed, $documentId, $storeId)
+    {
+        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($documentId, $storeId);
+        }
+        $response = null;
+        $request  = new Entity\HospOrderCancel();
+        $request->setOrderId($documentId);
+        $request->setStoreId($storeId);
+        $operation = new Operation\HospOrderCancel();
+        try {
+            $response = $operation->execute($request);
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
+        return $response;
+    }
 }
