@@ -16,7 +16,7 @@ use Magento\Framework\Stdlib\DateTime\DateTime;
 use Psr\Log\LoggerInterface;
 
 /**
- * Order Helper Plugin
+ * Order helper plugin responsible for intercepting required methods
  */
 class OrderHelperPlugin
 {
@@ -170,12 +170,12 @@ class OrderHelperPlugin
     }
 
     /**
-     * Around plugin for placing hospitality order
-     *
+     * Around plugin for order cancellation
      * @param OrderHelper $subject
      * @param callable $proceed
-     * @param $request
-     * @return Entity\OrderCreateResponse|ResponseInterface
+     * @param $documentId
+     * @param $storeId
+     * @return Entity\HospOrderCancelResponse|ResponseInterface|null
      * @throws NoSuchEntityException
      */
     public function aroundOrderCancel(OrderHelper $subject, callable $proceed, $documentId, $storeId)
