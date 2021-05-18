@@ -46,7 +46,7 @@ class OrderHelperPlugin
     public function aroundPrepareOrder(OrderHelper $subject, callable $proceed, Model\Order $order, $oneListCalculateResponse)
     {
         try {
-            if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($order, $oneListCalculateResponse);
             }
             $storeId        = $oneListCalculateResponse->getStoreId();
@@ -91,11 +91,11 @@ class OrderHelperPlugin
      */
     public function aroundUpdateShippingAmount(OrderHelper $subject, callable $proceed, $orderLines, $order)
     {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+        if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($orderLines, $order);
         }
 
-        $shipmentFeeId = $subject->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID);
+        $shipmentFeeId = $subject->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
 
         if ($order->getShippingAmount() > 0) {
             // @codingStandardsIgnoreLine
@@ -125,7 +125,10 @@ class OrderHelperPlugin
      */
     public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
     {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+        if ($subject->lsr->getCurrentIndustry(
+            $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
+            ) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
             return $proceed($request);
         }
 
