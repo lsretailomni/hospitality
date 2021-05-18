@@ -12,6 +12,7 @@ use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
+use Magento\Framework\Stdlib\DateTime\DateTime;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -25,12 +26,20 @@ class OrderHelperPlugin
     public $logger;
 
     /**
-     * OrderHelper constructor.
+     * @var DateTime
+     */
+    public $date;
+
+    /**
+     * OrderHelperPlugin constructor.
+     * @param DateTime $date
      * @param LoggerInterface $logger
      */
     public function __construct(
+        DateTime $date,
         LoggerInterface $logger
     ) {
+        $this->date   = $date;
         $this->logger = $logger;
     }
 
@@ -49,8 +58,8 @@ class OrderHelperPlugin
             if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($order, $oneListCalculateResponse);
             }
-            $storeId        = $oneListCalculateResponse->getStoreId();
-            $cardId         = $oneListCalculateResponse->getCardId();
+            $storeId = $oneListCalculateResponse->getStoreId();
+            $cardId  = $oneListCalculateResponse->getCardId();
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
 
@@ -62,7 +71,7 @@ class OrderHelperPlugin
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
-                ->setPickUpTime(date("Y-m-d\T00:00:00"));
+                ->setPickUpTime($this->date->date("Y-m-d\T00:00:00"));
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
             //For click and collect we need to remove shipment charge orderline
@@ -127,7 +136,7 @@ class OrderHelperPlugin
     public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
     {
         if ($subject->lsr->getCurrentIndustry(
-            $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
+                $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
             ) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($request);
