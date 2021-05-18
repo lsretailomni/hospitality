@@ -61,7 +61,8 @@ class OrderHelperPlugin
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
-                ->setRestaurantNo($storeId);
+                ->setRestaurantNo($storeId)
+                ->setPickUpTime(date("Y-m-d\T00:00:00"));
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
             //For click and collect we need to remove shipment charge orderline

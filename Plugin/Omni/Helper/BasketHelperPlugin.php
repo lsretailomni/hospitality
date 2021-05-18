@@ -217,7 +217,7 @@ class BasketHelperPlugin
                 ->setListType(Entity\Enum\ListType::BASKET)
                 ->setItems($listItems)
                 ->setStoreId($storeId)
-                ->setHospitalityMode(HospMode::DELIVERY);
+                ->setHospitalityMode(HospMode::TAKEAWAY);
 
             /** @var Entity\OneListCalculate $entity */
             if ($subject->getCouponCode() != "" and $subject->getCouponCode() != null) {
