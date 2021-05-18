@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2021-05-10
+
+### Added
+
+- Added support for multiple modifiers to be selected on product detail page. [OMNI-5421](https://solutions.lsretail.com/jira/browse/OMNI-5421)
+ 
+
+
 ## [1.1.0] - 2021-03-23
 
 ### Added
