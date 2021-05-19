@@ -70,8 +70,7 @@ class ItemHelperPlugin
                 $orderLines        = $basketData->getOrderLines()->getOrderHospLine();
                 $oldItemVariant    = [];
                 $itemSku           = explode("-", $item->getSku());
-                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-                $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
+                $uom               = $subject->getUom($itemSku);
 
                 if (is_array($orderLines)) {
 

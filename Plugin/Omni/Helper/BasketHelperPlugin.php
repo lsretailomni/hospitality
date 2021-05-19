@@ -276,16 +276,7 @@ class BasketHelperPlugin
         }
 
         $itemSku = explode("-", $item->getSku());
-        $uom     = '';
-
-        // @codingStandardsIgnoreLine
-        if (count($itemSku) < 2) {
-            $itemSku[1] = null;
-        }
-
-        $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-        // @codingStandardsIgnoreLine
-        $uom        = $subject->itemHelper->getUom($itemSku, $baseUnitOfMeasure);
+        $uom        = $subject->itemHelper->getUom($itemSku);
         $rowTotal   = "";
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
