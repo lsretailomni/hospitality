@@ -12,7 +12,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
-use Ls\Omni\Helper\BasketHelper;
+use \Ls\Omni\Helper\BasketHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 
