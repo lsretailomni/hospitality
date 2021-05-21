@@ -2,8 +2,8 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
-use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
+use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
@@ -12,7 +12,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
-use \Ls\Omni\Helper\BasketHelper;
+use Ls\Omni\Helper\BasketHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 
@@ -260,7 +260,7 @@ class BasketHelperPlugin
     }
 
     /**
-     * Around plugin for calculating item row total
+     * Around plugin for getting Correct Item Row Total for minicart after comparison
      *
      * @param BasketHelper $subject
      * @param callable $proceed
@@ -274,10 +274,8 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
-
-        $itemSku = explode("-", $item->getSku());
-        $uom        = $subject->itemHelper->getUom($itemSku);
-        $rowTotal   = "";
+        $rowTotal = "";
+        list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues($item);
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
 
@@ -285,8 +283,8 @@ class BasketHelperPlugin
             ++$index;
 
             if (
-                $itemSku[0] == $line->getItemId() &&
-                $itemSku[1] == $line->getVariantId() &&
+                $itemId == $line->getItemId() &&
+                $variantId == $line->getVariantId() &&
                 $uom == $line->getUomId() &&
                 $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
             ) {
