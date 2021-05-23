@@ -3,6 +3,8 @@
 namespace Ls\Hospitality\Helper;
 
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Omni\Client\Ecommerce\Entity;
+use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
@@ -122,7 +124,7 @@ class HospitalityHelper extends AbstractHelper
         $this->replicationHelper                          = $replicationHelper;
         $this->replHierarchyHospDealLineCollectionFactory = $replHierarchyHospDealLineCollectionFactory;
         $this->replHierarchyHospDealCollectionFactory     = $replHierarchyHospDealCollectionFactory;
-        $this->replHierarchyHospDealRepository = $replHierarchyHospDealRepository;
+        $this->replHierarchyHospDealRepository            = $replHierarchyHospDealRepository;
         $this->resourceConnection                         = $resourceConnection;
         $this->lsr                                        = $lsr;
     }
@@ -137,7 +139,7 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
     {
         $lineNumber *= 10000;
-        $sku = $quoteItem->getSku();
+        $sku        = $quoteItem->getSku();
 
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku, 'eq')->create();
 
@@ -146,9 +148,9 @@ class HospitalityHelper extends AbstractHelper
         /** @var Interceptor $product */
         $product = array_pop($productList);
 
-        $uom = $product->getAttributeText('lsr_uom');
+        $uom     = $product->getAttributeText('lsr_uom');
         $itemSku = explode("-", $sku);
-        $lsrId = $itemSku[0];
+        $lsrId   = $itemSku[0];
 
         /**
          * Business Logic ***
@@ -165,9 +167,9 @@ class HospitalityHelper extends AbstractHelper
             $uoMCode = $this->getUoMCodeByDescription($lsrId, $uom);
         }
         // if found UoM code by description then replace else continue.
-        $uom = $uoMCode ? $uoMCode : $uom;
+        $uom                        = $uoMCode ? $uoMCode : $uom;
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
-        $selectedOrderHospSubLine = [];
+        $selectedOrderHospSubLine   = [];
 
         if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
             $mainDealLine = current($this->getMainDealLine($lsrId));
@@ -185,7 +187,7 @@ class HospitalityHelper extends AbstractHelper
                 }
 
                 $selectedOrderHospSubLine['deal'][] = [
-                    'DealLineId' => $this->getCustomOptionSortOrder($product, $option['option_id']),
+                    'DealLineId'    => $this->getCustomOptionSortOrder($product, $option['option_id']),
                     'DealModLineId' => $this->getCustomOptionValueSortOrder(
                         $product,
                         $option['option_id'],
@@ -207,21 +209,21 @@ class HospitalityHelper extends AbstractHelper
             foreach (array_map('trim', explode(',', $decodedValue)) as $optionValue) {
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
-                        $recipeData['DealLineId'] = $mainDealLine->getLineNo();
+                        $recipeData['DealLineId']      = $mainDealLine->getLineNo();
                         $recipeData['ParentSubLineId'] = $lineNumber;
-                        $recipe = $this->getRecipe($mainDealLine->getNo(), $optionValue);
+                        $recipe                        = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
                         $recipe = $this->getRecipe($lsrId, $optionValue);
                     }
 
                     if (!empty($recipe)) {
-                        $itemId = reset($recipe)->getItemNo();
-                        $recipeData['ItemId'] = $itemId;
+                        $itemId                               = reset($recipe)->getItemNo();
+                        $recipeData['ItemId']                 = $itemId;
                         $selectedOrderHospSubLine['recipe'][] = $recipeData;
                     }
                 } else {
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
-                    $itemModifier = $this->getItemModifier(
+                    $itemModifier             = $this->getItemModifier(
                         $lsrId,
                         $formattedItemSubLineCode,
                         $optionValue,
@@ -229,7 +231,7 @@ class HospitalityHelper extends AbstractHelper
                     );
 
                     if (!empty($itemModifier)) {
-                        $subCode = reset($itemModifier)->getSubCode();
+                        $subCode                                = reset($itemModifier)->getSubCode();
                         $selectedOrderHospSubLine['modifier'][] =
                             ['ModifierGroupCode' => $formattedItemSubLineCode, 'ModifierSubCode' => $subCode];
                     }
@@ -285,7 +287,7 @@ class HospitalityHelper extends AbstractHelper
     public function isSameAsSelectedLine(OrderHospLine $line, $item, $index)
     {
         $selectedOrderHospSubLine = $this->getSelectedOrderHospSubLineGivenQuoteItem($item, $index);
-        $selectedCount = $this->getSelectedSubLinesCount($selectedOrderHospSubLine);
+        $selectedCount            = $this->getSelectedSubLinesCount($selectedOrderHospSubLine);
 
         if ($selectedCount != count($line->getSubLines()->getOrderHospSubLine())) {
             return false;
@@ -578,7 +580,51 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedSubLinesCount($selectedOrderHospSubLine)
     {
         return $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'modifier') +
-        $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
-        $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
+            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
+            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
+    }
+
+    /**
+     * Getting the kitchen order status information
+     * @param $orderId
+     * @param $webStore
+     * @return Entity\HospOrderKotStatusResponse|\Ls\Omni\Client\ResponseInterface|null
+     */
+    public function getKitchenOrderStatus($orderId, $webStore)
+    {
+        $response = null;
+        if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+            $request = new Entity\HospOrderKotStatus();
+            $request->setOrderId($orderId);
+            $request->setStoreId($webStore);
+            $operation = new Operation\HospOrderKotStatus();
+            try {
+                $response = $operation->execute($request);
+            } catch (Exception $e) {
+                $this->_logger->error($e->getMessage());
+            }
+        }
+        return $response;
+    }
+
+    /**
+     * @param $orderId
+     * @param $storeId
+     * @return Entity\HospOrderKotStatusResponse|\Ls\Omni\Client\ResponseInterface|mixed|null
+     */
+    public function getKitchenOrderStatusDetails($orderId, $storeId)
+    {
+        $status   = '';
+        $response = $this->getKitchenOrderStatus(
+            $orderId,
+            $storeId
+        );
+        if (!empty($response)) {
+            $status = $response->getHospOrderKotStatusResult()->getStatus();
+            if (array_key_exists($status, LSR::$kitchenOrderStatus)) {
+                return LSR::$kitchenOrderStatus[$status];
+            }
+        }
+        return $status;
     }
 }

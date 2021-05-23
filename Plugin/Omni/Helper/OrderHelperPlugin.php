@@ -140,22 +140,4 @@ class OrderHelperPlugin
 
         return $response;
     }
-
-    /**
-     * Before plugin for base getOrderDetailsAgainstId
-     *
-     * @param OrderHelper $subject
-     * @param $docId
-     * @param string $type
-     * @return array
-     * @throws NoSuchEntityException
-     */
-    public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
-    {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return [$docId, $type];
-        } else {
-            return [$docId, DocumentIdType::HOSP_ORDER];
-        }
-    }
 }
