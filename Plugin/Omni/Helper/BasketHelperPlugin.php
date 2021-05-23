@@ -87,32 +87,13 @@ class BasketHelperPlugin
 
         foreach ($quoteItems as $index => $quoteItem) {
             ++$index;
-            // initialize the default null value
-            $barcode = null;
+            list($itemId, $variantId, $uom, $barCode) = $subject->itemHelper->getComparisonValues($quoteItem);
 
-            $sku = $quoteItem->getSku();
-
-            $searchCriteria = $subject->searchCriteriaBuilder->addFilter('sku', $sku, 'eq')->create();
-
-            $productList = $subject->productRepository->getList($searchCriteria)->getItems();
-
-            $product = array_pop($productList);
-
-            $barcode = $product->getData('barcode');
-
-            /** TODO this is wrong, the data should be coming from lsr_uom not uom */
-            $uom   = $product->getData('uom');
-            $parts = explode('-', $sku);
-            // first element is lsr_id
-            $lsr_id = array_shift($parts);
-            // second element, if it exists, is variant id
-            $variant_id = count($parts) ? array_shift($parts) : null;
-
-            if (!is_numeric($variant_id)) {
-                $variant_id = null;
-            }
             $oneListSubLinesArray = [];
-            $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $index);
+            $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
+                $quoteItem,
+                $index
+            );
 
             if (!empty($selectedSubLines['deal'])) {
                 foreach ($selectedSubLines['deal'] as $subLine) {
@@ -150,12 +131,12 @@ class BasketHelperPlugin
             }
             // @codingStandardsIgnoreLine
             $list_item    = (new Entity\OneListItem())
-                ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
+                ->setIsADeal($quoteItem->getProduct()->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                 ->setQuantity($quoteItem->getData('qty'))
-                ->setItemId($lsr_id)
+                ->setItemId($itemId)
                 ->setId('')
-                ->setBarcodeId($barcode)
-                ->setVariantId($variant_id)
+                ->setBarcodeId($barCode)
+                ->setVariantId($variantId)
                 ->setUnitOfMeasureId($uom)
                 ->setOnelistSubLines(
                     (new ArrayOfOneListItemSubLine())->setOneListItemSubLine($oneListSubLinesArray)
