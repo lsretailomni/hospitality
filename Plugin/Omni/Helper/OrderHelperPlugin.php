@@ -49,8 +49,8 @@ class OrderHelperPlugin
             if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($order, $oneListCalculateResponse);
             }
-            $storeId        = $oneListCalculateResponse->getStoreId();
-            $cardId         = $oneListCalculateResponse->getCardId();
+            $storeId = $oneListCalculateResponse->getStoreId();
+            $cardId  = $oneListCalculateResponse->getCardId();
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
 
@@ -126,7 +126,7 @@ class OrderHelperPlugin
     public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
     {
         if ($subject->lsr->getCurrentIndustry(
-            $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
+                $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
             ) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($request);
@@ -139,5 +139,23 @@ class OrderHelperPlugin
         // @codingStandardsIgnoreLine
 
         return $response;
+    }
+
+    /**
+     * Before plugin for base getOrderDetailsAgainstId
+     *
+     * @param OrderHelper $subject
+     * @param $docId
+     * @param string $type
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
+    {
+        if ($type == DocumentIdType::ORDER && $subject->lsr->getCurrentIndustry() ==
+            LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return [$docId, DocumentIdType::HOSP_ORDER];
+        }
+        return [$docId, $type];
     }
 }
