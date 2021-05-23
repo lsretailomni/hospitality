@@ -608,6 +608,7 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get status detail from status mapping
      * @param $orderId
      * @param $storeId
      * @return Entity\HospOrderKotStatusResponse|\Ls\Omni\Client\ResponseInterface|mixed|null
