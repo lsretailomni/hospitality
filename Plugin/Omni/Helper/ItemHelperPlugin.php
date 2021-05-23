@@ -45,7 +45,7 @@ class ItemHelperPlugin
     }
 
     /**
-     * Around plugin for setting discount prices for items
+     * Around plugin for Comparing one_list lines with quote_item items and set correct prices
      *
      * @param ItemHelper $subject
      * @param callable $proceed
@@ -64,85 +64,49 @@ class ItemHelperPlugin
                 return $proceed($quote, $basketData);
             }
 
-            $itemlist = $subject->cart->getQuote()->getAllVisibleItems();
+            $orderLines    = [];
+            $quoteItemList = $subject->cart->getQuote()->getAllVisibleItems();
 
-            foreach ($itemlist as $item) {
-                $orderLines        = $basketData->getOrderLines()->getOrderHospLine();
-                $oldItemVariant    = [];
-                $itemSku           = explode("-", $item->getSku());
-                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-                $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
+            if (count($quoteItemList)) {
+                $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+            }
 
-                if (is_array($orderLines)) {
+            foreach ($quoteItemList as $quoteItem) {
+                list($itemId, $variantId, $uom) = $subject->getComparisonValues($quoteItem);
 
-                    foreach ($orderLines as $index => $line) {
-                        ++$index;
-
-                        if ($itemSku[0] == $line->getItemId() &&
-                            $itemSku[1] == $line->getVariantId() &&
-                            $uom == $line->getUomId() &&
-                            $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
-                        ) {
-                            $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
-
-                            if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
-                                // @codingStandardsIgnoreLine
-                                $item->setCustomPrice($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()] ['Amount'] + $this->hospitalityHelper->getAmountGivenLine($line));
-                                $item->setDiscountAmount(
-                                // @codingStandardsIgnoreLine
-                                    $oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Discount'] + $line->getDiscountAmount()
-                                );
-                                $item->setOriginalCustomPrice($this->hospitalityHelper->getPriceGivenLine($line));
-                            } else {
-                                if ($line->getDiscountAmount() > 0) {
-                                    $item->setCustomPrice($unitPrice);
-                                    $item->setDiscountAmount($line->getDiscountAmount());
-                                    $item->setOriginalCustomPrice($this->hospitalityHelper->getPriceGivenLine($line));
-                                } elseif ($this->hospitalityHelper->getAmountGivenLine($line) != $item->getProduct()->getPrice()) {
-                                    $item->setCustomPrice($unitPrice);
-                                    $item->setOriginalCustomPrice($this->hospitalityHelper->getPriceGivenLine($line));
-                                } else {
-                                    $item->setCustomPrice(null);
-                                    $item->setDiscountAmount(null);
-                                    $item->setOriginalCustomPrice(null);
-                                }
-                            }
-                            $item->setTaxAmount($line->getTaxAmount())
-                                ->setBaseTaxAmount($line->getTaxAmount())
-                                ->setPriceInclTax($unitPrice)
-                                ->setBasePriceInclTax($unitPrice)
-                                ->setRowTotal($line->getNetAmount())
-                                ->setBaseRowTotal($line->getNetAmount())
-                                ->setRowTotalInclTax($line->getAmount())
-                                ->setBaseRowTotalInclTax($line->getAmount());
-                        }
-
-                        // @codingStandardsIgnoreStart
-                        if (!empty($oldItemVariant[$line->getItemId()][$line->getVariantId()][$line->getUomId()]['Amount'])) {
-                            $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()]['Amount']    =
-                                $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()]['Amount'] + $this->hospitalityHelper->getAmountGivenLine($line);
-                            $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()] ['Discount'] =
-                                $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()] ['Discount'] + $line->getDiscountAmount();
+                foreach ($orderLines as $index => $line) {
+                    if ($itemId == $line->getItemId() &&
+                        $variantId == $line->getVariantId() &&
+                        $uom == $line->getUomId()
+                    ) {
+                        $unitPrice = $line->getAmount() / $line->getQuantity();
+                        if ($line->getDiscountAmount() > 0) {
+                            $quoteItem->setCustomPrice($unitPrice);
+                            $quoteItem->setDiscountAmount($line->getDiscountAmount());
+                            $quoteItem->setOriginalCustomPrice($unitPrice);
+                        } elseif ($line->getAmount() != $quoteItem->getProduct()->getPrice()) {
+                            $quoteItem->setCustomPrice($unitPrice);
+                            $quoteItem->setOriginalCustomPrice($unitPrice);
                         } else {
-                            $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()]['Amount']   = $this->hospitalityHelper->getAmountGivenLine($line);
-                            $oldItemVariant[$line->getItemId()][$line->getVariantId()] [$line->getUomId()]['Discount'] = $line->getDiscountAmount();
+                            $quoteItem->setCustomPrice(null);
+                            $quoteItem->setDiscountAmount(null);
+                            $quoteItem->setOriginalCustomPrice(null);
                         }
-                        // @codingStandardsIgnoreEnd
-                    }
-                } else {
-                    if ($orderLines->getDiscountAmount() > 0) {
-                        $item->setCustomPrice($this->hospitalityHelper->getAmountGivenLine($orderLines));
-                        $item->setDiscountAmount($orderLines->getDiscountAmount());
-                        $item->setOriginalCustomPrice($this->hospitalityHelper->getPriceGivenLine($orderLines));
-                    } else {
-                        $item->setCustomPrice(null);
-                        $item->setDiscountAmount(null);
-                        $item->setOriginalCustomPrice(null);
+                        $quoteItem->setTaxAmount($line->getTaxAmount())
+                            ->setBaseTaxAmount($line->getTaxAmount())
+                            ->setPriceInclTax($unitPrice)
+                            ->setBasePriceInclTax($unitPrice)
+                            ->setRowTotal($line->getNetAmount())
+                            ->setBaseRowTotal($line->getNetAmount())
+                            ->setRowTotalInclTax($line->getAmount())
+                            ->setBaseRowTotalInclTax($line->getAmount());
+                        unset($orderLines[$index]);
+                        break;
                     }
                 }
-                $item->getProduct()->setIsSuperMode(true);
+                $quoteItem->getProduct()->setIsSuperMode(true);
                 // @codingStandardsIgnoreLine
-                $subject->itemResourceModel->save($item);
+                $subject->itemResourceModel->save($quoteItem);
             }
 
             if ($quote->getId()) {
@@ -158,7 +122,7 @@ class ItemHelperPlugin
                 $couponCode = $subject->checkoutSession->getCouponCode();
                 $cartQuote->setCouponCode($couponCode);
                 $cartQuote->getShippingAddress()->setCouponCode($couponCode);
-                $cartQuote->collectTotals();
+                $cartQuote->setTotalsCollectedFlag(false)->collectTotals();
                 $subject->quoteResourceModel->save($cartQuote);
             }
         } catch (Exception $e) {
@@ -167,7 +131,8 @@ class ItemHelperPlugin
     }
 
     /**
-     * Around plugin for getting the orderDiscountLines for item
+     * Around plugin for comparing orderLines with discountLines and get discounted prices on cart page
+     * or order detail page
      *
      * @param ItemHelper $subject
      * @param callable $proceed
@@ -176,48 +141,37 @@ class ItemHelperPlugin
      * @param int $type
      * @return array|null
      */
-    public function aroundGetOrderDiscountLinesForItem(ItemHelper $subject, callable $proceed, $item, $orderData, $type = 1)
-    {
+    public function aroundGetOrderDiscountLinesForItem(
+        ItemHelper $subject,
+        callable $proceed,
+        $item,
+        $orderData,
+        $type = 1
+    ) {
+        $check        = false;
+        $discountInfo = $orderLines = $discountsLines = [];
+        $discountText = __("Save");
+
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($item, $orderData, $type);
             }
 
-            $discountInfo = [];
-            $customPrice  = 0;
-            $uom  = '';
-
             if ($type == 2) {
-                $itemSku = $item->getItemId();
-                $itemSku = explode("-", $itemSku);
-
-                if (count($itemSku) < 2) {
-                    $itemSku[1] = $item->getVariantId();
-                }
-
-                $uom = $item->getUomId();
+                $itemId      = $item->getItemId();
+                $variantId   = $item->getVariantId();
+                $uom         = $item->getUomId();
                 $customPrice = $item->getDiscountAmount();
             } else {
-                $itemSku = $item->getSku();
-                $itemSku = explode("-", $itemSku);
-                if (count($itemSku) < 2) {
-                    $itemSku[1] = '';
-                }
-                // @codingStandardsIgnoreLine
+                list($itemId, $variantId, $uom) = $subject->getComparisonValues($item);
                 $customPrice = $item->getCustomPrice();
-                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-                $uom               = $subject->getUom($itemSku, $baseUnitOfMeasure);
             }
 
-            $check        = false;
-            $basketData   = [];
-            $discountText = __("Save");
-
             if ($orderData instanceof SalesEntry) {
-                $basketData     = $orderData->getLines();
+                $orderLines     = $orderData->getLines();
                 $discountsLines = $orderData->getDiscountLines();
             } elseif ($orderData instanceof OrderHosp) {
-                $basketData     = $orderData->getOrderLines();
+                $orderLines     = $orderData->getOrderLines();
                 if ($orderData->getOrderDiscountLines() && !empty($orderData->getOrderDiscountLines())) {
                     $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
                 } else {
@@ -225,13 +179,14 @@ class ItemHelperPlugin
                 }
             }
 
-            foreach ($basketData as $basket) {
-                if ($basket->getItemId() == $itemSku[0] && $basket->getVariantId() == $itemSku[1] && $uom == $basket->getUomId()) {
-
+            foreach ($orderLines as $line) {
+                if ($line->getItemId() == $itemId
+                    && $line->getVariantId() == $variantId
+                    && $line->getUomId() == $uom
+                ) {
                     if ($customPrice > 0 && $customPrice != null) {
-                        // @codingStandardsIgnoreLine
                         foreach ($discountsLines as $orderDiscountLine) {
-                            if ($basket->getLineNumber() == $orderDiscountLine->getLineNumber()) {
+                            if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {
                                 if (!in_array($orderDiscountLine->getDescription() . '<br />', $discountInfo)) {
                                     $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
                                 }
@@ -241,14 +196,14 @@ class ItemHelperPlugin
                     }
                 }
             }
-
-            if ($check == true) {
-                return [implode($discountInfo), $discountText];
-            } else {
-                return null;
-            }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
+        }
+
+        if ($check == true) {
+            return [implode($discountInfo), $discountText];
+        } else {
+            return null;
         }
     }
 }
