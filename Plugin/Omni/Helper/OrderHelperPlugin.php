@@ -12,6 +12,7 @@ use \Ls\Omni\Exception\InvalidEnumException;
 use Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
+use Magento\Framework\Stdlib\DateTime\DateTime;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -25,12 +26,20 @@ class OrderHelperPlugin
     public $logger;
 
     /**
-     * OrderHelper constructor.
+     * @var DateTime
+     */
+    public $date;
+
+    /**
+     * OrderHelperPlugin constructor.
+     * @param DateTime $date
      * @param LoggerInterface $logger
      */
     public function __construct(
+        DateTime $date,
         LoggerInterface $logger
     ) {
+        $this->date   = $date;
         $this->logger = $logger;
     }
 
@@ -61,7 +70,8 @@ class OrderHelperPlugin
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
-                ->setRestaurantNo($storeId);
+                ->setRestaurantNo($storeId)
+                ->setPickUpTime($this->date->date("Y-m-d\T00:00:00"));
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
             //For click and collect we need to remove shipment charge orderline
@@ -156,5 +166,37 @@ class OrderHelperPlugin
             return [$docId, DocumentIdType::HOSP_ORDER];
         }
         return [$docId, $type];
+    }
+
+    /**
+     * Around plugin for order cancellation
+     *
+     * @param OrderHelper $subject
+     * @param callable $proceed
+     * @param $documentId
+     * @param $storeId
+     * @return Entity\OrderCancelResponse|ResponseInterface|null
+     * @throws NoSuchEntityException
+     */
+    public function aroundOrderCancel(OrderHelper $subject, callable $proceed, $documentId, $storeId)
+    {
+        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
+            return $proceed($documentId, $storeId);
+        }
+
+        $response = null;
+        $request  = new Entity\HospOrderCancel();
+        $request->setOrderId($documentId);
+        $request->setStoreId($storeId);
+        $operation = new Operation\HospOrderCancel();
+        try {
+            $response = $operation->execute($request);
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
+
+        return $response;
     }
 }
