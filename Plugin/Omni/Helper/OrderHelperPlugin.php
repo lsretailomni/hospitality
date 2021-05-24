@@ -170,29 +170,34 @@ class OrderHelperPlugin
 
     /**
      * Around plugin for order cancellation
+     *
      * @param OrderHelper $subject
      * @param callable $proceed
      * @param $documentId
-     * @param $webStore
      * @param $storeId
-     * @return Entity\HospOrderCancelResponse|ResponseInterface|null
+     * @return Entity\OrderCancelResponse|ResponseInterface|null
      * @throws NoSuchEntityException
      */
-    public function aroundOrderCancel(OrderHelper $subject, callable $proceed, $documentId, $webStore, $storeId)
+    public function aroundOrderCancel(OrderHelper $subject, callable $proceed, $documentId, $storeId)
     {
-        if ($subject->lsr->getCurrentIndustry($storeId) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($documentId, $webStore, $storeId);
+        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
+            return $proceed($documentId, $storeId);
         }
+
         $response = null;
         $request  = new Entity\HospOrderCancel();
         $request->setOrderId($documentId);
-        $request->setStoreId($webStore);
-        $operation = new Operation\HospOrderCancel();
+        $request->setStoreId($storeId);
+        $request->setUserId("");
+        $operation = new Operation\OrderCancel();
         try {
             $response = $operation->execute($request);
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
+
         return $response;
     }
 }
