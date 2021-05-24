@@ -9,13 +9,13 @@ use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
-use \Ls\Omni\Helper\OrderHelper;
+use Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
 use Psr\Log\LoggerInterface;
 
 /**
- * Order Helper Plugin
+ * OrderHelper plugin responsible for intercepting required methods
  */
 class OrderHelperPlugin
 {
@@ -49,8 +49,8 @@ class OrderHelperPlugin
             if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
                 return $proceed($order, $oneListCalculateResponse);
             }
-            $storeId        = $oneListCalculateResponse->getStoreId();
-            $cardId         = $oneListCalculateResponse->getCardId();
+            $storeId = $oneListCalculateResponse->getStoreId();
+            $cardId  = $oneListCalculateResponse->getCardId();
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
 
@@ -125,9 +125,8 @@ class OrderHelperPlugin
      */
     public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
     {
-        if ($subject->lsr->getCurrentIndustry(
-            $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
-            ) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($request);
         }
@@ -152,10 +151,10 @@ class OrderHelperPlugin
      */
     public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
     {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return [$docId, $type];
-        } else {
+        if ($type == DocumentIdType::ORDER && $subject->lsr->getCurrentIndustry() ==
+            LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return [$docId, DocumentIdType::HOSP_ORDER];
         }
+        return [$docId, $type];
     }
 }

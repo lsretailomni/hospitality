@@ -2,9 +2,13 @@
 "Deals Replication","Deals Replication"
 "Item Modifier Replication","Item Modifier Replication"
 "Recipe Replication","Recipe Replication"
-"Coupon Code is not valid for these item(s)","Coupon Code is not valid for these item(s)"
 Save,Save
 "Service Mode","Service Mode"
+"Kitchen Information","Kitchen Information"
+Loading...,Loading...
+"Loading Kitchen Info...","Loading Kitchen Info..."
+"Kitchen status service is down. Please try again by refreshing the page.","Kitchen status service is down. Please try again by refreshing the page."
+Status:,Status:
 "Please Select","Please Select"
 "Please select service mode for order such as dine-in or takeaway.","Please select service mode for order such as dine-in or takeaway."
 "Hospitality Grids","Hospitality Grids"
@@ -14,6 +18,8 @@ Recipe,Recipe
 "Item Modifiers","Item Modifiers"
 Enabled,Enabled
 "Service Mode Options","Service Mode Options"
+"Item Modifiers Batch Size","Item Modifiers Batch Size"
+"Item Recipe Batch Size","Item Recipe Batch Size"
 "All Store Views","All Store Views"
 "Store View","Store View"
 Scroll,Scroll
@@ -41,13 +47,19 @@ Description,Description
 "Processed Date","Processed Date"
 "Modifier Code","Modifier Code"
 "Deal ModSize Group Index","Deal ModSize Group Index"
-"Parent Item","Parent Item"
+"LS Central ID","LS Central ID"
+"Usage Category","Usage Category"
 "Always Charge","Always Charge"
 "Amount Percent","Amount Percent"
 Code,Code
+"Explanatory Header Text","Explanatory Header Text"
+"Time Modifier Minutes","Time Modifier Minutes"
 "Price Type","Price Type"
 "Sub Code","Sub Code"
 Type,Type
+Prompt,Prompt
+"Trigger Code","Trigger Code"
+"Trigger Function","Trigger Function"
 "Recipe No","Recipe No"
 Exclusion,Exclusion
 ExclusionPrice,ExclusionPrice
