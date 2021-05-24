@@ -191,8 +191,7 @@ class OrderHelperPlugin
         $request  = new Entity\HospOrderCancel();
         $request->setOrderId($documentId);
         $request->setStoreId($storeId);
-        $request->setUserId("");
-        $operation = new Operation\OrderCancel();
+        $operation = new Operation\HospOrderCancel();
         try {
             $response = $operation->execute($request);
         } catch (Exception $e) {
