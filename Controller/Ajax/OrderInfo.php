@@ -7,7 +7,6 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\Controller\Result\RedirectFactory;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 
 /**
@@ -27,11 +26,6 @@ class OrderInfo implements HttpGetActionInterface
     public $resultJsonFactory;
 
     /**
-     * @var RedirectFactory
-     */
-    public $resultRedirectFactory;
-
-    /**
      * @var RequestInterface
      */
     public $request;
@@ -45,19 +39,17 @@ class OrderInfo implements HttpGetActionInterface
      * OrderInfo constructor.
      * @param PageFactory $resultPageFactory
      * @param JsonFactory $resultJsonFactory
-     * @param RedirectFactory $resultRedirectFactory
      * @param RequestInterface $request
+     * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
         PageFactory $resultPageFactory,
         JsonFactory $resultJsonFactory,
-        RedirectFactory $resultRedirectFactory,
         RequestInterface $request,
         HospitalityHelper $hospitalityHelper
     ) {
         $this->resultPageFactory     = $resultPageFactory;
         $this->resultJsonFactory     = $resultJsonFactory;
-        $this->resultRedirectFactory = $resultRedirectFactory;
         $this->request               = $request;
         $this->hospitalityHelper     = $hospitalityHelper;
     }
@@ -76,7 +68,7 @@ class OrderInfo implements HttpGetActionInterface
                 $result     = $this->resultJsonFactory->create();
                 $resultPage = $this->resultPageFactory->create();
                 $info       = $resultPage->getLayout()
-                    ->createBlock('Ls\Hospitality\Block\Customer\Order\Info')
+                    ->createBlock(\Ls\Hospitality\Block\Customer\Order\Info::class)
                     ->setTemplate('Ls_Hospitality::customer/order/view/info.phtml')
                     ->setData('data', $status)
                     ->toHtml();

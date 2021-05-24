@@ -7,6 +7,7 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use Ls\Omni\Client\ResponseInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
 use \Ls\Replication\Helper\ReplicationHelper;
@@ -588,7 +589,7 @@ class HospitalityHelper extends AbstractHelper
      * Getting the kitchen order status information
      * @param $orderId
      * @param $webStore
-     * @return Entity\HospOrderKotStatusResponse|\Ls\Omni\Client\ResponseInterface|null
+     * @return Entity\HospOrderKotStatusResponse|ResponseInterface|null
      */
     public function getKitchenOrderStatus($orderId, $webStore)
     {
@@ -598,11 +599,7 @@ class HospitalityHelper extends AbstractHelper
             $request->setOrderId($orderId);
             $request->setStoreId($webStore);
             $operation = new Operation\HospOrderKotStatus();
-            try {
-                $response = $operation->execute($request);
-            } catch (Exception $e) {
-                $this->_logger->error($e->getMessage());
-            }
+            $response  = $operation->execute($request);
         }
         return $response;
     }
@@ -611,7 +608,7 @@ class HospitalityHelper extends AbstractHelper
      * Get status detail from status mapping
      * @param $orderId
      * @param $storeId
-     * @return Entity\HospOrderKotStatusResponse|\Ls\Omni\Client\ResponseInterface|mixed|null
+     * @return Entity\HospOrderKotStatusResponse|ResponseInterface|mixed|null
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
