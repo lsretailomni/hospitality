@@ -4,9 +4,9 @@ define([
     "use strict";
     return function main(config)
     {
-        var ajaxUrl = config.ajaxUrl;
-        var orderId = config.orderId;
-        var storeId = config.storeId;
+        var ajaxUrl = config.ajaxUrl,
+            orderId = config.orderId,
+            storeId = config.storeId;
         $(document).ready(function () {
             $.ajax({
                 context: '#ls-hosp-order-info',

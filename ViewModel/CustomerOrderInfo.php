@@ -4,6 +4,7 @@ namespace Ls\Hospitality\ViewModel;
 
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
 /**
@@ -36,10 +37,10 @@ class CustomerOrderInfo implements ArgumentInterface
 
     /**
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isHospitalityEnabled()
     {
         return $this->lsr->isHospitalityStore();
     }
-
 }
