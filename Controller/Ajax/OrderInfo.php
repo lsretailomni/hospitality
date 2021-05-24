@@ -2,12 +2,14 @@
 
 namespace Ls\Hospitality\Controller\Ajax;
 
+use \Ls\Hospitality\Block\Customer\Order\Info;
+use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Result\PageFactory;
-use \Ls\Hospitality\Helper\HospitalityHelper;
 
 /**
  * Ajax controller for calling hospitality order additional information
@@ -57,6 +59,7 @@ class OrderInfo implements HttpGetActionInterface
     /**
      * Executing the ajax function
      * @return Json
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
@@ -68,7 +71,7 @@ class OrderInfo implements HttpGetActionInterface
                 $result     = $this->resultJsonFactory->create();
                 $resultPage = $this->resultPageFactory->create();
                 $info       = $resultPage->getLayout()
-                    ->createBlock(\Ls\Hospitality\Block\Customer\Order\Info::class)
+                    ->createBlock(Info::class)
                     ->setTemplate('Ls_Hospitality::customer/order/view/info.phtml')
                     ->setData('data', $status)
                     ->toHtml();

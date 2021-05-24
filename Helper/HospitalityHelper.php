@@ -22,6 +22,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Zend_Db_Select;
 use Zend_Db_Select_Exception;
 
@@ -590,6 +591,7 @@ class HospitalityHelper extends AbstractHelper
      * @param $orderId
      * @param $webStore
      * @return Entity\HospOrderKotStatusResponse|ResponseInterface|null
+     * @throws NoSuchEntityException
      */
     public function getKitchenOrderStatus($orderId, $webStore)
     {
@@ -609,6 +611,7 @@ class HospitalityHelper extends AbstractHelper
      * @param $orderId
      * @param $storeId
      * @return Entity\HospOrderKotStatusResponse|ResponseInterface|mixed|null
+     * @throws NoSuchEntityException
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
