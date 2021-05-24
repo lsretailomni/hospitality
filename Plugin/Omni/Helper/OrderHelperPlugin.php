@@ -162,11 +162,11 @@ class OrderHelperPlugin
      */
     public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
     {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return [$docId, $type];
-        } else {
+        if ($type == DocumentIdType::ORDER && $subject->lsr->getCurrentIndustry() ==
+            LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return [$docId, DocumentIdType::HOSP_ORDER];
         }
+        return [$docId, $type];
     }
 
     /**
