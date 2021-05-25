@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="customer_account"/>
+    <update handle="customer_order_info_links"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Ls\Hospitality\Block\Customer\Order\Info" name="custom.hospitality.order.info"
+                   template="Ls_Hospitality::customer/order/info.phtml" before="custom.order.info">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomerOrderInfo</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

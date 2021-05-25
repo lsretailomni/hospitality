@@ -1,0 +1,43 @@
+<?php
+/** @var  Ls\Hospitality\Block\Customer\Order\Info $block */
+/**
+ * @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel
+ */
+$viewModel = $block->getData("view_model");
+if ($viewModel->isHospitalityEnabled() == "1") :
+    $ajaxUrl = $block->getAjaxUrl();
+    $order   = $block->getOrder();
+    $orderId = $order->getId();
+    $storeId = $order->getStoreId();
+    ?>
+    <div class="block block-order-details-view-loyalty">
+        <div class="block-title">
+            <strong><?= /* @escapeNotVerified */
+                __('Kitchen Information') ?></strong>
+        </div>
+        <div id="ls-hosp-order-info">
+            <div class="loader">
+                <img src="<?= /* @escapeNotVerified */
+                $block->getViewFileUrl('images/loader-1.gif') ?>"
+                     alt="<?= /* @escapeNotVerified */
+                     __('Loading...') ?>">
+                <br/>
+                <div><?php echo __('Loading Kitchen Info...'); ?></div>
+            </div>
+        </div>
+    </div>
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "Ls_Hospitality/js/view/customer/order/info": {
+                    "ajaxUrl": "<?php echo $ajaxUrl; ?>",
+                    "orderId": "<?php echo $orderId; ?>",
+                    "storeId": "<?php echo $storeId; ?>"
+                }
+            }
+        }
+
+
+
+    </script>
+<?php endif; ?>

@@ -16,7 +16,7 @@ use Magento\Framework\Stdlib\DateTime\DateTime;
 use Psr\Log\LoggerInterface;
 
 /**
- * Order helper plugin responsible for intercepting required methods
+ * OrderHelper plugin responsible for intercepting required methods
  */
 class OrderHelperPlugin
 {
@@ -162,11 +162,11 @@ class OrderHelperPlugin
      */
     public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
     {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return [$docId, $type];
-        } else {
+        if ($type == DocumentIdType::ORDER && $subject->lsr->getCurrentIndustry() ==
+            LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return [$docId, DocumentIdType::HOSP_ORDER];
         }
+        return [$docId, $type];
     }
 
     /**
