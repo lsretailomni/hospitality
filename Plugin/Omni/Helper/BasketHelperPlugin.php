@@ -256,6 +256,7 @@ class BasketHelperPlugin
             return $proceed($item);
         }
         $rowTotal = "";
+        $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues($item);
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
@@ -264,9 +265,7 @@ class BasketHelperPlugin
             ++$index;
 
             if (
-                $itemId == $line->getItemId() &&
-                $variantId == $line->getVariantId() &&
-                $uom == $line->getUomId() &&
+                $subject->itemHelper->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
                 $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
             ) {
                 $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
