@@ -72,13 +72,11 @@ class ItemHelperPlugin
             }
 
             foreach ($quoteItemList as $quoteItem) {
+                $baseUnitOfMeasure = $quoteItem->getProduct()->getData('uom');
                 list($itemId, $variantId, $uom) = $subject->getComparisonValues($quoteItem);
 
                 foreach ($orderLines as $index => $line) {
-                    if ($itemId == $line->getItemId() &&
-                        $variantId == $line->getVariantId() &&
-                        $uom == $line->getUomId()
-                    ) {
+                    if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
                         $unitPrice = $line->getAmount() / $line->getQuantity();
                         if ($line->getDiscountAmount() > 0) {
                             $quoteItem->setCustomPrice($unitPrice);
@@ -148,9 +146,10 @@ class ItemHelperPlugin
         $orderData,
         $type = 1
     ) {
-        $check        = false;
-        $discountInfo = $orderLines = $discountsLines = [];
-        $discountText = __("Save");
+        $check             = false;
+        $baseUnitOfMeasure = "";
+        $discountInfo      = $orderLines = $discountsLines = [];
+        $discountText      = __("Save");
 
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
@@ -163,6 +162,7 @@ class ItemHelperPlugin
                 $uom         = $item->getUomId();
                 $customPrice = $item->getDiscountAmount();
             } else {
+                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
                 list($itemId, $variantId, $uom) = $subject->getComparisonValues($item);
                 $customPrice = $item->getCustomPrice();
             }
@@ -180,10 +180,7 @@ class ItemHelperPlugin
             }
 
             foreach ($orderLines as $line) {
-                if ($line->getItemId() == $itemId
-                    && $line->getVariantId() == $variantId
-                    && $line->getUomId() == $uom
-                ) {
+                if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
                     if ($customPrice > 0 && $customPrice != null) {
                         foreach ($discountsLines as $orderDiscountLine) {
                             if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {
