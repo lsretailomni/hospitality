@@ -70,11 +70,6 @@
         <plugin name="ls_hospitaity_omni_orderhelper"
                 type="Ls\Hospitality\Plugin\Omni\Helper\OrderHelperPlugin"/>
     </type>
-    <!-- To remove dash delimiter in case of custom option -->
-    <type name="Magento\ConfigurableProduct\Model\Product\Type\Configurable">
-        <plugin name="remove_delimiter_custom_option"
-                type="Ls\Hospitality\Plugin\Product\Type\ConfigurablePlugin"/>
-    </type>
     <!-- For Service Mode -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="ls_hospitality_saveServiceModeToQuote"
