@@ -31,6 +31,19 @@ class LSR extends \Ls\Core\Model\LSR
     const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
     const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
 
+    // Mapping for kitchen order status. Later on we will move this to admin so admin can set text based on order status
+    public static $kitchenOrderStatus = [
+        0 => "Not Sent",
+        1 => "NAS Error",
+        2 => "KDS Error",
+        3 => "Sent",
+        4 => "Started",
+        5 => "Finished",
+        6 => "Served",
+        7 => "Posted",
+        8 => "Voided"
+    ];
+
     /**
      * @return mixed
      * @throws NoSuchEntityException

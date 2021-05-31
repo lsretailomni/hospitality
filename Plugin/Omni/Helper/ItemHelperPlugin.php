@@ -172,6 +172,7 @@ class ItemHelperPlugin
                 $discountsLines = $orderData->getDiscountLines();
             } elseif ($orderData instanceof OrderHosp) {
                 $orderLines     = $orderData->getOrderLines();
+
                 if ($orderData->getOrderDiscountLines() && !empty($orderData->getOrderDiscountLines())) {
                     $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
                 } else {

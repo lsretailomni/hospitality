@@ -1,0 +1,16 @@
+<?php
+/** @var  Ls\Hospitality\Block\Customer\Order\Info $block */
+
+$kitchenStatus = $block->getData('data');
+if (empty($kitchenStatus)) {
+    $kitchenStatus = __('Kitchen status service is down. Please try again by refreshing the page.');
+}
+?>
+<div class="hosp-info-container">
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span><?= /* @escapeNotVerified */ __('Status:') ?></span></strong>
+                <span><?= $kitchenStatus; ?></span>
+            </div>
+        </div>
+</div>
