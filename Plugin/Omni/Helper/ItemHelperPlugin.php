@@ -77,8 +77,8 @@ class ItemHelperPlugin
 
                 foreach ($orderLines as $index => $line) {
                     if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-
                         $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+
                         if ($line->getDiscountAmount() > 0) {
                             $quoteItem->setCustomPrice($unitPrice);
                             $quoteItem->setDiscountAmount($line->getDiscountAmount());
@@ -173,6 +173,7 @@ class ItemHelperPlugin
                 $discountsLines = $orderData->getDiscountLines();
             } elseif ($orderData instanceof OrderHosp) {
                 $orderLines     = $orderData->getOrderLines();
+
                 if ($orderData->getOrderDiscountLines() && !empty($orderData->getOrderDiscountLines())) {
                     $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
                 } else {

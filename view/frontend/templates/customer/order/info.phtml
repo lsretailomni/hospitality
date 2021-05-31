@@ -5,7 +5,7 @@
  */
 $viewModel = $block->getData("view_model");
 if ($viewModel->isHospitalityEnabled() == "1") :
-    $ajaxUrl = $block->getAjaxUrl();
+    $ajaxUrl = $block->getUrl('hospitality/ajax/OrderInfo');
     $order   = $block->getOrder();
     $orderId = $order->getId();
     $storeId = $order->getStoreId();
