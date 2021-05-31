@@ -77,7 +77,8 @@ class ItemHelperPlugin
 
                 foreach ($orderLines as $index => $line) {
                     if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                        $unitPrice = $line->getAmount() / $line->getQuantity();
+
+                        $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
                         if ($line->getDiscountAmount() > 0) {
                             $quoteItem->setCustomPrice($unitPrice);
                             $quoteItem->setDiscountAmount($line->getDiscountAmount());
