@@ -206,10 +206,6 @@ class ProcessItemRecipe
                                 $this->store->getId()
                             );
                             $existingOptions = $this->optionRepository->getProductOptions($product);
-                            if (!$product->getHasOptions()) {
-                                $product->setHasOptions(1);
-                                $product = $this->productRepository->save($product);
-                            }
                             // check if Recipe is already included in the options.
                             $isOptionExist         = false;
                             $ls_modifier_recipe_id = LSR::LSR_RECIPE_PREFIX;
@@ -282,6 +278,10 @@ class ProcessItemRecipe
                                         ->setSortOrder(99);
                                     $savedProductOption = $this->optionRepository->save($productOption);
                                     $product->addOption($savedProductOption);
+                                    if (!$product->getHasOptions()) {
+                                        $product->setHasOptions(1);
+                                        $product = $this->productRepository->save($product);
+                                    }
                                 } catch (Exception $e) {
                                     $this->logger->error($e->getMessage());
                                     $this->logger->error(
