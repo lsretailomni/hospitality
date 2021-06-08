@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Controller\Ajax;
 
-use \Ls\Hospitality\Block\Customer\Order\Info;
+use \Ls\Customer\Block\Order\Info;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;

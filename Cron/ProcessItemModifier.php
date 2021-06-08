@@ -196,6 +196,13 @@ class ProcessItemModifier
                 if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
                     $dataToProcess['data'][$itemModifier->getNavId()][$itemModifier->getCode()]
                     [$itemModifier->getSubCode()] = $itemModifier;
+                    if ($itemModifier->getGroupMaxSelection()) {
+                        $dataToProcess[$itemModifier->getCode()] ['max_select'] = $itemModifier->getGroupMaxSelection();
+                    }
+
+                    if ($itemModifier->getGroupMinSelection()) {
+                        $dataToProcess[$itemModifier->getCode()] ['min_select'] = $itemModifier->getGroupMinSelection();
+                    }
                 } else {
                     $dataToProcess[$itemModifier->getTriggerCode()] ['min_select'] = $itemModifier->getMinSelection();
                     $dataToProcess[$itemModifier->getTriggerCode()] ['max_select'] = $itemModifier->getMaxSelection();
@@ -222,10 +229,7 @@ class ProcessItemModifier
                                 $this->store->getId()
                             );
                             $existingOptions = $this->optionRepository->getProductOptions($product);
-                            if (!$product->getHasOptions()) {
-                                $product->setHasOptions(1);
-                                $product = $this->productRepository->save($product);
-                            }
+
                             foreach ($optionArray as $optionCode => $optionValuesArray) {
                                 $isOptionExist         = false;
                                 $ls_modifier_recipe_id = LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode;
@@ -298,14 +302,24 @@ class ProcessItemModifier
                                                 ->setType('drop_down')
                                                 ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
                                                 ->setProductSku($itemSKU);
-                                            if ($dataToProcess[$optionData['code']]['min_select'] >= 1) {
-                                                $productOption->setIsRequire(true);
-                                            }
-                                            if ($dataToProcess[$optionData['code']]['max_select'] > 1) {
-                                                $productOption->setType('multiple');
+
+                                            if (isset($dataToProcess[$optionData['code']])) {
+                                                if (isset($dataToProcess[$optionData['code']]['min_select']) &&
+                                                    $dataToProcess[$optionData['code']]['min_select'] >= 1) {
+                                                    $productOption->setIsRequire(true);
+                                                }
+
+                                                if (isset($dataToProcess[$optionData['code']]['max_select']) &&
+                                                    $dataToProcess[$optionData['code']]['max_select'] > 1) {
+                                                    $productOption->setType('multiple');
+                                                }
                                             }
                                             $savedProductOption = $this->optionRepository->save($productOption);
                                             $product->addOption($savedProductOption);
+                                            if (!$product->getHasOptions()) {
+                                                $product->setHasOptions(1);
+                                                $product = $this->productRepository->save($product);
+                                            }
                                         } catch (Exception $e) {
                                             $this->logger->error($e->getMessage());
                                             $this->logger->error(

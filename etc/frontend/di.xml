@@ -15,4 +15,7 @@
     <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
         <plugin name="hosp_checkout_layout_processor" type="Ls\Hospitality\Plugin\Checkout\Model\LayoutProcessorPlugin" sortOrder="1"/>
     </type>
+
+    <!-- For Updating the title in hospitality order view  -->
+    <preference for="Ls\Customer\Block\Order\Info" type="Ls\Hospitality\Block\Order\Info"/>
 </config>
