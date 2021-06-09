@@ -87,7 +87,10 @@ class BasketHelperPlugin
 
         foreach ($quoteItems as $index => $quoteItem) {
             ++$index;
-            list($itemId, $variantId, $uom, $barCode) = $subject->itemHelper->getComparisonValues($quoteItem);
+            list($itemId, $variantId, $uom, $barCode) = $subject->itemHelper->getComparisonValues(
+                $quoteItem->getProductId(),
+                $quoteItem->getSku()
+            );
 
             $oneListSubLinesArray = [];
             $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
@@ -257,7 +260,10 @@ class BasketHelperPlugin
         }
         $rowTotal = "";
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-        list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues($item);
+        list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
+            $item->getProductId(),
+            $item->getSku()
+        );
         $basketData = $subject->getOneListCalculation();
         $orderLines = $basketData->getOrderLines()->getOrderHospLine();
 
