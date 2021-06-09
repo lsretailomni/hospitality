@@ -200,4 +200,22 @@ class OrderHelperPlugin
 
         return $response;
     }
+
+    /**
+     * After plugin to intercept method returning document_id
+     *
+     * @param OrderHelper $subject
+     * @param $result
+     * @param $salesEntry
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function afterGetDocumentIdGivenSalesEntry(OrderHelper $subject, $result, $salesEntry)
+    {
+        if ($subject->lsr->getCurrentIndustry() != \Ls\Hospitality\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $result;
+        }
+
+        return $salesEntry->getId();
+    }
 }
