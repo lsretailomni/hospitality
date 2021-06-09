@@ -6,6 +6,7 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Operation;
@@ -35,28 +36,20 @@ class BasketHelperPlugin
     }
 
     /**
-     * Before plugin for setting isHospitality if current industry is hospitality
+     * Before plugin for setting hospitalityMode if current industry is hospitality
      *
      * @param BasketHelper $subject
      * @param Entity\OneList $list
      * @return Entity\OneList[]
      * @throws NoSuchEntityException
+     * @throws InvalidEnumException
      */
     public function beforeSaveToOmni(BasketHelper $subject, Entity\OneList $list)
     {
         $industry = $subject->lsr->getCurrentIndustry($subject->getCorrectStoreIdFromCheckoutSession() ?? null);
-
-        if (version_compare($subject->lsr->getOmniVersion(), '4.19', '>')) {
-            $list->setIsHospitality(
-                $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY
-            );
-        } else {
-            $list->setHospitalityMode(
-                $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY ?
-                    \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode::DELIVERY :
-                    \Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode::NONE
-            );
-        }
+        $list->setHospitalityMode(
+            $industry == LSR::LS_INDUSTRY_VALUE_HOSPITALITY ? HospMode::DELIVERY : HospMode::NONE
+        );
 
         return [$list];
     }
@@ -207,16 +200,8 @@ class BasketHelperPlugin
                 ->setCardId($cardId)
                 ->setListType(Entity\Enum\ListType::BASKET)
                 ->setItems($listItems)
-                ->setStoreId($storeId);
-
-            if (version_compare($subject->lsr->getOmniVersion(), '4.19', '>')) {
-                $oneListRequest
-                    ->setIsHospitality(true)
-                    ->setSalesType(LSR::SALE_TYPE_POS);
-            } else {
-                $oneListRequest
-                    ->setHospitalityMode(\Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode::TAKEAWAY);
-            }
+                ->setStoreId($storeId)
+                ->setHospitalityMode(HospMode::TAKEAWAY);
 
             /** @var Entity\OneListCalculate $entity */
             if ($subject->getCouponCode() != "" and $subject->getCouponCode() != null) {
