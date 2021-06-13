@@ -5,12 +5,21 @@
  */
 $viewModel = $block->getData("view_model");
 if ($viewModel->isHospitalityEnabled() == "1") :
-    $ajaxUrl = $block->getUrl('hospitality/ajax/OrderInfo');
-    $order   = $block->getOrder();
-    $orderId = $order->getId();
-    $storeId = $order->getStoreId();
+    $ajaxUrl    = $block->getUrl('hospitality/ajax/OrderInfo');
+    $statusInfo = $viewModel->getOrderStatusInfo();
+    $order      = $block->getOrder();
+
+    if (!empty($statusInfo)) {
+        $orderId = $statusInfo['orderId'];
+        $storeId = $statusInfo['storeId'];
+    }
+
+    if (!empty($order)) {
+        $orderId = $order->getId();
+        $storeId = $order->getStoreId();
+    }
     ?>
-    <div class="block block-order-details-view-loyalty">
+    <div class="block block-order-details-view-loyalty ls-kitchen-order-status">
         <div class="block-title">
             <strong><?= /* @escapeNotVerified */
                 __('Kitchen Information') ?></strong>
@@ -36,6 +45,11 @@ if ($viewModel->isHospitalityEnabled() == "1") :
                 }
             }
         }
+
+
+
+
+
 
 
 

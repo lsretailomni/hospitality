@@ -13,7 +13,13 @@
 
     <!-- For Service Mode  -->
     <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
-        <plugin name="hosp_checkout_layout_processor" type="Ls\Hospitality\Plugin\Checkout\Model\LayoutProcessorPlugin" sortOrder="1"/>
+        <plugin name="hosp_checkout_layout_processor" type="Ls\Hospitality\Plugin\Checkout\Model\LayoutProcessorPlugin"
+                sortOrder="1"/>
+    </type>
+
+    <!-- For showing kitchen status block on order success page -->
+    <type name="Magento\Checkout\Controller\Onepage\Success">
+        <plugin name="ls_hospitality_checkout_controller_onepage_success" type="Ls\Hospitality\Plugin\Order\Success"/>
     </type>
 
     <!-- For Updating the title in hospitality order view  -->
