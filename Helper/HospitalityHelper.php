@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Helper;
 
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
+use \Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
@@ -588,29 +589,38 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * Getting the kitchen order status information
+     *
      * @param $orderId
      * @param $webStore
-     * @return Entity\HospOrderKotStatusResponse|ResponseInterface|null
+     * @return HospOrderStatusResponse|ResponseInterface|null
      * @throws NoSuchEntityException
      */
     public function getKitchenOrderStatus($orderId, $webStore)
     {
         $response = null;
+
         if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
-            $request = new Entity\HospOrderKotStatus();
+            if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
+                $operation = new Operation\HospOrderStatus();
+                $request = new Entity\HospOrderStatus();
+            } else {
+                $request = new Entity\HospOrderKotStatus();
+                $operation = new Operation\HospOrderKotStatus();
+            }
             $request->setOrderId($orderId);
             $request->setStoreId($webStore);
-            $operation = new Operation\HospOrderKotStatus();
             $response  = $operation->execute($request);
         }
+
         return $response;
     }
 
     /**
      * Get status detail from status mapping
+     *
      * @param $orderId
      * @param $storeId
-     * @return Entity\HospOrderKotStatusResponse|ResponseInterface|mixed|null
+     * @return Entity\Enum\KOTStatus|string
      * @throws NoSuchEntityException
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
@@ -620,12 +630,19 @@ class HospitalityHelper extends AbstractHelper
             $orderId,
             $storeId
         );
+
         if (!empty($response)) {
-            $status = $response->getHospOrderKotStatusResult()->getStatus();
+            if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
+                $status = $response->getHospOrderStatusResult()->getStatus();
+            } else {
+                $status = $response->getHospOrderKotStatusResult()->getStatus();
+            }
+
             if (array_key_exists($status, LSR::$kitchenOrderStatus)) {
                 return LSR::$kitchenOrderStatus[$status];
             }
         }
+
         return $status;
     }
 }
