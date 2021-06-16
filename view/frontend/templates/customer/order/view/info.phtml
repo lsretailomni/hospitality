@@ -1,16 +1,25 @@
 <?php
 /** @var  Ls\Hospitality\Block\Customer\Order\Info $block */
 
-$kitchenStatus = $block->getData('data');
-if (empty($kitchenStatus)) {
-    $kitchenStatus = __('Kitchen status service is down. Please try again by refreshing the page.');
+list($status, $estimatedTime) = $block->getData('data');
+if (empty($status)) {
+    $status = __('Kitchen status service is down. Please try again by refreshing the page.');
 }
 ?>
 <div class="hosp-info-container">
+    <div class="block-content">
+        <div class="custom-box">
+            <strong class="box-title"><span><?= /* @escapeNotVerified */__('Status:') ?></span></strong>
+            <span><?= __($status); ?></span>
+        </div>
+    </div>
+    <?php if ($estimatedTime > 0): ?>
         <div class="block-content">
             <div class="custom-box">
-                <strong class="box-title"><span><?= /* @escapeNotVerified */ __('Status:') ?></span></strong>
-                <span><?= $kitchenStatus; ?></span>
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */__('Estimated Time:') ?></span></strong>
+                <span><?= $estimatedTime; ?></span>
             </div>
         </div>
+    <?php endif; ?>
 </div>

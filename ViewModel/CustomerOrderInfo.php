@@ -6,6 +6,7 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Checkout\Model\Session\Proxy;
 
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
 /**
@@ -47,6 +48,7 @@ class CustomerOrderInfo implements ArgumentInterface
     /**
      * For checking is hospitality store.
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isHospitalityEnabled()
     {
@@ -56,16 +58,18 @@ class CustomerOrderInfo implements ArgumentInterface
     /**
      * To get order status info
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getOrderStatusInfo()
     {
         $statusInfo = [];
-        $storeId    = $this->lsr->getActiveWebStore();
-        $documentId = $this->checkoutSession->getLastDocumentId();
-        if (!empty($documentId)) {
-            $webStore              = $this->lsr->getStoreConfig(LSR::SC_SERVICE_STORE, $storeId);
-            $statusInfo['orderId'] = $documentId;
-            $statusInfo['storeId'] = $webStore;
+        if ($this->lsr->showOrderTrackingInfoOnSuccessPage()) {
+            $webStore    = $this->lsr->getActiveWebStore();
+            $documentId = $this->checkoutSession->getLastDocumentId();
+            if (!empty($documentId)) {
+                $statusInfo['orderId'] = $documentId;
+                $statusInfo['storeId'] = $webStore;
+            }
         }
         return $statusInfo;
     }

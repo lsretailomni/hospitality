@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Model;
 
+use Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 
@@ -13,8 +14,11 @@ class LSR extends \Ls\Core\Model\LSR
     const LS_ITEM_IS_DEAL_ATTRIBUTE = 'lsr_is_deal';
     const LSR_ITEM_MODIFIER_PREFIX = 'ls_mod_';
     const LSR_RECIPE_PREFIX = 'ls_rec';
-    const SERVICE_MODE_ENABLED = 'ls_mag/service_mode/status';
-    const SERVICE_MODE_OPTIONS = 'ls_mag/service_mode/options';
+
+    //Hospitality configuration
+    const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
+    const SERVICE_MODE_OPTIONS = 'ls_mag/hospitality/service_mode_options';
+    const ORDER_TRACKING_ON_SUCCESS_PAGE = 'ls_mag/hospitality/order_tracking';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -30,19 +34,6 @@ class LSR extends \Ls\Core\Model\LSR
 
     const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
     const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
-
-    // Mapping for kitchen order status. Later on we will move this to admin so admin can set text based on order status
-    public static $kitchenOrderStatus = [
-        0 => "Not Sent",
-        1 => "NAS Error",
-        2 => "KDS Error",
-        3 => "Sent",
-        4 => "Started",
-        5 => "Finished",
-        6 => "Served",
-        7 => "Posted",
-        8 => "Voided"
-    ];
 
     /**
      * @return mixed
@@ -71,6 +62,19 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function showOrderTrackingInfoOnSuccessPage()
+    {
+        return $this->scopeConfig->getValue(
+            self::ORDER_TRACKING_ON_SUCCESS_PAGE,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
+    /**
      * @param null $storeId
      * @return bool
      * @throws NoSuchEntityException
@@ -83,5 +87,24 @@ class LSR extends \Ls\Core\Model\LSR
         }
 
         return ($this->getCurrentIndustry($storeId) == self::LS_INDUSTRY_VALUE_HOSPITALITY);
+    }
+
+    /** For showing user friendly message to user regarding kitchen status
+     * @return array
+     */
+    public function kitchenStatusMapping()
+    {
+        return [
+            KOTStatus::NOT_SENT    => __("Order not sent to Kitchen"),
+            KOTStatus::N_A_S_ERROR => __("Error from kitchen display system"),
+            KOTStatus::K_D_S_ERROR => __("Error from kitchen display system"),
+            KOTStatus::SENT        => __("Order sent to Kitchen"),
+            KOTStatus::STARTED     => __("Preparing your order"),
+            KOTStatus::FINISHED    => __("Finished preparing your order"),
+            KOTStatus::SERVED      => __("Your order has been served"),
+            KOTStatus::VOIDED      => __("Order is cancelled"),
+            KOTStatus::POSTED      => __("Order completed"),
+            KOTStatus::NONE        => ''
+        ];
     }
 }
