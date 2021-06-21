@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Model;
 
-use Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 
