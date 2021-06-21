@@ -2,7 +2,7 @@
 <body>
     <referenceContainer name="content">
         <block name="custom.hospitality.order.info"
-               class="Magento\Framework\View\Element\Template" template="Ls_Hospitality::customer/order/info.phtml" before="custom.order.info">
+               class="Magento\Framework\View\Element\Template" template="Ls_Hospitality::customer/order/info.phtml">
             <arguments>
                 <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomerOrderInfo</argument>
             </arguments>

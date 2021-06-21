@@ -18,7 +18,7 @@ if (empty($status)) {
             <div class="custom-box">
                 <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */__('Estimated Time:') ?></span></strong>
-                <span><?= $estimatedTime; ?></span>
+                <span><?= $estimatedTime; ?> <?= /* @escapeNotVerified */__('Minutes') ?></span>
             </div>
         </div>
     <?php endif; ?>
