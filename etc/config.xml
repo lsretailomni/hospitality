@@ -10,10 +10,11 @@
                 <item_modifier_batch_size>200</item_modifier_batch_size>
                 <item_recipe_batch_size>200</item_recipe_batch_size>
             </replication>
-            <service_mode>
-                <status>1</status>
-                <options>Dine-in,Takeaway</options>
-            </service_mode>
+            <hospitality>
+                <service_mode_status>1</service_mode_status>
+                <service_mode_options>Dine-in,Takeaway</service_mode_options>
+                <order_tracking>1</order_tracking>
+            </hospitality>
         </ls_mag>
     </default>
 </config>

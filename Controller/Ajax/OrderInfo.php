@@ -57,7 +57,7 @@ class OrderInfo implements HttpGetActionInterface
     }
 
     /**
-     * Executing the ajax function
+     * Executing the ajax function for order status info
      * @return Json
      * @throws NoSuchEntityException
      */
