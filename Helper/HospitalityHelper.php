@@ -602,14 +602,14 @@ class HospitalityHelper extends AbstractHelper
         if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
                 $operation = new Operation\HospOrderStatus();
-                $request = new Entity\HospOrderStatus();
+                $request   = new Entity\HospOrderStatus();
             } else {
-                $request = new Entity\HospOrderKotStatus();
+                $request   = new Entity\HospOrderKotStatus();
                 $operation = new Operation\HospOrderKotStatus();
             }
             $request->setOrderId($orderId);
             $request->setStoreId($webStore);
-            $response  = $operation->execute($request);
+            $response = $operation->execute($request);
         }
 
         return $response;
@@ -620,29 +620,32 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param $orderId
      * @param $storeId
-     * @return Entity\Enum\KOTStatus|string
+     * @return array
      * @throws NoSuchEntityException
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status   = '';
-        $response = $this->getKitchenOrderStatus(
+        $status        = '';
+        $estimatedTime = '';
+        $response      = $this->getKitchenOrderStatus(
             $orderId,
             $storeId
         );
 
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $status = $response->getHospOrderStatusResult()->getStatus();
+                $status        = $response->getHospOrderStatusResult()->getStatus();
+                $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
             } else {
                 $status = $response->getHospOrderKotStatusResult()->getStatus();
             }
 
-            if (array_key_exists($status, LSR::$kitchenOrderStatus)) {
-                return LSR::$kitchenOrderStatus[$status];
+            if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                $status = $this->lsr->kitchenStatusMapping()[$status];
             }
+
         }
 
-        return $status;
+        return [$status, $estimatedTime];
     }
 }

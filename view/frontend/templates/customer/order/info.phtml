@@ -1,32 +1,42 @@
 <?php
-/** @var  Ls\Hospitality\Block\Customer\Order\Info $block */
-/**
- * @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel
- */
+/** @var  Ls\Customer\Block\Order\Info|Magento\Framework\View\Element\Template $block */
+/** @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel  */
+
 $viewModel = $block->getData("view_model");
 if ($viewModel->isHospitalityEnabled() == "1") :
-    $ajaxUrl = $block->getUrl('hospitality/ajax/OrderInfo');
-    $order   = $block->getOrder();
-    $orderId = $order->getId();
-    $storeId = $order->getStoreId();
-    ?>
-    <div class="block block-order-details-view-loyalty">
-        <div class="block-title">
-            <strong><?= /* @escapeNotVerified */
-                __('Kitchen Information') ?></strong>
-        </div>
-        <div id="ls-hosp-order-info">
-            <div class="loader">
-                <img src="<?= /* @escapeNotVerified */
-                $block->getViewFileUrl('images/loader-1.gif') ?>"
-                     alt="<?= /* @escapeNotVerified */
-                     __('Loading...') ?>">
-                <br/>
-                <div><?php echo __('Loading Kitchen Info...'); ?></div>
+    $ajaxUrl    = $block->getUrl('hospitality/ajax/OrderInfo');
+    $statusInfo = $viewModel->getOrderStatusInfo();
+    $order      = $block->getOrder();
+    $orderId    = null;
+    $storeId = '';
+    if (!empty($statusInfo)) {
+        $orderId = $statusInfo['orderId'];
+        $storeId = $statusInfo['storeId'];
+    }
+
+    if (!empty($order)) {
+        $orderId = $order->getId();
+        $storeId = $order->getStoreId();
+    }
+    if ($orderId):
+        ?>
+        <div class="block block-order-details-view-loyalty ls-kitchen-order-status">
+            <div class="block-title">
+                <strong><?= /* @escapeNotVerified */
+                    __('Kitchen Information') ?></strong>
+            </div>
+            <div id="ls-hosp-order-info">
+                <div class="loader">
+                    <img src="<?= /* @escapeNotVerified */
+                    $block->getViewFileUrl('images/loader-1.gif') ?>"
+                         alt="<?= /* @escapeNotVerified */
+                         __('Loading...') ?>">
+                    <br/>
+                    <div><?php echo __('Loading Kitchen Info...'); ?></div>
+                </div>
             </div>
         </div>
-    </div>
-    <script type="text/x-magento-init">
+        <script type="text/x-magento-init">
         {
             "*": {
                 "Ls_Hospitality/js/view/customer/order/info": {
@@ -37,7 +47,6 @@ if ($viewModel->isHospitalityEnabled() == "1") :
             }
         }
 
-
-
-    </script>
+        </script>
+    <?php endif; ?>
 <?php endif; ?>

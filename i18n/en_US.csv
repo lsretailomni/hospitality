@@ -1,7 +1,16 @@
+"Order # %1","Order # %1"
 "Deal Line Replication","Deal Line Replication"
 "Deals Replication","Deals Replication"
 "Item Modifier Replication","Item Modifier Replication"
 "Recipe Replication","Recipe Replication"
+"Order not sent to Kitchen","Order not sent to Kitchen"
+"Error from kitchen display system","Error from kitchen display system"
+"Order sent to Kitchen","Order sent to Kitchen"
+"Preparing your order","Preparing your order"
+"Finished preparing your order","Finished preparing your order"
+"Your order has been served","Your order has been served"
+"Order is cancelled","Order is cancelled"
+"Order completed","Order completed"
 Save,Save
 "Service Mode","Service Mode"
 "Kitchen Information","Kitchen Information"
@@ -9,6 +18,8 @@ Loading...,Loading...
 "Loading Kitchen Info...","Loading Kitchen Info..."
 "Kitchen status service is down. Please try again by refreshing the page.","Kitchen status service is down. Please try again by refreshing the page."
 Status:,Status:
+"Estimated Time:","Estimated Time:"
+Minutes,Minutes
 "Please Select","Please Select"
 "Please select service mode for order such as dine-in or takeaway.","Please select service mode for order such as dine-in or takeaway."
 "Hospitality Grids","Hospitality Grids"
@@ -16,8 +27,10 @@ Deals,Deals
 "Deal Line","Deal Line"
 Recipe,Recipe
 "Item Modifiers","Item Modifiers"
-Enabled,Enabled
+Hospitality,Hospitality
+"Service Mode Enabled","Service Mode Enabled"
 "Service Mode Options","Service Mode Options"
+"Show Order Tracking and Status on Success Page","Show Order Tracking and Status on Success Page"
 "Item Modifiers Batch Size","Item Modifiers Batch Size"
 "Item Recipe Batch Size","Item Recipe Batch Size"
 "All Store Views","All Store Views"
@@ -54,6 +67,8 @@ Description,Description
 Code,Code
 "Explanatory Header Text","Explanatory Header Text"
 "Time Modifier Minutes","Time Modifier Minutes"
+"Group Max Selection","Group Max Selection"
+"Group Min Selection","Group Min Selection"
 "Price Type","Price Type"
 "Sub Code","Sub Code"
 Type,Type
