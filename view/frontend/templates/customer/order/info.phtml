@@ -1,8 +1,7 @@
 <?php
-/** @var  Ls\Hospitality\Block\Customer\Order\Info $block */
-/**
- * @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel
- */
+/** @var  Ls\Customer\Block\Order\Info|Magento\Framework\View\Element\Template $block */
+/** @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel  */
+
 $viewModel = $block->getData("view_model");
 if ($viewModel->isHospitalityEnabled() == "1") :
     $ajaxUrl    = $block->getUrl('hospitality/ajax/OrderInfo');

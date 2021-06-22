@@ -37,6 +37,7 @@ class Success
     }
 
     /**
+     * For stopping redirection to cart page incase of order tracking block
      * @param OrderSuccess $subject
      * @param $result
      * @return Page
