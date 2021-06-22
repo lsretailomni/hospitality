@@ -3,6 +3,7 @@
 namespace Ls\Hospitality\Block\Order;
 
 use \Ls\Core\Model\LSR;
+use \Ls\Hospitality\Model\LSR as HospitalityLsr;
 use \Ls\Omni\Helper\OrderHelper;
 use Magento\Customer\Model\Session\Proxy;
 use Magento\Directory\Model\CountryFactory;
@@ -19,8 +20,11 @@ use Magento\Sales\Model\OrderRepository;
  */
 class Info extends \Ls\Customer\Block\Order\Info
 {
-    /** @var LSR $lsr */
-    public $lsr;
+
+    /**
+     * @var HospitalityLsr
+     */
+    public $hospitalityLsr;
 
     /**
      * Info constructor.
@@ -33,7 +37,8 @@ class Info extends \Ls\Customer\Block\Order\Info
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Proxy $customerSession
      * @param Context $httpContext
-     * @param \Ls\Hospitality\Model\LSR $lsr
+     * @param Lsr $lsr
+     * @param \Ls\Hospitality\Model\LSR $hospitalityLsr
      * @param array $data
      */
     public function __construct(
@@ -46,7 +51,8 @@ class Info extends \Ls\Customer\Block\Order\Info
         SearchCriteriaBuilder $searchCriteriaBuilder,
         Proxy $customerSession,
         Context $httpContext,
-        \Ls\Hospitality\Model\LSR $lsr,
+        Lsr $lsr,
+        HospitalityLsr $hospitalityLsr,
         array $data = []
     ) {
         parent::__construct(
@@ -59,10 +65,11 @@ class Info extends \Ls\Customer\Block\Order\Info
             $searchCriteriaBuilder,
             $customerSession,
             $httpContext,
+            $lsr,
             $data
         );
 
-        $this->lsr = $lsr;
+        $this->hospitalityLsr = $hospitalityLsr;
     }
 
     /**
@@ -71,7 +78,7 @@ class Info extends \Ls\Customer\Block\Order\Info
      */
     protected function _prepareLayout()
     {
-        if (!$this->lsr->isHospitalityStore()) {
+        if (!$this->hospitalityLsr->isHospitalityStore()) {
             parent::_prepareLayout();
         } else {
             if ($this->getOrder()) {
