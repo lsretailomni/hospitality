@@ -1,5 +1,5 @@
 <?php
-/** @var  Ls\Hospitality\Block\Customer\Order\Info $block */
+/** @var  \Ls\Customer\Block\Order\Info $block */
 
 list($status, $estimatedTime) = $block->getData('data');
 if (empty($status)) {
@@ -10,7 +10,7 @@ if (empty($status)) {
     <div class="block-content">
         <div class="custom-box">
             <strong class="box-title"><span><?= /* @escapeNotVerified */__('Status:') ?></span></strong>
-            <span><?= $status; ?></span>
+            <span><?= /* @escapeNotVerified */ $status; ?></span>
         </div>
     </div>
     <?php if ($estimatedTime > 0): ?>
@@ -18,7 +18,7 @@ if (empty($status)) {
             <div class="custom-box">
                 <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */__('Estimated Time:') ?></span></strong>
-                <span><?= $estimatedTime; ?> <?= /* @escapeNotVerified */__('Minutes') ?></span>
+                <span><?= /* @escapeNotVerified */ $estimatedTime; ?> <?= /* @escapeNotVerified */__('Minutes') ?></span>
             </div>
         </div>
     <?php endif; ?>

@@ -2,7 +2,8 @@
 <body>
     <referenceContainer name="content">
         <block name="custom.hospitality.order.info"
-               class="Magento\Framework\View\Element\Template" template="Ls_Hospitality::customer/order/info.phtml">
+               class="Magento\Framework\View\Element\Template" template="Ls_Hospitality::customer/order/info.phtml"
+               ifconfig="ls_mag/hospitality/order_tracking">
             <arguments>
                 <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomerOrderInfo</argument>
             </arguments>

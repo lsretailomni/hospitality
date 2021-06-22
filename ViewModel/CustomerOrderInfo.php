@@ -5,7 +5,6 @@ namespace Ls\Hospitality\ViewModel;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Checkout\Model\Session\Proxy;
-
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
