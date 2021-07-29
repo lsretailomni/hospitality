@@ -11,9 +11,11 @@
                 <item_recipe_batch_size>200</item_recipe_batch_size>
             </replication>
             <hospitality>
-                <service_mode_status>1</service_mode_status>
+                <service_mode_status>0</service_mode_status>
                 <service_mode_options>Dine-in,Takeaway</service_mode_options>
                 <order_tracking>1</order_tracking>
+                <delivery_salas_type>POS</delivery_salas_type>
+                <takeaway_delivery_type>POS</takeaway_delivery_type>
             </hospitality>
         </ls_mag>
     </default>

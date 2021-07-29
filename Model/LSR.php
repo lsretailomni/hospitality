@@ -19,6 +19,8 @@ class LSR extends \Ls\Core\Model\LSR
     const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
     const SERVICE_MODE_OPTIONS = 'ls_mag/hospitality/service_mode_options';
     const ORDER_TRACKING_ON_SUCCESS_PAGE = 'ls_mag/hospitality/order_tracking';
+    const DELIVERY_SALES_TYPE = 'ls_mag/hospitality/delivery_salas_type';
+    const TAKEAWAY_DELIVERY_TYPE = 'ls_mag/hospitality/takeaway_delivery_type';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -69,6 +71,32 @@ class LSR extends \Ls\Core\Model\LSR
     {
         return $this->scopeConfig->getValue(
             self::ORDER_TRACKING_ON_SUCCESS_PAGE,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
+    /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getDeliverySalesType()
+    {
+        return $this->scopeConfig->getValue(
+            self::DELIVERY_SALES_TYPE,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
+    /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getTakeAwayDeliveryType()
+    {
+        return $this->scopeConfig->getValue(
+            self::TAKEAWAY_DELIVERY_TYPE,
             ScopeInterface::SCOPE_WEBSITES,
             $this->storeManager->getStore()->getWebsiteId()
         );

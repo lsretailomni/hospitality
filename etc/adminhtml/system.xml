@@ -21,6 +21,20 @@
                     <label>Show Order Tracking and Status on Success Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="delivery_salas_type" translate="label comment" type="select" sortOrder="4"
+                       showInWebsite="1">
+                    <label>Delivery Sales Type</label>
+                    <validate>required-entry</validate>
+                    <comment>For delivery orders</comment>
+                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
+                </field>
+                <field id="takeaway_delivery_type" translate="label comment" type="select" sortOrder="5"
+                       showInWebsite="1">
+                    <label>Takeaway Delivery Type</label>
+                    <validate>required-entry</validate>
+                    <comment>For click and collect orders</comment>
+                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
+                </field>
             </group>
             <group id="replication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
                    showInStore="1">

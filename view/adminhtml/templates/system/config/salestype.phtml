@@ -1,0 +1,18 @@
+<?php
+/**
+ * For loading sales type
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$ajaxUrl = $block->getUrl('ls_repl/system_config/getSalestype');
+?>
+<script type="text/x-magento-init">
+{
+    "*": {
+        "loadsalestype": {
+            "ajaxUrl": "<?=  $escaper->escapeUrl($ajaxUrl)?>"
+        }
+    }
+}
+</script>
