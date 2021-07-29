@@ -3,7 +3,6 @@ define(['jquery'], function ($) {
     return function (config) {
         $('#ls_mag_service_selected_store').on('change', function () {
             let baseUrl = $('#ls_mag_service_base_url').val();
-            let lsKey = $('#ls_mag_service_ls_key').val();
             let storeId = $('#ls_mag_service_selected_store').val();
             if (storeId == "") {
                 return false;
