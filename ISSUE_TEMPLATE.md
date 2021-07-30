@@ -10,7 +10,7 @@
 
 ### Preconditions (*)
 <!---
-    Provide the exact Magento version (example: 2.3.5), LS Central version (15.02), LS Omni version (4.7.0), LS eCommerce - Magento version (1.0.0), LS Retail Partner name, (If your company is not part of LS Retail partner network, then the name of LS Retail Partner which you're representing) and any important information on the environment where bug is reproducible.
+    Provide the exact Magento version (example: 2.4.2), LS Central version (18.xx), LS Commerce Service version (4.20.0), LS eCommerce - Magento version (1.12.0), LS Retail Partner name, (If your company is not part of LS Retail partner network, then the name of LS Retail Partner which you're representing) and any important information on the environment where bug is reproducible.
 -->
 1. 
 2. 

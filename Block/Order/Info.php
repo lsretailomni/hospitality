@@ -5,6 +5,7 @@ namespace Ls\Hospitality\Block\Order;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Model\LSR as HospitalityLsr;
 use \Ls\Omni\Helper\OrderHelper;
+use \Ls\Omni\Helper\Data as DataHelper;
 use Magento\Customer\Model\Session\Proxy;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -37,8 +38,9 @@ class Info extends \Ls\Customer\Block\Order\Info
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Proxy $customerSession
      * @param Context $httpContext
-     * @param Lsr $lsr
-     * @param \Ls\Hospitality\Model\LSR $hospitalityLsr
+     * @param LSR $lsr
+     * @param HospitalityLsr $hospitalityLsr
+     * @param DataHelper $dataHelper
      * @param array $data
      */
     public function __construct(
@@ -53,6 +55,7 @@ class Info extends \Ls\Customer\Block\Order\Info
         Context $httpContext,
         Lsr $lsr,
         HospitalityLsr $hospitalityLsr,
+        DataHelper $dataHelper,
         array $data = []
     ) {
         parent::__construct(
@@ -66,6 +69,7 @@ class Info extends \Ls\Customer\Block\Order\Info
             $customerSession,
             $httpContext,
             $lsr,
+            $dataHelper,
             $data
         );
 
