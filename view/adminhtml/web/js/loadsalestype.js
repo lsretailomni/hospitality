@@ -16,7 +16,7 @@ define(['jquery'], function ($) {
                 complete: function (response) {
                     let salesTypes = response.responseJSON.salesType;
                     $("#ls_mag_hospitality_delivery_salas_type option").remove();
-                    $("#ls_mag_hospitality_takeaway_delivery_type option").remove();
+                    $("#ls_mag_hospitality_takeaway_sales_type option").remove();
                     $.each(salesTypes, function (i, salesType) {
                         $('#ls_mag_hospitality_delivery_salas_type').append($('<option>', {
                             value: salesType.value,
@@ -24,7 +24,7 @@ define(['jquery'], function ($) {
                         }));
                     });
                     $.each(salesTypes, function (i, salesType) {
-                        $('#ls_mag_hospitality_takeaway_delivery_type').append($('<option>', {
+                        $('#ls_mag_hospitality_takeaway_sales_type').append($('<option>', {
                             value: salesType.value,
                             text: salesType.label
                         }));

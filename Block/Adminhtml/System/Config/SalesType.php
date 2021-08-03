@@ -39,6 +39,8 @@ class SalesType implements OptionSourceInterface
     }
 
     /**
+     * Loading sales type information for particular store
+     *
      * @return array
      * @throws NoSuchEntityException
      */

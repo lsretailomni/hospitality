@@ -28,9 +28,9 @@
                     <comment>For delivery orders</comment>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
-                <field id="takeaway_delivery_type" translate="label comment" type="select" sortOrder="5"
+                <field id="takeaway_sales_type" translate="label comment" type="select" sortOrder="5"
                        showInWebsite="1">
-                    <label>Takeaway Delivery Type</label>
+                    <label>Takeaway Sales Type</label>
                     <validate>required-entry</validate>
                     <comment>For click and collect orders</comment>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>

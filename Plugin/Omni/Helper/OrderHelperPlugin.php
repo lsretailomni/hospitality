@@ -89,7 +89,7 @@ class OrderHelperPlugin
             }
 
             if ($isClickCollect) {
-                $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwayDeliveryType());
+                $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
             }
 
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);

@@ -20,7 +20,7 @@ class LSR extends \Ls\Core\Model\LSR
     const SERVICE_MODE_OPTIONS = 'ls_mag/hospitality/service_mode_options';
     const ORDER_TRACKING_ON_SUCCESS_PAGE = 'ls_mag/hospitality/order_tracking';
     const DELIVERY_SALES_TYPE = 'ls_mag/hospitality/delivery_salas_type';
-    const TAKEAWAY_DELIVERY_TYPE = 'ls_mag/hospitality/takeaway_delivery_type';
+    const TAKEAWAY_SALES_TYPE = 'ls_mag/hospitality/takeaway_sales_type';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -38,6 +38,8 @@ class LSR extends \Ls\Core\Model\LSR
     const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
 
     /**
+     * Check service mode is enabled
+     *
      * @return mixed
      * @throws NoSuchEntityException
      */
@@ -51,6 +53,8 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /**
+     * Get service mode options
+     *
      * @return mixed
      * @throws NoSuchEntityException
      */
@@ -64,6 +68,8 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /**
+     * Check to enable order tracking info on succcess page
+     *
      * @return mixed
      * @throws NoSuchEntityException
      */
@@ -77,6 +83,8 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /**
+     * Get delivery sales type
+     *
      * @return mixed
      * @throws NoSuchEntityException
      */
@@ -90,19 +98,23 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /**
+     * Get take away sales type
+     *
      * @return mixed
      * @throws NoSuchEntityException
      */
-    public function getTakeAwayDeliveryType()
+    public function getTakeAwaySalesType()
     {
         return $this->scopeConfig->getValue(
-            self::TAKEAWAY_DELIVERY_TYPE,
+            self::TAKEAWAY_SALES_TYPE,
             ScopeInterface::SCOPE_WEBSITES,
             $this->storeManager->getStore()->getWebsiteId()
         );
     }
 
     /**
+     * Checking for is hospitality store
+     *
      * @param null $storeId
      * @return bool
      * @throws NoSuchEntityException
@@ -118,6 +130,7 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /** For showing user friendly message to user regarding kitchen status
+     *
      * @return array
      */
     public function kitchenStatusMapping()
