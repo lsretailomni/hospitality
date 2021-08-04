@@ -3,7 +3,7 @@
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
 use Exception;
-use \Ls\Core\Model\LSR;
+use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
 use \Ls\Omni\Client\Ecommerce\Operation;
@@ -31,16 +31,24 @@ class OrderHelperPlugin
     public $date;
 
     /**
+     * @var LSR
+     */
+    public $lsr;
+
+    /**
      * OrderHelperPlugin constructor.
      * @param DateTime $date
      * @param LoggerInterface $logger
+     * @param LSR $lsr
      */
     public function __construct(
         DateTime $date,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        LSR $lsr
     ) {
         $this->date   = $date;
         $this->logger = $logger;
+        $this->lsr    = $lsr;
     }
 
     /**
@@ -72,6 +80,18 @@ class OrderHelperPlugin
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
                 ->setPickUpTime($this->date->date("Y-m-d\T00:00:00"));
+
+            $shippingMethod = $order->getShippingMethod(true);
+            $isClickCollect = false;
+
+            if ($shippingMethod !== null) {
+                $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
+            }
+
+            if ($isClickCollect) {
+                $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
+            }
+
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
             //For click and collect we need to remove shipment charge orderline
@@ -105,15 +125,20 @@ class OrderHelperPlugin
             return $proceed($orderLines, $order);
         }
 
-        $shipmentFeeId = $subject->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
-
-        if ($order->getShippingAmount() > 0) {
+        $shipmentFeeId      = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
+        $shipmentTaxPercent = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_TAX, $order->getStoreId());
+        $shippingAmount     = $order->getShippingAmount();
+        if ($shippingAmount > 0) {
+            $netPriceFormula = 1 + $shipmentTaxPercent / 100;
+            $netPrice        = $subject->loyaltyHelper->formatValue($shippingAmount / $netPriceFormula);
+            $taxAmount       = $subject->loyaltyHelper->formatValue($shippingAmount - $netPrice);
             // @codingStandardsIgnoreLine
             $shipmentOrderLine = new Entity\OrderHospLine();
-            $shipmentOrderLine->setPrice($order->getShippingAmount())
-                ->setNetPrice($order->getBaseShippingAmount())
-                ->setNetAmount($order->getBaseShippingAmount())
-                ->setAmount($order->getBaseShippingAmount())
+            $shipmentOrderLine->setPrice($shippingAmount)
+                ->setAmount($shippingAmount)
+                ->setNetPrice($netPrice)
+                ->setNetAmount($netPrice)
+                ->setTaxAmount($taxAmount)
                 ->setItemId($shipmentFeeId)
                 ->setLineType(Entity\Enum\LineType::ITEM)
                 ->setQuantity(1)
