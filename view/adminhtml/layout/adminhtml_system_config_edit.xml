@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="footer">
+            <container name="sales_type_load_js" htmlTag="div">
+                <block name="ls.hosp.sales.type.js" template="Ls_Hospitality::system/config/salestype.phtml"></block>
+            </container>
+        </referenceContainer>
+    </body>
+</page>

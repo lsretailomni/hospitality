@@ -212,7 +212,7 @@ class BasketHelperPlugin
             if (version_compare($subject->lsr->getOmniVersion(), '4.19', '>')) {
                 $oneListRequest
                     ->setIsHospitality(true)
-                    ->setSalesType(LSR::SALE_TYPE_POS);
+                    ->setSalesType($this->hospitalityHelper->getLSR()->getDeliverySalesType());
             } else {
                 $oneListRequest
                     ->setHospitalityMode(\Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode::TAKEAWAY);
