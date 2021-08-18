@@ -39,4 +39,9 @@
             </argument>
         </arguments>
     </virtualType>
+    <!-- For single store mode -->
+    <type name="Ls\Core\Model\Config\Backend\SingleStoreMode">
+        <plugin name="ls_omni_system_config_form_field"
+                type="Ls\Hospitality\Plugin\Config\Backend\SingleStoreModePlugin" sortOrder="1"/>
+    </type>
 </config>
