@@ -1,4 +1,4 @@
-# LS Ecommerce - Hospitality (1.3.1)
+# LS Ecommerce - Hospitality (1.3.0)
 
 ## Compatibility:
 1. Magento Commerce/Enterprise 2.3.5 - 2.4.2
