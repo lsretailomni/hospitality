@@ -324,16 +324,17 @@ class ProcessItemDeal
                     'is_in_stock'             => $item->getIsActive(),
                     'qty'                     => 100
                 ]);
-                $productData = $this->replicationHelper->getProductAttributes(
-                    $productData,
-                    $item->getNavId(),
-                    $this->store->getId()
-                );
+
                 try {
                     // @codingStandardsIgnoreLine
                     $this->logger->debug('Trying to save product ' . $item->getNavId() . ' in store ' . $this->store->getName());
                     /** @var ProductRepositoryInterface $productSaved */
                     $productSaved = $this->productRepository->save($productData);
+                    $this->replicationHelper->getProductAttributes(
+                        $item->getNavId(),
+                        $this->store->getId(),
+                        $this->productRepository
+                    );
                     $this->replicationHelper->assignProductToCategories($productSaved, $this->store);
                     // @codingStandardsIgnoreLine
                 } catch (Exception $e) {
@@ -369,16 +370,16 @@ class ProcessItemDeal
                     'is_in_stock'             => $item->getIsActive(),
                     'qty'                     => 100
                 ]);
-                $product = $this->replicationHelper->getProductAttributes(
-                    $product,
-                    $item->getNavId(),
-                    $this->store->getId()
-                );
                 try {
                     // @codingStandardsIgnoreLine
                     $this->logger->debug('Trying to save product ' . $item->getNavId() . ' in store ' . $this->store->getName());
                     /** @var ProductRepositoryInterface $productSaved */
                     $productSaved = $this->productRepository->save($product);
+                    $this->replicationHelper->getProductAttributes(
+                        $item->getNavId(),
+                        $this->store->getId(),
+                        $this->productRepository
+                    );
                     $this->replicationHelper->assignProductToCategories($productSaved, $this->store);
                     // @codingStandardsIgnoreLine
                 } catch (Exception $e) {
