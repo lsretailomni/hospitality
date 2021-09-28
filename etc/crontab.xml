@@ -4,34 +4,34 @@
     <group id="flat_replication">
         <job name="repl_hierarchy_hosp_deal_line" instance="Ls\Replication\Cron\ReplEcommHierarchyHospDealLineTask"
              method="execute">
-            <schedule>*/4 * * * *</schedule>
+            <schedule>*/3 * * * *</schedule>
         </job>
 
         <job name="repl_hierarchy_hosp_deal" instance="Ls\Replication\Cron\ReplEcommHierarchyHospDealTask"
              method="execute">
-            <schedule>*/4 * * * *</schedule>
+            <schedule>*/3 * * * *</schedule>
         </job>
 
         <job name="repl_item_recipe" instance="Ls\Replication\Cron\ReplEcommItemRecipeTask"
              method="execute">
-            <schedule>*/4 * * * *</schedule>
+            <schedule>*/3 * * * *</schedule>
         </job>
 
         <job name="repl_item_modifier" instance="Ls\Replication\Cron\ReplEcommItemModifierTask"
              method="execute">
-            <schedule>*/4 * * * *</schedule>
+            <schedule>*/3 * * * *</schedule>
         </job>
     </group>
 
     <group id="replication">
         <job name="process_item_modifier" instance="Ls\Hospitality\Cron\ProcessItemModifier" method="execute">
-            <schedule>*/5 * * * *</schedule>
+            <schedule>*/4 * * * *</schedule>
         </job>
         <job name="process_item_recipe" instance="Ls\Hospitality\Cron\ProcessItemRecipe" method="execute">
-            <schedule>*/5 * * * *</schedule>
+            <schedule>*/4 * * * *</schedule>
         </job>
         <job name="process_item_deal" instance="Ls\Hospitality\Cron\ProcessItemDeal" method="execute">
-            <schedule>*/5 * * * *</schedule>
+            <schedule>*/4 * * * *</schedule>
         </job>
     </group>
 </config>
