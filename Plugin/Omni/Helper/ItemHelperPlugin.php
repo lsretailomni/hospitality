@@ -65,9 +65,9 @@ class ItemHelperPlugin
             }
 
             $orderLines    = [];
-            $quoteItemList = $subject->cart->getQuote()->getAllVisibleItems();
+            $quoteItemList = $quote->getAllVisibleItems();
 
-            if (count($quoteItemList)) {
+            if (count($quoteItemList) && !empty($basketData)) {
                 $orderLines = $basketData->getOrderLines()->getOrderHospLine();
             }
 
@@ -178,7 +178,7 @@ class ItemHelperPlugin
                 $orderLines     = $orderData->getLines();
                 $discountsLines = $orderData->getDiscountLines();
             } elseif ($orderData instanceof OrderHosp) {
-                $orderLines     = $orderData->getOrderLines();
+                $orderLines = $orderData->getOrderLines();
 
                 if ($orderData->getOrderDiscountLines() && !empty($orderData->getOrderDiscountLines())) {
                     $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
