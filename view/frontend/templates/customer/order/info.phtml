@@ -14,6 +14,7 @@ if ($viewModel->isHospitalityEnabled() == "1") :
     if (!empty($statusInfo)) {
         $orderId = $statusInfo['orderId'];
         $storeId = $statusInfo['storeId'];
+        $pickupOrderTime = $statusInfo['pickupDateTimeslot'];
     }
 
     if (!empty($order)) {

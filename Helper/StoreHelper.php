@@ -10,7 +10,6 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 
 /**
@@ -107,7 +106,6 @@ class StoreHelper extends AbstractHelper
         $store        = $this->getStore();
         $storeHours   = $store->getStoreHours();
         $today        = $this->getCurrentDate();
-        $hoursFormat  = $this->scopeConfig->getValue(\Ls\Core\Model\LSR::LS_STORES_OPENING_HOURS_FORMAT);
         $dateTimSlots = [];
         for ($count = 0; $count < 7; $count++) {
             $current          = date("Y-m-d", strtotime($today) + ($count * 86400));
@@ -180,13 +178,15 @@ class StoreHelper extends AbstractHelper
 
     /**
      * Get date time slots
+     *
+     * @return array
      */
     public function getDateTimeSlotsValues()
     {
         $dateTimeSlots      = [];
         $storeOrderingHours = $this->getStoreOrderingHours();
         $timeInterval       = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_INTERVAL);
-        $currentTime        = $this->dateTime->gmtDate("h:i A");
+        $currentTime        = $this->dateTime->gmtDate("H:i");
         foreach ($storeOrderingHours as $date => $storeOrderHour) {
             foreach ($storeOrderHour as $type => $value) {
                 $dateTimeSlots[$date][$type] = $this->applyPickupTimeInterval(
@@ -249,9 +249,12 @@ class StoreHelper extends AbstractHelper
     function applyPickupTimeInterval($startTime, $endTime, $interval)
     {
         $counter = 0;
-        $time [] = $this->dateTime->date(
-            'H:i',
-            strtotime($startTime));
+        $time = [];
+        if(strtotime($startTime) <= strtotime($endTime)) {
+            $time [] = $this->dateTime->date(
+                'H:i',
+                strtotime($startTime));
+        }
         while (strtotime($startTime) <= strtotime($endTime)) {
             $end       = $this->dateTime->date(
                 'H:i', strtotime('+' . $interval . ' minutes',
