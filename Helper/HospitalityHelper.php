@@ -650,38 +650,6 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
-     * Getting sales type
-     *
-     * @param string $websiteId
-     * @param null $webStore
-     * @param null $baseUrl
-     * @return array|Entity\Store|Entity\StoreGetByIdResponse|ResponseInterface|null
-     */
-    public function getSalesType($websiteId = '', $webStore = null, $baseUrl = null)
-    {
-        $response = [];
-        if ($webStore == null) {
-            $webStore = $this->lsr->getWebsiteConfig(LSR::SC_SERVICE_STORE, $websiteId);
-        }
-        if ($baseUrl == null) {
-            $baseUrl = $this->lsr->getWebsiteConfig(LSR::SC_SERVICE_BASE_URL, $websiteId);
-        }
-        // @codingStandardsIgnoreStart
-        $request   = new Entity\StoreGetById();
-        $operation = new Operation\StoreGetById($baseUrl);
-        // @codingStandardsIgnoreEnd
-
-        $request->setStoreId($webStore);
-
-        try {
-            $response = $operation->execute($request);
-        } catch (\Exception $e) {
-            $this->_logger->error($e->getMessage());
-        }
-        return $response ? $response->getResult() : $response;
-    }
-
-    /**
      * Returning LSR object to be used on different place
      *
      * @return LSR

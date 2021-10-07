@@ -36,9 +36,14 @@ class ShippingInformationManagement
         $cartId,
         ShippingInformationInterface $addressInformation
     ) {
-        $extAttributes = $addressInformation->getExtensionAttributes();
-        $serviceMode   = $extAttributes->getServiceMode();
-        $quote         = $this->quoteRepository->getActive($cartId);
+        $extAttributes      = $addressInformation->getExtensionAttributes();
+        $serviceMode        = $extAttributes->getServiceMode();
+        $pickupDate         = $extAttributes->getPickupDate();
+        $pickupTimeslot     = $extAttributes->getPickupTimeslot();
+        $pickupDateTimeslot = $pickupDate . ' ' . $pickupTimeslot;
+        $pickupDateTimeslot = date('Y-m-d h:i A', strtotime($pickupDateTimeslot));
+        $quote              = $this->quoteRepository->getActive($cartId);
         $quote->setServiceMode($serviceMode);
+        $quote->setPickupDateTimeslot($pickupDateTimeslot);
     }
 }

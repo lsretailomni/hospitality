@@ -74,12 +74,11 @@ class OrderHelperPlugin
             if (!empty($subject->checkoutSession->getCouponCode())) {
                 $order->setCouponCode($subject->checkoutSession->getCouponCode());
             }
-
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
-                ->setPickUpTime($this->date->date("Y-m-d\T00:00:00"));
+                ->setPickUpTime($this->date->date("Y-m-d\T" . "H:i:00",$order->getPickupDateTimeslot()));
 
             $shippingMethod = $order->getShippingMethod(true);
             $isClickCollect = false;

@@ -1,7 +1,7 @@
 <?php
 /** @var  \Ls\Customer\Block\Order\Info $block */
-
-list($status, $estimatedTime) = $block->getData('data');
+$magOrder = $block->getMagOrder();
+list($status, $estimatedTime, $pickupOrderTime) = $block->getData('data');
 if (empty($status)) {
     $status = __('Kitchen status service is down. Please try again by refreshing the page.');
 }
@@ -20,6 +20,15 @@ if (empty($status)) {
                 <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */__('Estimated Time:') ?></span></strong>
                 <span><?= /* @escapeNotVerified */ $estimatedTime; ?> <?= /* @escapeNotVerified */__('Minutes') ?></span>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($pickupOrderTime): ?>
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */__('Pickup Order Time:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */ $pickupOrderTime; ?></span>
             </div>
         </div>
     <?php endif; ?>
