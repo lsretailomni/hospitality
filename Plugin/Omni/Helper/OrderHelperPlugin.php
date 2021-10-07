@@ -80,7 +80,7 @@ class OrderHelperPlugin
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
-                ->setPickUpTime($this->date->date("Y-m-d\T" . "H:i:00", $pickupDateTimeslot));
+                ->setPickUpTime($this->date->date("Y-m-d\T" . "H:i:00",$pickupDateTimeslot));
 
             $shippingMethod = $order->getShippingMethod(true);
             $isClickCollect = false;

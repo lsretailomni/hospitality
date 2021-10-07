@@ -23,6 +23,8 @@ class LSR extends \Ls\Core\Model\LSR
     const TAKEAWAY_SALES_TYPE = 'ls_mag/hospitality/takeaway_sales_type';
     const PICKUP_TIMESLOTS_ENABLED = 'ls_mag/hospitality/pickup_date_time_slot';
     const PICKUP_TIME_INTERVAL = 'ls_mag/hospitality/pickup_time_interval';
+    const PICKUP_DATE_FORMAT = 'ls_mag/hospitality/pickup_date_format';
+    const PICKUP_TIME_FORMAT = 'ls_mag/hospitality/pickup_time_format';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';

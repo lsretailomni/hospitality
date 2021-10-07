@@ -59,10 +59,13 @@ class ShippingInformationManagement
         $quote              = $this->quoteRepository->getActive($cartId);
         $pickupDateTimeslot = '';
         $quote->setServiceMode($serviceMode);
-        if(!empty($pickupDate) && !empty($pickupTimeslot)) {
-            $hoursFormat        = $this->lsr->getStoreConfig(LSR::LS_STORES_OPENING_HOURS_FORMAT);
+        if (!empty($pickupDate) && !empty($pickupTimeslot)) {
+            $pickupDateFormat   = $this->lsr->getStoreConfig(LSR::PICKUP_DATE_FORMAT);
+            $pickupTimeFormat   = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_FORMAT);
             $pickupDateTimeslot = $pickupDate . ' ' . $pickupTimeslot;
-            $pickupDateTimeslot = $this->dateTime->date($hoursFormat, strtotime($pickupDateTimeslot));
+            $pickupDateTimeslot = $this->dateTime->date(
+                $pickupDateFormat . ' ' . $pickupTimeFormat,
+                strtotime($pickupDateTimeslot));
         }
         $quote->setPickupDateTimeslot($pickupDateTimeslot);
     }

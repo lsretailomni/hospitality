@@ -34,6 +34,16 @@ class StoreHelper extends AbstractHelper
     public $dateTime;
 
     /**
+     * @var $pickupDateFormat
+     */
+    public $pickupDateFormat;
+
+    /**
+     * @var $pickupTimeFormat
+     */
+    public $pickupTimeFormat;
+
+    /**
      * @param Context $context
      * @param Data $dataHelper
      * @param DateTime $dateTime
@@ -103,13 +113,18 @@ class StoreHelper extends AbstractHelper
      */
     public function getStoreOrderingHours()
     {
-        $store        = $this->getStore();
-        $storeHours   = $store->getStoreHours();
-        $today        = $this->getCurrentDate();
-        $dateTimSlots = [];
+        $store                  = $this->getStore();
+        $storeHours             = $store->getStoreHours();
+        $today                  = $this->getCurrentDate();
+        $this->pickupDateFormat = $this->lsr->getStoreConfig(LSR::PICKUP_DATE_FORMAT);
+        $this->pickupTimeFormat = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_FORMAT);
+        $dateTimSlots           = [];
         for ($count = 0; $count < 7; $count++) {
-            $current          = date("Y-m-d", strtotime($today) + ($count * 86400));
-            $currentDayOfWeek = date('w', strtotime($current));
+            $current          = $this->dateTime->date(
+                $this->pickupDateFormat,
+                strtotime($today) + ($count * 86400)
+            );
+            $currentDayOfWeek = $this->dateTime->date('w', strtotime($current));
             foreach ($storeHours as $storeHour) {
                 if ($storeHour->getStoreId() == 'ORDER') {
                     if ($storeHour->getDayOfWeek() == $currentDayOfWeek) {
@@ -169,9 +184,8 @@ class StoreHelper extends AbstractHelper
      */
     public function formatTime($time)
     {
-        $hoursFormat = $this->lsr->getStoreConfig(LSR::LS_STORES_OPENING_HOURS_FORMAT);
         return $this->dateTime->date(
-            $hoursFormat,
+            $this->pickupTimeFormat,
             strtotime($time)
         );
     }
@@ -186,7 +200,7 @@ class StoreHelper extends AbstractHelper
         $dateTimeSlots      = [];
         $storeOrderingHours = $this->getStoreOrderingHours();
         $timeInterval       = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_INTERVAL);
-        $currentTime        = $this->dateTime->gmtDate("H:i");
+        $currentTime        = $this->dateTime->gmtDate($this->pickupTimeFormat);
         foreach ($storeOrderingHours as $date => $storeOrderHour) {
             foreach ($storeOrderHour as $type => $value) {
                 $dateTimeSlots[$date][$type] = $this->applyPickupTimeInterval(
@@ -218,7 +232,8 @@ class StoreHelper extends AbstractHelper
                         $this->applyPickupTimeInterval(
                             reset($dateTimeSlots[$date][StoreHourOpeningType::NORMAL]),
                             $currentTime,
-                            $timeInterval
+                            $timeInterval,
+                            0
                         )
                     );
                     if (empty($arrayResult)) {
@@ -231,41 +246,44 @@ class StoreHelper extends AbstractHelper
     }
 
     /**
+     * Current date
+     *
      * @return false|string
      */
     public function getCurrentDate()
     {
-        return $this->dateTime->gmtDate("Y-m-d");
+        return $this->dateTime->gmtDate($this->pickupDateFormat);
     }
 
     /**
      * Apply pickup time interval
      *
-     * @param $StartTime
-     * @param $EndTime
+     * @param $startTime
+     * @param $endTime
      * @param $interval
+     * @param int $isNotTimeDifference
      * @return array
      */
-    function applyPickupTimeInterval($startTime, $endTime, $interval)
+    function applyPickupTimeInterval($startTime, $endTime, $interval, $isNotTimeDifference = 1)
     {
         $counter = 0;
-        $time = [];
-        if(strtotime($startTime) <= strtotime($endTime)) {
+        $time    = [];
+        if ($isNotTimeDifference) {
             $time [] = $this->dateTime->date(
-                'H:i',
+                $this->pickupTimeFormat,
                 strtotime($startTime));
         }
         while (strtotime($startTime) <= strtotime($endTime)) {
             $end       = $this->dateTime->date(
-                'H:i', strtotime('+' . $interval . ' minutes',
+                $this->pickupTimeFormat, strtotime('+' . $interval . ' minutes',
                 strtotime($startTime
                 )));
             $startTime = $this->dateTime->date(
-                'H:i',
+                $this->pickupTimeFormat,
                 strtotime('+' . $interval . ' minutes',
                     strtotime($startTime)));
             $counter++;
-            if ($startTime == "00:00") {
+            if ($startTime == "00:00" || $startTime == "12:00 AM") {
                 $startTime = "24:00";
             }
             if (strtotime($startTime) <= strtotime($endTime)) {

@@ -48,6 +48,20 @@
                     <label>Time Interval</label>
                     <comment>Time interval between pickup slots in minutes</comment>
                 </field>
+                <field id="pickup_date_format" translate="label" type="text" sortOrder="7" showInDefault="1"
+                       showInWebsite="1">
+                    <depends>
+                        <field id="ls_mag/hospitality/pickup_date_time_slot">1</field>
+                    </depends>
+                    <label>Pickup Date Format</label>
+                    <comment>Date format for pickup date</comment>
+                </field>
+                <field id="pickup_time_format" translate="label" type="select" sortOrder="8" showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Pickup Time Format</label>
+                    <source_model>Ls\Omni\Block\Adminhtml\System\Config\TimeFormat</source_model>
+                </field>
             </group>
             <group id="replication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
                    showInStore="1">
