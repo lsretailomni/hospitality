@@ -12,6 +12,7 @@ use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 
@@ -98,6 +99,7 @@ class BasketHelperPlugin
                 $quoteItem->getProductId(),
                 $quoteItem->getSku()
             );
+            $product = $subject->productRepository->getById($quoteItem->getProductId());
 
             $oneListSubLinesArray = [];
             $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
@@ -141,7 +143,7 @@ class BasketHelperPlugin
             }
             // @codingStandardsIgnoreLine
             $list_item    = (new Entity\OneListItem())
-                ->setIsADeal($quoteItem->getProduct()->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
+                ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                 ->setQuantity($quoteItem->getData('qty'))
                 ->setItemId($itemId)
                 ->setId('')
@@ -295,5 +297,29 @@ class BasketHelperPlugin
         }
 
         return $rowTotal;
+    }
+
+
+    /**
+     * Around plugin to formulate Central Order requests given Magento order
+     *
+     * @param BasketHelper $subject
+     * @param callable $proceed
+     * @param $order
+     * @return Entity\OneListCalculateResponse|Entity\Order
+     * @throws InvalidEnumException
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
+    public function aroundFormulateCentralOrderRequestFromMagentoOrder(
+        BasketHelper $subject,
+        callable $proceed,
+        $order
+    ) {
+        if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($order);
+        }
+
+        return $subject->calculateOneListFromOrder($order);
     }
 }
