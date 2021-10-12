@@ -109,11 +109,13 @@ class StoreHelper extends AbstractHelper
 
 
     /**
+     * Getting store ordering hours
+     *
      * @return array
      */
     public function getStoreOrderingHours()
     {
-        $store                  = $this->getStore();
+        $store                  = $this->getStore($this->lsr->getStoreId());
         $storeHours             = $store->getStoreHours();
         $today                  = $this->getCurrentDate();
         $this->pickupDateFormat = $this->lsr->getStoreConfig(LSR::PICKUP_DATE_FORMAT);
@@ -264,7 +266,7 @@ class StoreHelper extends AbstractHelper
      * @param int $isNotTimeDifference
      * @return array
      */
-    function applyPickupTimeInterval($startTime, $endTime, $interval, $isNotTimeDifference = 1)
+    public function applyPickupTimeInterval($startTime, $endTime, $interval, $isNotTimeDifference = 1)
     {
         $counter = 0;
         $time    = [];

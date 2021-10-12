@@ -40,10 +40,7 @@ define([
             var values = window.checkoutConfig.shipping.pickup_date_timeslots.options;
             pickupTimSlot.html('');
             $.each(values, function (index, val) {
-                console.log("index:"+index);
-                console.log("value");
                 if(index == value) {
-                    console.log("inside");
                     $.each(val, function (index, v) {
                         pickupTimSlot.append(new Option(v, v));
                     });

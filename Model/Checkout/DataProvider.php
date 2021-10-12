@@ -4,7 +4,6 @@ namespace Ls\Hospitality\Model\Checkout;
 
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\StoreHelper;
-use Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourOpeningType;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -43,7 +42,7 @@ class DataProvider implements ConfigProviderInterface
         $dateTimeSlotsValues = $this->storeHelper->formatDateTimeSlotsValues();
         return [
             'shipping' => [
-                'service_mode'     => [
+                'service_mode'          => [
                     'options' => $this->getServiceModeValues(),
                     'enabled' => $this->hospLsr->isServiceModeEnabled()
                 ],
@@ -54,7 +53,6 @@ class DataProvider implements ConfigProviderInterface
             ]
         ];
     }
-
 
     /**
      * @return array
