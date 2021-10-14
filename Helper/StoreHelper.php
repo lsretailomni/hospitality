@@ -270,7 +270,7 @@ class StoreHelper extends AbstractHelper
     {
         $counter = 0;
         $time    = [];
-        if ($isNotTimeDifference) {
+        if ($isNotTimeDifference || strtotime($startTime) < strtotime($endTime)) {
             $time [] = $this->dateTime->date(
                 $this->pickupTimeFormat,
                 strtotime($startTime));

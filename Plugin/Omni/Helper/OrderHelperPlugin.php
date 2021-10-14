@@ -74,11 +74,17 @@ class OrderHelperPlugin
             if (!empty($subject->checkoutSession->getCouponCode())) {
                 $order->setCouponCode($subject->checkoutSession->getCouponCode());
             }
-            $shippingMethod     = $order->getShippingMethod(true);
-            $isClickCollect     = false;
-            $pickupDateTimeslot = null;
-            $dateTimeFormat     = "Y-m-d\T" . "10:00:00";
-
+            $shippingMethod  = $order->getShippingMethod(true);
+            $isClickCollect  = false;
+            $dateTimeFormat  = "Y-m-d\T" . "5:00:00";
+            $currentDataTime = $this->date->gmtDate();
+            $pickupDateTime  = $this->date->date($dateTimeFormat);
+            if (strtotime($currentDataTime) >= strtotime($pickupDateTime)) {
+                $pickupDateTime = $this->date->date(
+                    $dateTimeFormat,
+                    strtotime('+1 day', strtotime($pickupDateTime))
+                );
+            }
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
             }
@@ -88,13 +94,14 @@ class OrderHelperPlugin
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
                 $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
                 $dateTimeFormat = "Y-m-d\T" . "H:i:00";
+                $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
             }
 
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
-                ->setPickUpTime($this->date->date($dateTimeFormat, $pickupDateTimeslot));
+                ->setPickUpTime($pickupDateTime);
 
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
