@@ -76,7 +76,7 @@ class OrderHelperPlugin
             }
             $shippingMethod  = $order->getShippingMethod(true);
             $isClickCollect  = false;
-            $dateTimeFormat  = "Y-m-d\T" . "5:00:00";
+            $dateTimeFormat  = "Y-m-d\T" . "17:00:00";
             $currentDataTime = $this->date->gmtDate();
             $pickupDateTime  = $this->date->date($dateTimeFormat);
             if (strtotime($currentDataTime) >= strtotime($pickupDateTime)) {
