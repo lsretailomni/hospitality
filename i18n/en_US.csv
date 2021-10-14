@@ -14,6 +14,7 @@
 "Order is cancelled","Order is cancelled"
 "Order completed","Order completed"
 Save,Save
+"Pickup Date Time","Pickup Date Time"
 "Service Mode","Service Mode"
 "Kitchen Information","Kitchen Information"
 Loading...,Loading...
@@ -22,8 +23,12 @@ Loading...,Loading...
 Status:,Status:
 "Estimated Time:","Estimated Time:"
 Minutes,Minutes
+"Pickup Order Time:","Pickup Order Time:"
+"Please select date","Please select date"
+"Please select time","Please select time"
 "Please Select","Please Select"
 "Please select service mode for order such as dine-in or takeaway.","Please select service mode for order such as dine-in or takeaway."
+"Please select date and time slot for your order.","Please select date and time slot for your order."
 "Hospitality Grids","Hospitality Grids"
 Deals,Deals
 "Deal Line","Deal Line"
@@ -37,6 +42,10 @@ Hospitality,Hospitality
 "For delivery orders","For delivery orders"
 "Takeaway Sales Type","Takeaway Sales Type"
 "For click and collect orders","For click and collect orders"
+"Show Pick up Date and Time Slots","Show Pick up Date and Time Slots"
+"Time Interval","Time Interval"
+"Pickup Date Format","Pickup Date Format"
+"Pickup Time Format","Pickup Time Format"
 "Item Modifiers Batch Size","Item Modifiers Batch Size"
 "Item Recipe Batch Size","Item Recipe Batch Size"
 "All Store Views","All Store Views"
@@ -85,3 +94,5 @@ Prompt,Prompt
 Exclusion,Exclusion
 ExclusionPrice,ExclusionPrice
 "Quantity Per","Quantity Per"
+"Pick up Date","Pick up Date"
+"Pick up Time","Pick up Time"

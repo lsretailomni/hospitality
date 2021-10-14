@@ -74,23 +74,36 @@ class OrderHelperPlugin
             if (!empty($subject->checkoutSession->getCouponCode())) {
                 $order->setCouponCode($subject->checkoutSession->getCouponCode());
             }
-
-            $oneListCalculateResponse
-                ->setCardId($cardId)
-                ->setStoreId($storeId)
-                ->setRestaurantNo($storeId)
-                ->setPickUpTime($this->date->date("Y-m-d\T00:00:00"));
-
-            $shippingMethod = $order->getShippingMethod(true);
-            $isClickCollect = false;
-
+            $shippingMethod  = $order->getShippingMethod(true);
+            $isClickCollect  = false;
+            $dateTimeFormat  = "Y-m-d\T" . "17:00:00";
+            $currentDataTime = $this->date->gmtDate();
+            $pickupDateTime  = $this->date->date($dateTimeFormat);
+            if (strtotime($currentDataTime) >= strtotime($pickupDateTime)) {
+                $pickupDateTime = $this->date->date(
+                    $dateTimeFormat,
+                    strtotime('+1 day', strtotime($pickupDateTime))
+                );
+            }
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
             }
 
             if ($isClickCollect) {
                 $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
+                $pickupDateTimeslot = $order->getPickupDateTimeslot();
+                if (!empty($pickupDateTimeslot)) {
+                    $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
+                    $dateTimeFormat = "Y-m-d\T" . "H:i:00";
+                    $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
+                }
             }
+
+            $oneListCalculateResponse
+                ->setCardId($cardId)
+                ->setStoreId($storeId)
+                ->setRestaurantNo($storeId)
+                ->setPickUpTime($pickupDateTime);
 
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();

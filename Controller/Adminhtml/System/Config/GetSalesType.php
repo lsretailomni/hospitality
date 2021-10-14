@@ -4,7 +4,7 @@ namespace Ls\Hospitality\Controller\Adminhtml\System\Config;
 
 use Exception;
 use \Ls\Core\Model\LSR;
-use \Ls\Hospitality\Helper\HospitalityHelper;
+use \Ls\Hospitality\Helper\StoreHelper;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\Json;
@@ -33,28 +33,28 @@ class GetSalesType extends Action
     public $logger;
 
     /**
-     * @var HospitalityHelper
+     * @var StoreHelper
      */
-    public $hospitalityHelper;
+    public $storeHelper;
 
     /**
      * GetSalesType constructor.
      * @param Context $context
      * @param JsonFactory $resultJsonFactory
      * @param LSR $lsr
-     * @param HospitalityHelper $hospitalityHelper
+     * @param StoreHelper $storeHelper
      * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
         LSR $lsr,
-        HospitalityHelper $hospitalityHelper,
+        StoreHelper $storeHelper,
         LoggerInterface $logger
     ) {
         $this->resultJsonFactory = $resultJsonFactory;
         $this->lsr               = $lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
+        $this->storeHelper       = $storeHelper;
         $this->logger            = $logger;
         parent::__construct($context);
     }
@@ -72,7 +72,7 @@ class GetSalesType extends Action
             $storeId    = $this->getRequest()->getParam('storeId');
             $salesTypes = null;
             if ($this->lsr->validateBaseUrl($baseUrl) && $storeId != "") {
-                $salesTypes = $this->hospitalityHelper->getSalesType('', $storeId, $baseUrl);
+                $salesTypes = $this->storeHelper->getSalesType('', $storeId, $baseUrl);
             }
             if (!empty($salesTypes)) {
                 $salesTypeArray = $salesTypes->getHospSalesTypes();
