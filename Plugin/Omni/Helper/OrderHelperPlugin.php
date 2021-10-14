@@ -92,9 +92,11 @@ class OrderHelperPlugin
             if ($isClickCollect) {
                 $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
-                $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
-                $dateTimeFormat = "Y-m-d\T" . "H:i:00";
-                $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
+                if (!empty($pickupDateTimeslot)) {
+                    $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
+                    $dateTimeFormat = "Y-m-d\T" . "H:i:00";
+                    $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
+                }
             }
 
             $oneListCalculateResponse
