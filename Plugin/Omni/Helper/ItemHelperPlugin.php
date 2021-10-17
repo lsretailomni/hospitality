@@ -61,7 +61,7 @@ class ItemHelperPlugin
     public function aroundCompareQuoteItemsWithOrderLinesAndSetRelatedAmounts(
         ItemHelper $subject,
         callable $proceed,
-        $quote,
+        &$quote,
         $basketData,
         $type = 1
     ) {
