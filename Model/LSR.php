@@ -21,6 +21,10 @@ class LSR extends \Ls\Core\Model\LSR
     const ORDER_TRACKING_ON_SUCCESS_PAGE = 'ls_mag/hospitality/order_tracking';
     const DELIVERY_SALES_TYPE = 'ls_mag/hospitality/delivery_salas_type';
     const TAKEAWAY_SALES_TYPE = 'ls_mag/hospitality/takeaway_sales_type';
+    const PICKUP_TIMESLOTS_ENABLED = 'ls_mag/hospitality/pickup_date_time_slot';
+    const PICKUP_TIME_INTERVAL = 'ls_mag/hospitality/pickup_time_interval';
+    const PICKUP_DATE_FORMAT = 'ls_mag/hospitality/pickup_date_format';
+    const PICKUP_TIME_FORMAT = 'ls_mag/hospitality/pickup_time_format';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -36,6 +40,7 @@ class LSR extends \Ls\Core\Model\LSR
 
     const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
     const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
+
 
     /**
      * Check service mode is enabled
@@ -129,6 +134,19 @@ class LSR extends \Ls\Core\Model\LSR
         return ($this->getCurrentIndustry($storeId) == self::LS_INDUSTRY_VALUE_HOSPITALITY);
     }
 
+    /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function isPickupTimeslotsEnabled()
+    {
+        return $this->scopeConfig->getValue(
+            LSR::PICKUP_TIMESLOTS_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
     /** For showing user friendly message to user regarding kitchen status
      *
      * @return array
@@ -147,5 +165,14 @@ class LSR extends \Ls\Core\Model\LSR
             KOTStatus::POSTED      => __("Order completed"),
             KOTStatus::NONE        => ''
         ];
+    }
+
+    /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getStoreId()
+    {
+        return $this->storeManager->getStore()->getStoreId();
     }
 }

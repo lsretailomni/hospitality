@@ -1,12 +1,14 @@
 {
     "quote": {
         "column": {
-            "service_mode": true
+            "service_mode": true,
+            "pickup_date_timeslot": true
         }
     },
     "sales_order": {
         "column": {
-            "service_mode": true
+            "service_mode": true,
+            "pickup_date_timeslot": true
         }
     },
     "catalog_product_option": {
