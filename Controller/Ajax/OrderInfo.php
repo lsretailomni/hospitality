@@ -50,10 +50,10 @@ class OrderInfo implements HttpGetActionInterface
         RequestInterface $request,
         HospitalityHelper $hospitalityHelper
     ) {
-        $this->resultPageFactory     = $resultPageFactory;
-        $this->resultJsonFactory     = $resultJsonFactory;
-        $this->request               = $request;
-        $this->hospitalityHelper     = $hospitalityHelper;
+        $this->resultPageFactory = $resultPageFactory;
+        $this->resultJsonFactory = $resultJsonFactory;
+        $this->request           = $request;
+        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -64,10 +64,12 @@ class OrderInfo implements HttpGetActionInterface
     public function execute()
     {
         if ($this->request->isXmlHttpRequest()) {
-            $orderId = $this->request->getParam('orderId');
-            $storeId = $this->request->getParam('storeId');
+            $orderId         = $this->request->getParam('orderId');
+            $storeId         = $this->request->getParam('storeId');
+            $pickupOrderTime = $this->request->getParam('pickupOrderTime');
             if (!empty($orderId) && !empty($storeId)) {
                 $status     = $this->hospitalityHelper->getKitchenOrderStatusDetails($orderId, $storeId);
+                $status[]   = $pickupOrderTime;
                 $result     = $this->resultJsonFactory->create();
                 $resultPage = $this->resultPageFactory->create();
                 $info       = $resultPage->getLayout()

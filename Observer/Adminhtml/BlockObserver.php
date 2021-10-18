@@ -38,11 +38,15 @@ class BlockObserver implements ObserverInterface
             if ($order->getShippingMethod() != 'clickandcollect_clickandcollect') {
                 return $this;
             }
-            $serviceMode = $this->coreTemplate
+            $serviceMode        = $this->coreTemplate
                 ->setServiceMode($order->getServiceMode())
                 ->setTemplate('Ls_Hospitality::order/view/service-mode.phtml')
                 ->toHtml();
-            $html        = $observer->getTransport()->getOutput() . $serviceMode;
+            $pickupDateTimeslot = $this->coreTemplate
+                ->setPickupDateTimeslot($order->getPickupDateTimeslot())
+                ->setTemplate('Ls_Hospitality::order/view/pickup-datetime.phtml')
+                ->toHtml();
+            $html               = $observer->getTransport()->getOutput() . $serviceMode . $pickupDateTimeslot;
             $observer->getTransport()->setOutput($html);
         }
     }

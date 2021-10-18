@@ -1,0 +1,16 @@
+<div id="pickup-datetime-wrapper">
+    <?php if ($block->getPickupDateTimeslot()): ?>
+        <strong><?php echo __('Pickup Date Time') ?>:</strong>
+        <span class="price">
+            <?php echo $block->getPickupDateTimeslot(); ?>
+        </span>
+    <?php endif; ?>
+</div>
+<script type="text/javascript">
+    require(
+        ['jquery'],
+        function ($) {
+            $('#pickup-datetime-wrapper').appendTo('.order-shipping-method .admin__page-section-item-content div:last-child');
+        }
+    );
+</script>
