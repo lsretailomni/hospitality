@@ -65,7 +65,7 @@ class ItemHelperPlugin
         $basketData,
         $type = 1
     ) {
-        if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+        if ($this->lsr->getCurrentIndustry($quote->getStore()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($quote, $basketData, $type);
         }
 
