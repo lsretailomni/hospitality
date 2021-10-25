@@ -3,7 +3,6 @@
 namespace Ls\Hospitality\Model\Checkout;
 
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Hospitality\Helper\StoreHelper;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -17,20 +16,12 @@ class DataProvider implements ConfigProviderInterface
     public $hospLsr;
 
     /**
-     * @var StoreHelper
-     */
-    public $storeHelper;
-
-    /**
      * @param LSR $hospLsr
-     * @param StoreHelper $storeHelper
      */
     public function __construct(
-        LSR $hospLsr,
-        StoreHelper $storeHelper
+        LSR $hospLsr
     ) {
-        $this->hospLsr     = $hospLsr;
-        $this->storeHelper = $storeHelper;
+        $this->hospLsr = $hospLsr;
     }
 
     /**
@@ -39,16 +30,11 @@ class DataProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
-        $dateTimeSlotsValues = $this->storeHelper->formatDateTimeSlotsValues();
         return [
             'shipping' => [
-                'service_mode'          => [
+                'service_mode' => [
                     'options' => $this->getServiceModeValues(),
                     'enabled' => $this->hospLsr->isServiceModeEnabled()
-                ],
-                'pickup_date_timeslots' => [
-                    'options' => $dateTimeSlotsValues,
-                    'enabled' => $this->hospLsr->isPickupTimeslotsEnabled()
                 ]
             ]
         ];

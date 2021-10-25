@@ -52,7 +52,7 @@
                                                                 <item name="ls-pickup-additional-options-wrapper" xsi:type="array">
                                                                     <item name="component" xsi:type="string">Ls_Hospitality/js/view/checkout/shipping/pickup-date-time-block</item>
                                                                     <item name="provider" xsi:type="string">checkoutProvider</item>
-                                                                    <item name="sortOrder" xsi:type="string">0</item>
+                                                                    <item name="sortOrder" xsi:type="string">2</item>
                                                                     <item name="children" xsi:type="array">
                                                                         <item name="shipping-option" xsi:type="array">
                                                                             <item name="component" xsi:type="string">uiComponent</item>
