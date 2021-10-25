@@ -8,6 +8,8 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
 use \Ls\Omni\Helper\ItemHelper;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -45,90 +47,54 @@ class ItemHelperPlugin
     }
 
     /**
-     * Around plugin for Comparing one_list lines with quote_item items and set correct prices
+     * Compare one_list lines with quote_item items and set correct prices
      *
      * @param ItemHelper $subject
      * @param callable $proceed
      * @param $quote
      * @param $basketData
+     * @param int $type
      * @return mixed
+     * @throws AlreadyExistsException
+     * @throws NoSuchEntityException
      */
-    public function aroundSetDiscountedPricesForItems(
+    public function aroundCompareQuoteItemsWithOrderLinesAndSetRelatedAmounts(
         ItemHelper $subject,
         callable $proceed,
-        $quote,
-        $basketData
+        &$quote,
+        $basketData,
+        $type = 1
     ) {
-        try {
-            if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-                return $proceed($quote, $basketData);
-            }
+        if ($this->lsr->getCurrentIndustry($quote->getStore()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($quote, $basketData, $type);
+        }
 
-            $orderLines    = [];
-            $quoteItemList = $quote->getAllVisibleItems();
+        $orderLines    = [];
+        $quoteItemList = $quote->getAllVisibleItems();
 
-            if (count($quoteItemList) && !empty($basketData)) {
-                $orderLines = $basketData->getOrderLines()->getOrderHospLine();
-            }
+        if (count($quoteItemList) && !empty($basketData)) {
+            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+        }
 
-            foreach ($quoteItemList as $quoteItem) {
-                $baseUnitOfMeasure = $quoteItem->getProduct()->getData('uom');
-                list($itemId, $variantId, $uom) = $subject->getComparisonValues(
-                    $quoteItem->getProductId(),
-                    $quoteItem->getSku()
-                );
+        foreach ($quoteItemList as $quoteItem) {
+            $baseUnitOfMeasure = $quoteItem->getProduct()->getData('uom');
+            list($itemId, $variantId, $uom) = $subject->getComparisonValues(
+                $quoteItem->getProductId(),
+                $quoteItem->getSku()
+            );
 
-                foreach ($orderLines as $index => $line) {
-                    if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                        $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+            foreach ($orderLines as $index => $line) {
+                if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                    $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
 
-                        if ($line->getDiscountAmount() > 0) {
-                            $quoteItem->setCustomPrice($unitPrice);
-                            $quoteItem->setDiscountAmount($line->getDiscountAmount());
-                            $quoteItem->setOriginalCustomPrice($unitPrice);
-                        } elseif ($line->getAmount() != $quoteItem->getProduct()->getPrice()) {
-                            $quoteItem->setCustomPrice($unitPrice);
-                            $quoteItem->setOriginalCustomPrice($unitPrice);
-                        } else {
-                            $quoteItem->setCustomPrice(null);
-                            $quoteItem->setDiscountAmount(null);
-                            $quoteItem->setOriginalCustomPrice(null);
-                        }
-                        $quoteItem->setTaxAmount($line->getTaxAmount())
-                            ->setBaseTaxAmount($line->getTaxAmount())
-                            ->setPriceInclTax($unitPrice)
-                            ->setBasePriceInclTax($unitPrice)
-                            ->setRowTotal($line->getNetAmount())
-                            ->setBaseRowTotal($line->getNetAmount())
-                            ->setRowTotalInclTax($line->getAmount())
-                            ->setBaseRowTotalInclTax($line->getAmount());
-                        unset($orderLines[$index]);
-                        break;
-                    }
+                    $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $quoteItem, $unitPrice, $type);
+                    unset($orderLines[$index]);
+                    break;
                 }
-                $quoteItem->getProduct()->setIsSuperMode(true);
-                // @codingStandardsIgnoreLine
-                $subject->itemResourceModel->save($quoteItem);
             }
-
-            if ($quote->getId()) {
-                $cartQuote = $subject->cart->getQuote();
-
-                if (isset($basketData)) {
-                    $pointDiscount  = $cartQuote->getLsPointsSpent() * $subject->loyaltyHelper->getPointRate();
-                    $giftCardAmount = $cartQuote->getLsGiftCardAmountUsed();
-                    $cartQuote->getShippingAddress()->setGrandTotal(
-                        $basketData->getTotalAmount() - $giftCardAmount - $pointDiscount
-                    );
-                }
-                $couponCode = $subject->checkoutSession->getCouponCode();
-                $cartQuote->setCouponCode($couponCode);
-                $cartQuote->getShippingAddress()->setCouponCode($couponCode);
-                $cartQuote->setTotalsCollectedFlag(false)->collectTotals();
-                $subject->quoteResourceModel->save($cartQuote);
-            }
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
+            $quoteItem->getProduct()->setIsSuperMode(true);
+            // @codingStandardsIgnoreLine
+            $subject->itemResourceModel->save($quoteItem);
         }
     }
 

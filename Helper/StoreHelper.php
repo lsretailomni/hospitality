@@ -5,6 +5,7 @@ namespace Ls\Hospitality\Helper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Helper\Data;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourOpeningType;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Operation;
@@ -128,7 +129,7 @@ class StoreHelper extends AbstractHelper
             );
             $currentDayOfWeek = $this->dateTime->date('w', strtotime($current));
             foreach ($storeHours as $storeHour) {
-                if ($storeHour->getStoreId() == 'ORDER') {
+                if ($storeHour->getCalendarType() == StoreHourCalendarType::REST_ORDER_TAKING) {
                     if ($storeHour->getDayOfWeek() == $currentDayOfWeek) {
                         if ($this->dataHelper->checkDateValidity($current, $storeHour)) {
                             if ($storeHour->getType() == StoreHourOpeningType::NORMAL) {
@@ -220,10 +221,8 @@ class StoreHelper extends AbstractHelper
                 }
                 if ($type == StoreHourOpeningType::TEMPORARY) {
                     if (array_key_exists(StoreHourOpeningType::NORMAL, $dateTimeSlots[$date])) {
-                        $dateTimeSlots[$date][StoreHourOpeningType::NORMAL] = array_merge(
-                            $dateTimeSlots[$date][StoreHourOpeningType::NORMAL],
-                            $dateTimeSlots[$date][StoreHourOpeningType::TEMPORARY]
-                        );
+                        $dateTimeSlots[$date][StoreHourOpeningType::NORMAL] =
+                            $dateTimeSlots[$date][StoreHourOpeningType::TEMPORARY];
                     }
                 }
             }

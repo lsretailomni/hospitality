@@ -74,17 +74,11 @@ class OrderHelperPlugin
             if (!empty($subject->checkoutSession->getCouponCode())) {
                 $order->setCouponCode($subject->checkoutSession->getCouponCode());
             }
-            $shippingMethod  = $order->getShippingMethod(true);
-            $isClickCollect  = false;
-            $dateTimeFormat  = "Y-m-d\T" . "17:00:00";
-            $currentDataTime = $this->date->gmtDate();
-            $pickupDateTime  = $this->date->date($dateTimeFormat);
-            if (strtotime($currentDataTime) >= strtotime($pickupDateTime)) {
-                $pickupDateTime = $this->date->date(
-                    $dateTimeFormat,
-                    strtotime('+1 day', strtotime($pickupDateTime))
-                );
-            }
+            $shippingMethod = $order->getShippingMethod(true);
+            $isClickCollect = false;
+            $dateTimeFormat = "Y-m-d\T" . "H:i:00";
+            $pickupDateTimeslot = null;
+            $pickupDateTime = $this->date->date($dateTimeFormat);
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
             }
@@ -93,11 +87,10 @@ class OrderHelperPlugin
                 $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
                 if (!empty($pickupDateTimeslot)) {
-                    $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
-                    $dateTimeFormat = "Y-m-d\T" . "H:i:00";
                     $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
                 }
             }
+            $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
 
             $oneListCalculateResponse
                 ->setCardId($cardId)
