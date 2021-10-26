@@ -11,6 +11,7 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 
 /**
@@ -77,7 +78,7 @@ class StoreHelper extends AbstractHelper
 
 
     /**
-     * Getting sales type
+     * Getting store by id
      *
      * @param string $websiteId
      * @param null $webStore
@@ -108,16 +109,42 @@ class StoreHelper extends AbstractHelper
         return $response ? $response->getResult() : $response;
     }
 
+    /**
+     * Get all stores
+     *
+     * @param $webStoreId
+     * @return array|Entity\ArrayOfStore|Entity\StoresGetAllResponse|ResponseInterface|null
+     */
+    public function getAllStores($webStoreId)
+    {
+        $response = [];
+        $baseUrl  = $this->lsr->getStoreConfig(LSR::SC_SERVICE_BASE_URL, $webStoreId);
+        // @codingStandardsIgnoreStart
+        $request   = new Entity\StoresGetAll();
+        $operation = new Operation\StoresGetAll($baseUrl);
+        // @codingStandardsIgnoreEnd
+        try {
+            $response = $operation->execute($request);
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
+        return $response ? $response->getResult() : $response;
+    }
+
 
     /**
-     * Getting store ordering hours
+     * Getting store hours
      *
+     * @param $storeHours
      * @return array
+     * @throws NoSuchEntityException
      */
-    public function getStoreOrderingHours()
+    public function getStoreOrderingHours($storeHours)
     {
-        $store                  = $this->getStore($this->lsr->getStoreId());
-        $storeHours             = $store->getStoreHours();
+        if (empty($storeHours)) {
+            $store      = $this->getStore($this->lsr->getStoreId());
+            $storeHours = $store->getStoreHours();
+        }
         $today                  = $this->getCurrentDate();
         $this->pickupDateFormat = $this->lsr->getStoreConfig(LSR::PICKUP_DATE_FORMAT);
         $this->pickupTimeFormat = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_FORMAT);
@@ -162,13 +189,15 @@ class StoreHelper extends AbstractHelper
     /**
      * For getting date and timeslots option
      *
+     * @param $storeHours
      * @return array
+     * @throws NoSuchEntityException
      */
-    public function formatDateTimeSlotsValues()
+    public function formatDateTimeSlotsValues($storeHours)
     {
         $results = [];
         if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
-            $options = $this->getDateTimeSlotsValues();
+            $options = $this->getDateTimeSlotsValues($storeHours);
             if (!empty($options)) {
                 foreach ($options as $key => $option) {
                     $results[$key] = $option[StoreHourOpeningType::NORMAL];
@@ -196,12 +225,13 @@ class StoreHelper extends AbstractHelper
     /**
      * Get date time slots
      *
+     * @param $storeHours
      * @return array
      */
-    public function getDateTimeSlotsValues()
+    public function getDateTimeSlotsValues($storeHours)
     {
         $dateTimeSlots      = [];
-        $storeOrderingHours = $this->getStoreOrderingHours();
+        $storeOrderingHours = $this->getStoreOrderingHours($storeHours);
         $timeInterval       = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_INTERVAL);
         $currentTime        = $this->dateTime->gmtDate($this->pickupTimeFormat);
         foreach ($storeOrderingHours as $date => $storeOrderHour) {

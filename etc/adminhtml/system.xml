@@ -26,6 +26,9 @@
                     <label>Delivery Sales Type</label>
                     <validate>required-entry</validate>
                     <comment>For delivery orders</comment>
+                    <depends>
+                        <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    </depends>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
                 <field id="takeaway_sales_type" translate="label comment" type="select" sortOrder="5"
@@ -33,6 +36,9 @@
                     <label>Takeaway Sales Type</label>
                     <validate>required-entry</validate>
                     <comment>For click and collect orders</comment>
+                    <depends>
+                        <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    </depends>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
                 <field id="pickup_date_time_slot" translate="label" type="select" sortOrder="6" showInDefault="1"

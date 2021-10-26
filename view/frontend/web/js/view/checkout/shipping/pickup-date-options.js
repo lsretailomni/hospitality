@@ -19,32 +19,46 @@ define([
                     if (!self.selectedShippingMethod || (self.selectedShippingMethod && self.selectedShippingMethod['carrier_code'] != method['carrier_code'])) {
                         self.selectedShippingMethod = method;
                         self.updateDropdownValues([{'value': '', 'label': $t('Please select date')}]);
-                        self.updateDropdownValues(self.getDateValues());
                     }
                 }
             }, null, 'change');
+
+            $('body').on('click', '.apply-store', function () {
+                self.storeId = $(this).data('id');
+                self.updateDropdownValues(self.getDateValues());
+            });
         },
         updateDropdownValues: function (values) {
             this.setOptions(values);
         },
         getDateValues: function () {
-            return _.map(window.checkoutConfig.shipping.pickup_date_timeslots.options, function (value, key) {
-                return {
-                    'value': key,
-                    'label': key,
+            var optionsArray = [];
+            var values = window.checkoutConfig.shipping.pickup_date_timeslots.options
+            $.each(values, function (key, value) {
+                if (key == self.storeId) {
+                    $.each(value, function (index, v) {
+                        optionsArray.push(
+                            {
+                                'value': index,
+                                'label': index
+                            });
+                    });
                 }
             });
+            return optionsArray;
         },
         onUpdate: function (value) {
             var pickupTimSlot = $("[name='pickup-timeslot']");
             var values = window.checkoutConfig.shipping.pickup_date_timeslots.options;
             pickupTimSlot.html('');
             $.each(values, function (index, val) {
-                if(index == value) {
-                    $.each(val, function (index, v) {
-                        pickupTimSlot.append(new Option(v, v));
-                    });
-                }
+                $.each(val, function (i, v) {
+                    if (i == value) {
+                        $.each(v, function (index, value) {
+                            pickupTimSlot.append(new Option(value, value));
+                        });
+                    }
+                });
             });
         },
     });
