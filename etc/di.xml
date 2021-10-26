@@ -87,4 +87,9 @@
         <plugin name="ls_hospitality_change_query"
                 type="Ls\Hospitality\Plugin\Cron\SyncImagesPlugin"/>
     </type>
+    <!-- To filter out click and collect stores data based on sales type -->
+    <type name="Ls\Omni\Model\Checkout\DataProvider">
+        <plugin name="ls_hospitaity_omni_model_checkout_dataprovider"
+                type="Ls\Hospitality\Plugin\Omni\Model\Checkout\DataProviderPlugin"/>
+    </type>
 </config>
