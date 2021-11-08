@@ -8,7 +8,7 @@ use Magento\Framework\Event\ObserverInterface;
 /**
  * Email template vars set values
  */
-class Emailtemplatevars implements ObserverInterface
+class EmailTemplateVars implements ObserverInterface
 {
     /**
      * Pass additional information to email
