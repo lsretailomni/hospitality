@@ -1,0 +1,27 @@
+<!-- ko if: showInCheckout() -->
+<!-- ko if: getInitialCollapseState() == 2 -->
+<div class="payment-option opc-payment-additional comment last">
+    <div class="payment-option-title field choice">
+        <span data-bind="i18n: 'Additional Information?'"></span>
+    </div>
+    <div class="payment-option-content">
+        <!-- ko template: 'Ls_Hospitality/checkout/form-content' --><!-- /ko -->
+    </div>
+</div>
+<!-- /ko -->
+
+<!-- ko if: getInitialCollapseState() != 2 -->
+<div class="payment-option _collapsible opc-payment-additional comment last"
+     data-bind="mageInit: {'collapsible':{'openedState': '_active', 'active': isInitialStateOpened()}}">
+
+    <div class="payment-option-title field choice" data-role="title">
+        <span class="action action-toggle" role="heading" aria-level="2">
+            <!-- ko i18n: 'Additional Information'--><!-- /ko -->
+        </span>
+    </div>
+    <div class="payment-option-content" data-role="content">
+        <!-- ko template: 'Ls_Hospitality/checkout/form-content' --><!-- /ko -->
+    </div>
+</div>
+<!-- /ko -->
+<!-- /ko -->

@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Observer;
 
+use Ls\Hospitality\Model\LSR;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 
@@ -26,6 +27,9 @@ class DataAssignObserver implements ObserverInterface
 
         if ($quote->getPickupDateTimeslot()) {
             $order->setPickupDateTimeslot($quote->getPickupDateTimeslot());
+        }
+        if ($quote->getData(LSR::LS_ORDER_COMMENT)) {
+            $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
         }
 
         return $this;

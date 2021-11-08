@@ -6,4 +6,7 @@
         <attribute code="pickup_date" type="string"/>
         <attribute code="pickup_timeslot" type="string"/>
     </extension_attributes>
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <attribute code="ls_order_comment" type="string"/>
+    </extension_attributes>
 </config>

@@ -44,4 +44,8 @@
         <plugin name="ls_omni_system_config_form_field"
                 type="Ls\Hospitality\Plugin\Config\Backend\SingleStoreModePlugin" sortOrder="1"/>
     </type>
+    <!-- for showing comments in admin -->
+    <type name="Magento\Sales\Block\Adminhtml\Order\View\Info">
+        <plugin name="ls_ordercomment_show_comment" type="Ls\Hospitality\Plugin\Block\Adminhtml\SalesOrderViewInfo" sortOrder="1" />
+    </type>
 </config>

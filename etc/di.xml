@@ -92,4 +92,16 @@
         <plugin name="ls_hospitaity_omni_model_checkout_dataprovider"
                 type="Ls\Hospitality\Plugin\Omni\Model\Checkout\DataProviderPlugin"/>
     </type>
+    <!-- For order comment -->
+    <preference for="Ls\Hospitality\Api\Data\OrderCommentInterface"
+                type="Ls\Hospitality\Model\Order\Data\OrderComment"/>
+    <preference for="Ls\Hospitality\Api\OrderCommentManagementInterface"
+                type="Ls\Hospitality\Model\Order\OrderCommentManagement"/>
+    <preference for="Ls\Hospitality\Api\GuestOrderCommentManagementInterface"
+                type="Ls\Hospitality\Model\Order\GuestOrderCommentManagement"/>
+
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="ls_load_ordercomment" type="Ls\Hospitality\Plugin\Order\LoadOrderComment"/>
+    </type>
+
 </config>
