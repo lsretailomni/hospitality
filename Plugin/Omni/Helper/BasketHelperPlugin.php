@@ -160,6 +160,8 @@ class BasketHelperPlugin
         $oneList->setItems($items)
             ->setPublishedOffers($subject->_offers());
 
+        $subject->setOneListInCustomerSession($oneList);
+
         return $oneList;
     }
 
