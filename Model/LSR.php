@@ -14,6 +14,7 @@ class LSR extends \Ls\Core\Model\LSR
     const LS_ITEM_IS_DEAL_ATTRIBUTE = 'lsr_is_deal';
     const LSR_ITEM_MODIFIER_PREFIX = 'ls_mod_';
     const LSR_RECIPE_PREFIX = 'ls_rec';
+    const LS_ORDER_COMMENT = 'ls_order_comment';
 
     //Hospitality configuration
     const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
@@ -25,6 +26,9 @@ class LSR extends \Ls\Core\Model\LSR
     const PICKUP_TIME_INTERVAL = 'ls_mag/hospitality/pickup_time_interval';
     const PICKUP_DATE_FORMAT = 'ls_mag/hospitality/pickup_date_format';
     const PICKUP_TIME_FORMAT = 'ls_mag/hospitality/pickup_time_format';
+    const COMMENT_MAX_LENGTH = 'ls_mag/hospitality/max_length';
+    const COMMENT_COLLAPSE_STATE = 'ls_mag/hospitality/collapse_state';
+    const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -142,6 +146,51 @@ class LSR extends \Ls\Core\Model\LSR
     {
         return $this->scopeConfig->getValue(
             LSR::PICKUP_TIMESLOTS_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
+    /**
+     * Show comments in checkout
+     *
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function canShowCommentInCheckout()
+    {
+        return $this->scopeConfig->getValue(
+            self::COMMENT_SHOW_IN_CHECKOUT,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
+    /**
+     * Get Maximum character length
+     *
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getMaximumCharacterLength()
+    {
+        return $this->scopeConfig->getValue(
+            self::COMMENT_MAX_LENGTH,
+            ScopeInterface::SCOPE_WEBSITES,
+            $this->storeManager->getStore()->getWebsiteId()
+        );
+    }
+
+    /**
+     * Get comment collapse state
+     *
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getInitialCollapseState()
+    {
+        return $this->scopeConfig->getValue(
+            self::COMMENT_COLLAPSE_STATE,
             ScopeInterface::SCOPE_WEBSITES,
             $this->storeManager->getStore()->getWebsiteId()
         );

@@ -10,10 +10,11 @@ if ($viewModel->isHospitalityEnabled() == "1") :
     $magOrder        = $block->getMagOrder();
     $orderId         = null;
     $pickupOrderTime = '';
+    $orderComment    = '';
     $storeId         = '';
     if (!empty($statusInfo)) {
-        $orderId = $statusInfo['orderId'];
-        $storeId = $statusInfo['storeId'];
+        $orderId         = $statusInfo['orderId'];
+        $storeId         = $statusInfo['storeId'];
         $pickupOrderTime = $statusInfo['pickupDateTimeslot'];
     }
 
@@ -23,6 +24,7 @@ if ($viewModel->isHospitalityEnabled() == "1") :
     }
     if (!empty($magOrder)) {
         $pickupOrderTime = $magOrder->getPickupDateTimeslot();
+        $orderComment    = $magOrder->getLsOrderComment();
     }
     if ($orderId):
         ?>
@@ -53,6 +55,26 @@ if ($viewModel->isHospitalityEnabled() == "1") :
                 }
             }
         }
+
+
+
+
+
         </script>
+
+        <?php if ($orderComment): ?>
+        <div class="block block-order-details-view-loyalty">
+            <div class="block-title">
+                <strong><?= /* @escapeNotVerified */
+                    __('Additional Information') ?></strong>
+            </div>
+            <div class="block-content">
+                <div class="custom-box">
+                    <span><?= /* @escapeNotVerified */
+                        $orderComment; ?></span>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
