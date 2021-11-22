@@ -29,6 +29,9 @@ class LSR extends \Ls\Core\Model\LSR
     const COMMENT_MAX_LENGTH = 'ls_mag/hospitality/max_length';
     const COMMENT_COLLAPSE_STATE = 'ls_mag/hospitality/collapse_state';
     const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
+    const QRCODE_ENCRYPTION_METHOD = 'ls_mag/hospitality/encryption_method';
+    const QRCODE_SECRET_KEY = 'ls_mag/hospitality/secret_key';
+    const QRCODE_CONTENT_BLOCK = 'ls_mag/hospitality/content_block';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';

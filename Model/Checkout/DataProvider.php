@@ -42,8 +42,13 @@ class DataProvider implements ConfigProviderInterface
     public function getConfig()
     {
         $comment = '';
+
         if ($this->checkoutSession->getQuoteId()) {
             $comment = $this->checkoutSession->getQuote()->getData(LSR::LS_ORDER_COMMENT) ?: '';
+        }
+
+        if(!empty($this->checkoutSession->getData(LSR::LS_ORDER_COMMENT))) {
+           $comment =  $this->checkoutSession->getData(LSR::LS_ORDER_COMMENT);
         }
 
         return [

@@ -1,0 +1,9 @@
+<?php
+/** @var  Magento\Framework\View\Element\Template $block */
+/** @var  Ls\Hospitality\ViewModel\QrCodeInfo $viewModel */
+$viewModel = $block->getData("view_model");
+?>
+<?= $this->getLayout()
+    ->createBlock('Magento\Cms\Block\Block')
+    ->setBlockId($viewModel->getContentBlockIdentifier())
+    ->toHtml(); ?>
