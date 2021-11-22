@@ -2,8 +2,26 @@
 /** @var  Magento\Framework\View\Element\Template $block */
 /** @var  Ls\Hospitality\ViewModel\QrCodeInfo $viewModel */
 $viewModel = $block->getData("view_model");
+$tableNo   = $viewModel->getTableNo();
+$error     = $viewModel->getError();
 ?>
 <?= $this->getLayout()
     ->createBlock('Magento\Cms\Block\Block')
     ->setBlockId($viewModel->getContentBlockIdentifier())
     ->toHtml(); ?>
+
+<?php if (!empty($error)) {
+    ?>
+    <h3><?= /* @escapeNotVerified */
+        $error; ?></h3>
+    <?php
+}
+?>
+
+<?php if (!empty($tableNo)) {
+    ?>
+    <h3><?= /* @escapeNotVerified */
+        __('Serving Table No %1', $tableNo); ?></h3>
+    <?php
+}
+?>

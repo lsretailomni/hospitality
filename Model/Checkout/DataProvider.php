@@ -3,7 +3,8 @@
 namespace Ls\Hospitality\Model\Checkout;
 
 use \Ls\Hospitality\Model\LSR;
-use Magento\Checkout\Model\Session;
+use Magento\Customer\Model\Session;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -20,21 +21,31 @@ class DataProvider implements ConfigProviderInterface
     /**
      * @var Session
      */
+    public $customerSession;
+
+    /**
+     * @var CheckoutSession
+     */
     public $checkoutSession;
 
     /**
      * @param LSR $hospLsr
-     * @param Session $checkoutSession
+     * @param Session $customerSession
+     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         LSR $hospLsr,
-        Session $checkoutSession
+        Session $customerSession,
+        CheckoutSession $checkoutSession
     ) {
         $this->hospLsr         = $hospLsr;
+        $this->customerSession = $customerSession;
         $this->checkoutSession = $checkoutSession;
     }
 
     /**
+     * Get checkout config values
+     *
      * @return array
      * @throws NoSuchEntityException
      * @throws LocalizedException
@@ -47,8 +58,16 @@ class DataProvider implements ConfigProviderInterface
             $comment = $this->checkoutSession->getQuote()->getData(LSR::LS_ORDER_COMMENT) ?: '';
         }
 
-        if(!empty($this->checkoutSession->getData(LSR::LS_ORDER_COMMENT))) {
-           $comment =  $this->checkoutSession->getData(LSR::LS_ORDER_COMMENT);
+        if(!empty($this->customerSession->getData(LSR::LS_QR_CODE_ORDERING)) && empty($comment)) {
+            $params = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+            foreach ($params as $key => $value) {
+                $key            = ucfirst(str_replace('_', ' ', $key));
+                $comment .= $key . ': ' . $value . PHP_EOL;
+            }
+            $orderSource = 'QR Code Ordering';
+            if (!empty($comment)) {
+                $comment .= 'Order Source: ' . $orderSource . PHP_EOL;
+            }
         }
 
         return [
@@ -66,6 +85,8 @@ class DataProvider implements ConfigProviderInterface
     }
 
     /**
+     * Getting service mode values
+     *
      * @return array
      * @throws NoSuchEntityException
      */

@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Controller\QrCode;
 
-use \Ls\Hospitality\Helper\EncryptionHelper;
+use \Ls\Hospitality\Helper\QrCodeHelper;
 use Magento\Checkout\Model\Session\Proxy;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
@@ -13,7 +13,7 @@ use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 
 /**
- * QR Code Ordering route
+ * QR Code Ordering controller
  */
 class Index implements HttpGetActionInterface
 {
@@ -28,46 +28,41 @@ class Index implements HttpGetActionInterface
     public $request;
 
     /**
-     * @var EncryptionHelper
+     * @var QrCodeHelper
      */
-    public $encryptionHelper;
+    public $qrCodeHelper;
 
     /**
      * @param PageFactory $resultPageFactory
-     * @param EncryptionHelper $encryptionHelper
+     * @param QrCodeHelper $qrCodeHelper
      * @param RequestInterface $request
      */
     public function __construct(
         PageFactory $resultPageFactory,
-        EncryptionHelper $encryptionHelper,
+        QrCodeHelper $qrCodeHelper,
         RequestInterface $request
     ) {
 
         $this->resultPageFactory = $resultPageFactory;
-        $this->encryptionHelper  = $encryptionHelper;
+        $this->qrCodeHelper      = $qrCodeHelper;
         $this->request           = $request;
     }
 
     /**
+     * For saving qr code ordering values in session
+     *
      * @return ResponseInterface|ResultInterface|Page
      * @throws NoSuchEntityException
      */
     public function execute()
     {
         $storeId     = $this->request->getParam('store_id');
-        $locationId  = $this->request->getParam('location_id');
-        $tableNo     = $this->request->getParam('table_no');
-        $orderSource = 'QR Code Ordering';
-        if (!empty($storeId)) {
-            $prepareComment = '';
-            $storeId        = $this->encryptionHelper->decryptData($storeId);
-            $locationId     = $this->encryptionHelper->decryptData($locationId);
-            $tableNo        = $this->encryptionHelper->decryptData($tableNo);
-            $prepareComment .= 'Store Id:' . $storeId . '\n';
-            $prepareComment .= 'Location Id:' . $locationId . '\n';
-            $prepareComment .= 'Table No:' . $tableNo . '\n';
-            $prepareComment .= 'Order Source:' . $orderSource . '\n';
-            $this->encryptionHelper->setQrCodeOrderingComment($prepareComment);
+        $params      = $this->request->getParams();
+        if (!empty($storeId) && $this->qrCodeHelper->validateStoreId($storeId)) {
+            $this->qrCodeHelper->setQrCodeOrderingInSession($params);
+        } else {
+            $error['error'] = __('Store not found.');
+            $this->qrCodeHelper->setQrCodeOrderingInSession($error);
         }
         $resultPage = $this->resultPageFactory->create();
         $resultPage->getConfig()->getTitle()->set(

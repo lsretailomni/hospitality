@@ -84,15 +84,7 @@
                     <label>Initial collapse state on checkout page</label>
                     <source_model>Ls\Hospitality\Model\Order\Config\Source\Collapse</source_model>
                 </field>
-                <field id="encryption_method" translate="label" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Encryption Method For QR Code Ordering</label>
-                    <comment>Method used for encrypting parameters in QR Code Ordering link</comment>
-                </field>
-                <field id="secret_key" translate="label" type="text" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Secret Key For Encryption Method</label>
-                    <comment>Secret Key For QR Code Ordering Encryption Method</comment>
-                </field>
-                <field id="content_block" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="content_block" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Content Block</label>
                     <source_model>Ls\Hospitality\Model\Config\Source\Block</source_model>
                     <comment>Content Block For QR Code Ordering Page</comment>
