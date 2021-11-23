@@ -15,6 +15,7 @@ class LSR extends \Ls\Core\Model\LSR
     const LSR_ITEM_MODIFIER_PREFIX = 'ls_mod_';
     const LSR_RECIPE_PREFIX = 'ls_rec';
     const LS_ORDER_COMMENT = 'ls_order_comment';
+    const LS_QR_CODE_ORDERING = 'ls_qr_code_ordering';
 
     //Hospitality configuration
     const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
@@ -29,6 +30,7 @@ class LSR extends \Ls\Core\Model\LSR
     const COMMENT_MAX_LENGTH = 'ls_mag/hospitality/max_length';
     const COMMENT_COLLAPSE_STATE = 'ls_mag/hospitality/collapse_state';
     const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
+    const QRCODE_CONTENT_BLOCK = 'ls_mag/hospitality/content_block';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';

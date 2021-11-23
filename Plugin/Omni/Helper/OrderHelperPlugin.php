@@ -74,11 +74,11 @@ class OrderHelperPlugin
             if (!empty($subject->checkoutSession->getCouponCode())) {
                 $order->setCouponCode($subject->checkoutSession->getCouponCode());
             }
-            $shippingMethod = $order->getShippingMethod(true);
-            $isClickCollect = false;
-            $dateTimeFormat = "Y-m-d\T" . "H:i:00";
+            $shippingMethod     = $order->getShippingMethod(true);
+            $isClickCollect     = false;
+            $dateTimeFormat     = "Y-m-d\T" . "H:i:00";
             $pickupDateTimeslot = null;
-            $pickupDateTime = $this->date->date($dateTimeFormat);
+            $pickupDateTime     = $this->date->date($dateTimeFormat);
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
             }
@@ -177,7 +177,7 @@ class OrderHelperPlugin
         $operation = new Operation\OrderHospCreate();
         $response  = $operation->execute($request);
         // @codingStandardsIgnoreLine
-
+        $subject->customerSession->setData(LSR::LS_QR_CODE_ORDERING, null);
         return $response;
     }
 
