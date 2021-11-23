@@ -58,15 +58,15 @@ class DataProvider implements ConfigProviderInterface
             $comment = $this->checkoutSession->getQuote()->getData(LSR::LS_ORDER_COMMENT) ?: '';
         }
 
-        if(!empty($this->customerSession->getData(LSR::LS_QR_CODE_ORDERING)) && empty($comment)) {
+        if (!empty($this->customerSession->getData(LSR::LS_QR_CODE_ORDERING)) && empty($comment)) {
             $params = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
             foreach ($params as $key => $value) {
-                $key            = ucfirst(str_replace('_', ' ', $key));
+                $key     = ucfirst(str_replace('_', ' ', $key));
                 $comment .= $key . ': ' . $value . PHP_EOL;
             }
-            $orderSource = 'QR Code Ordering';
+            $orderSource = __('QR Code Ordering');
             if (!empty($comment)) {
-                $comment .= 'Order Source: ' . $orderSource . PHP_EOL;
+                $comment .= __('Order Source:') . ' ' . $orderSource . PHP_EOL;
             }
         }
 

@@ -71,7 +71,7 @@
                     <label>Pickup Time Format</label>
                     <source_model>Ls\Omni\Block\Adminhtml\System\Config\TimeFormat</source_model>
                 </field>
-                <field id="show_in_checkout" sortOrder="9" type="select" showInDefault="9" showInWebsite="1" showInStore="0">
+                <field id="show_in_checkout" sortOrder="9" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Show in checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Show order comments section in the checkout</comment>

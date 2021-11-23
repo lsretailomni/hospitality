@@ -3,7 +3,6 @@
 namespace Ls\Hospitality\Controller\QrCode;
 
 use \Ls\Hospitality\Helper\QrCodeHelper;
-use Magento\Checkout\Model\Session\Proxy;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\ResponseInterface;
@@ -69,6 +68,5 @@ class Index implements HttpGetActionInterface
             __('QR Code Ordering')
         );
         return $resultPage;
-
     }
 }

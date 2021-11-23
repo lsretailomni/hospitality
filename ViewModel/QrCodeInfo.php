@@ -62,7 +62,6 @@ class QrCodeInfo implements ArgumentInterface
         return $tableNo;
     }
 
-
     /**
      * To return error
      *
