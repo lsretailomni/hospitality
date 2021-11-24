@@ -24,4 +24,17 @@
 
     <!-- For Updating the title in hospitality order view  -->
     <preference for="Ls\Customer\Block\Order\Info" type="Ls\Hospitality\Block\Order\Info"/>
+
+    <type name="Magento\Framework\App\RouterList">
+        <arguments>
+            <argument name="routerList" xsi:type="array">
+                <item name="hospitality" xsi:type="array">
+                    <item name="class" xsi:type="string">Ls\Hospitality\Controller\Router</item>
+                    <item name="disable" xsi:type="boolean">false</item>
+                    <item name="sortOrder" xsi:type="string">40</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>
