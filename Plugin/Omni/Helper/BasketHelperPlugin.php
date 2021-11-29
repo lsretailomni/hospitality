@@ -227,6 +227,10 @@ class BasketHelperPlugin
                     ->setHospitalityMode(\Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode::TAKEAWAY);
             }
 
+            if (version_compare($subject->lsr->getOmniVersion(), '4.24', '>')) {
+                $oneListRequest->setShipToCountryCode($oneList->getShipToCountryCode());
+            }
+
             /** @var Entity\OneListCalculate $entity */
             if ($subject->getCouponCode() != "" and $subject->getCouponCode() != null) {
                 $offer  = new Entity\OneListPublishedOffer();
