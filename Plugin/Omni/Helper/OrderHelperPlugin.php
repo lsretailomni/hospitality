@@ -70,10 +70,6 @@ class OrderHelperPlugin
             $cardId  = $oneListCalculateResponse->getCardId();
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
-
-            if (!empty($subject->checkoutSession->getCouponCode())) {
-                $order->setCouponCode($subject->checkoutSession->getCouponCode());
-            }
             $shippingMethod     = $order->getShippingMethod(true);
             $isClickCollect     = false;
             $dateTimeFormat     = "Y-m-d\T" . "H:i:00";
