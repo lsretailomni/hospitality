@@ -84,10 +84,6 @@ class BasketHelperPlugin
 
         $quoteItems = $quote->getAllVisibleItems();
 
-        if (count($quoteItems) == 0) {
-            $subject->unSetCouponCode();
-        }
-
         // @codingStandardsIgnoreLine
         $items = new Entity\ArrayOfOneListItem();
 
