@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2022-02-07
+
+### Added
+
+- Added support to identify traffic and customers from QR code web ordering.[OMNI-5527](https://solutions.lsretail.com/jira/browse/OMNI-5527)
+- Added support to show the list of stores on checkout based on takeaway sales-type configuration from Magento admin panel. [OMNI-5525](https://solutions.lsretail.com/jira/browse/OMNI-5525)
+- Added support to display takeaway pickup time based on the store card configuration from LS Central. [OMNI-5525](https://solutions.lsretail.com/jira/browse/OMNI-5525)  
+- Added support to pass additional information while sending orders to LS Central. [OMNI-5526](https://solutions.lsretail.com/jira/browse/OMNI-5526)
+- Added support for pickup date and time on checkout for takeaway orders. [OMNI-5306](https://solutions.lsretail.com/jira/browse/OMNI-5306)
+
+### Bugs/Fixes
+- Fixed issue in syncing images for deal-type products. [OMNI-5550](https://solutions.lsretail.com/jira/browse/OMNI-5550)
+- Fixed issues in google maps not showing on Alotheme theme. [OMNI-5550](https://solutions.lsretail.com/jira/browse/OMNI-5550)
+
 ## [1.4.0] - 2021-10-14
 
 ### Added
