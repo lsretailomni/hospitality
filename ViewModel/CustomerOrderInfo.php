@@ -63,12 +63,12 @@ class CustomerOrderInfo implements ArgumentInterface
     {
         $statusInfo = [];
         if ($this->lsr->showOrderTrackingInfoOnSuccessPage()) {
-            $webStore    = $this->lsr->getActiveWebStore();
-            $documentId = $this->checkoutSession->getLastDocumentId();
+            $webStore           = $this->lsr->getActiveWebStore();
+            $documentId         = $this->checkoutSession->getLastDocumentId();
             $pickupDateTimeslot = $this->checkoutSession->getPickupDateTimeslot();
             if (!empty($documentId)) {
-                $statusInfo['orderId'] = $documentId;
-                $statusInfo['storeId'] = $webStore;
+                $statusInfo['orderId']            = $documentId;
+                $statusInfo['storeId']            = $webStore;
                 $statusInfo['pickupDateTimeslot'] = $pickupDateTimeslot;
             }
         }
