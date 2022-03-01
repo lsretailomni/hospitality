@@ -92,7 +92,8 @@ class OrderHelperPlugin
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
-                ->setPickUpTime($pickupDateTime);
+                ->setPickUpTime($pickupDateTime)
+                ->setComment($order->getData(LSR::LS_ORDER_COMMENT));
 
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();

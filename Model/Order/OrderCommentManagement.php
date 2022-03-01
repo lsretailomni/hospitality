@@ -1,4 +1,5 @@
 <?php
+
 namespace Ls\Hospitality\Model\Order;
 
 use \Ls\Hospitality\Api\Data\OrderCommentInterface;
@@ -35,7 +36,7 @@ class OrderCommentManagement implements OrderCommentManagementInterface
         LSR $hospLsr
     ) {
         $this->quoteRepository = $quoteRepository;
-        $this->hospLsr = $hospLsr;
+        $this->hospLsr         = $hospLsr;
     }
 
     /**
@@ -59,7 +60,7 @@ class OrderCommentManagement implements OrderCommentManagementInterface
         $this->validateComment($comment);
 
         try {
-            $quote->setData(LSR::LS_ORDER_COMMENT, strip_tags($comment));
+            $quote->setData(LSR::LS_ORDER_COMMENT, nl2br($comment));
             $this->quoteRepository->save($quote);
         } catch (\Exception $e) {
             throw new CouldNotSaveException(__('The order comment could not be saved'));
