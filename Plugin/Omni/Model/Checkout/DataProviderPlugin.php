@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
-use \Ls\Hospitality\Helper\StoreHelper;
+use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use Magento\Checkout\Model\Session\Proxy as CheckoutSessionProxy;

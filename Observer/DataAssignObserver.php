@@ -25,9 +25,6 @@ class DataAssignObserver implements ObserverInterface
             $order->setServiceMode($quote->getServiceMode());
         }
 
-        if ($quote->getPickupDateTimeslot()) {
-            $order->setPickupDateTimeslot($quote->getPickupDateTimeslot());
-        }
         if ($quote->getData(LSR::LS_ORDER_COMMENT)) {
             $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
         }

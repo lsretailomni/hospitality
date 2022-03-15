@@ -3,8 +3,6 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
     <extension_attributes for="Magento\Checkout\Api\Data\ShippingInformationInterface">
         <attribute code="service_mode" type="string"/>
-        <attribute code="pickup_date" type="string"/>
-        <attribute code="pickup_timeslot" type="string"/>
     </extension_attributes>
     <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
         <attribute code="ls_order_comment" type="string"/>

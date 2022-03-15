@@ -54,19 +54,8 @@ class ShippingInformationManagement
     ) {
         $extAttributes      = $addressInformation->getExtensionAttributes();
         $serviceMode        = $extAttributes->getServiceMode();
-        $pickupDate         = $extAttributes->getPickupDate();
-        $pickupTimeslot     = $extAttributes->getPickupTimeslot();
         $quote              = $this->quoteRepository->getActive($cartId);
         $pickupDateTimeslot = '';
         $quote->setServiceMode($serviceMode);
-        if (!empty($pickupDate) && !empty($pickupTimeslot)) {
-            $pickupDateFormat   = $this->lsr->getStoreConfig(LSR::PICKUP_DATE_FORMAT);
-            $pickupTimeFormat   = $this->lsr->getStoreConfig(LSR::PICKUP_TIME_FORMAT);
-            $pickupDateTimeslot = $pickupDate . ' ' . $pickupTimeslot;
-            $pickupDateTimeslot = $this->dateTime->date(
-                $pickupDateFormat . ' ' . $pickupTimeFormat,
-                strtotime($pickupDateTimeslot));
-        }
-        $quote->setPickupDateTimeslot($pickupDateTimeslot);
     }
 }

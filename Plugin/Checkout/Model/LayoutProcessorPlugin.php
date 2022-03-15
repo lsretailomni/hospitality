@@ -40,14 +40,10 @@ class LayoutProcessorPlugin
     ) {
         if ($this->hospLsr->getCurrentIndustry() != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
             unset($jsLayout['components']['checkout']['children']['steps']['children']['billing-step']['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
         }
         if (!$this->hospLsr->isServiceModeEnabled()) {
             unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
-        }
-        if (!($this->hospLsr->isPickupTimeslotsEnabled() && $this->hospLsr->isLSR($this->hospLsr->getCurrentStoreId()))) {
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
         }
         return $jsLayout;
     }
