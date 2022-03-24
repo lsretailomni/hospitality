@@ -55,7 +55,7 @@ class Index implements HttpGetActionInterface
      */
     public function execute()
     {
-        $storeId     = $this->request->getParam('store_id');
+        $storeId     = $this->request->getParam('?store_no');
         $params      = $this->request->getParams();
         if (!empty($storeId) && $this->qrCodeHelper->validateStoreId($storeId)) {
             $this->qrCodeHelper->setQrCodeOrderingInSession($params);
