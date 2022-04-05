@@ -70,11 +70,11 @@ class OrderHelperPlugin
             $cardId  = $oneListCalculateResponse->getCardId();
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
-            $shippingMethod     = $order->getShippingMethod(true);
-            $isClickCollect     = false;
-            $dateTimeFormat     = "Y-m-d\T" . "H:i:00";
-            $pickupDateTimeslot = null;
-            $pickupDateTime     = $this->date->date($dateTimeFormat);
+            $shippingMethod          = $order->getShippingMethod(true);
+            $isClickCollect          = false;
+            $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
+            $pickupDateTimeslot      = null;
+            $pickupDateTime          = $this->date->date($dateTimeFormat);
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
             }
@@ -88,12 +88,33 @@ class OrderHelperPlugin
             }
             $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
 
+            $comment      = '';
+            $qrCodeParams = $subject->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+            if (!empty($qrCodeParams)) {
+                foreach ($qrCodeParams as $key => $value) {
+                    $key     = ucfirst(str_replace('_', ' ', $key));
+                    $comment .= $key . ': ' . $value . PHP_EOL;
+                }
+                $orderSource = __('QR Code Ordering');
+                if (!empty($comment)) {
+                    $comment .= __('Order Source:') . ' ' . $orderSource . PHP_EOL;
+                }
+            }
+            $orderComment = $order->getData(LSR::LS_ORDER_COMMENT);
+            if (!empty($orderComment)) {
+                $comment .= $orderComment;
+            }
+
+            if(!empty($comment)) {
+               $comment = nl2br($comment);
+            }
+
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
                 ->setPickUpTime($pickupDateTime)
-                ->setComment($order->getData(LSR::LS_ORDER_COMMENT));
+                ->setComment($comment);
 
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
