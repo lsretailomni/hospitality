@@ -2,10 +2,8 @@
 
 namespace Ls\Hospitality\Plugin\Checkout\Model;
 
-use \Ls\Hospitality\Model\LSR;
 use Magento\Checkout\Api\Data\ShippingInformationInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Quote\Model\QuoteRepository;
 
 /**
@@ -17,28 +15,12 @@ class ShippingInformationManagement
     public $quoteRepository;
 
     /**
-     * @var DateTime
-     */
-    public $dateTime;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
      * @param QuoteRepository $quoteRepository
-     * @param DateTime $dateTime
-     * @param LSR $lsr
      */
     public function __construct(
-        QuoteRepository $quoteRepository,
-        DateTime $dateTime,
-        LSR $lsr
+        QuoteRepository $quoteRepository
     ) {
         $this->quoteRepository = $quoteRepository;
-        $this->dateTime        = $dateTime;
-        $this->lsr             = $lsr;
     }
 
     /**
@@ -55,7 +37,6 @@ class ShippingInformationManagement
         $extAttributes      = $addressInformation->getExtensionAttributes();
         $serviceMode        = $extAttributes->getServiceMode();
         $quote              = $this->quoteRepository->getActive($cartId);
-        $pickupDateTimeslot = '';
         $quote->setServiceMode($serviceMode);
     }
 }

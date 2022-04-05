@@ -23,10 +23,6 @@ class LSR extends \Ls\Core\Model\LSR
     const ORDER_TRACKING_ON_SUCCESS_PAGE = 'ls_mag/hospitality/order_tracking';
     const DELIVERY_SALES_TYPE = 'ls_mag/hospitality/delivery_salas_type';
     const TAKEAWAY_SALES_TYPE = 'ls_mag/hospitality/takeaway_sales_type';
-    const PICKUP_TIMESLOTS_ENABLED = 'ls_mag/hospitality/pickup_date_time_slot';
-    const PICKUP_TIME_INTERVAL = 'ls_mag/hospitality/pickup_time_interval';
-    const PICKUP_DATE_FORMAT = 'ls_mag/hospitality/pickup_date_format';
-    const PICKUP_TIME_FORMAT = 'ls_mag/hospitality/pickup_time_format';
     const COMMENT_MAX_LENGTH = 'ls_mag/hospitality/max_length';
     const COMMENT_COLLAPSE_STATE = 'ls_mag/hospitality/collapse_state';
     const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
@@ -138,19 +134,6 @@ class LSR extends \Ls\Core\Model\LSR
         }
 
         return ($this->getCurrentIndustry($storeId) == self::LS_INDUSTRY_VALUE_HOSPITALITY);
-    }
-
-    /**
-     * @return mixed
-     * @throws NoSuchEntityException
-     */
-    public function isPickupTimeslotsEnabled()
-    {
-        return $this->scopeConfig->getValue(
-            LSR::PICKUP_TIMESLOTS_ENABLED,
-            ScopeInterface::SCOPE_WEBSITES,
-            $this->storeManager->getStore()->getWebsiteId()
-        );
     }
 
     /**

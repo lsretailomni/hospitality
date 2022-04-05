@@ -45,6 +45,7 @@ class LayoutProcessorPlugin
         if (!$this->hospLsr->isServiceModeEnabled()) {
             unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
         }
+
         return $jsLayout;
     }
 }
