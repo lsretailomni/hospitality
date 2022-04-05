@@ -16,10 +16,6 @@
                 <order_tracking>1</order_tracking>
                 <delivery_salas_type>POS</delivery_salas_type>
                 <takeaway_sales_type>POS</takeaway_sales_type>
-                <pickup_date_time_slot>1</pickup_date_time_slot>
-                <pickup_time_interval>30</pickup_time_interval>
-                <pickup_date_format>Y-m-d</pickup_date_format>
-                <pickup_time_format>h:i A</pickup_time_format>
                 <show_in_checkout>1</show_in_checkout>
                 <collapse_state>0</collapse_state>
             </hospitality>
