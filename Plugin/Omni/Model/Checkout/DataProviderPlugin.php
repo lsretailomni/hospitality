@@ -99,8 +99,10 @@ class DataProviderPlugin
             $enabled = 0;
         }
         $result['shipping'] ['pickup_date_timeslots'] = [
-                'options' => $this->checkoutSession->getStorePickupHours(),
-                'enabled' => $enabled
+            'options'           => $this->checkoutSession->getStorePickupHours(),
+            'enabled'           => $enabled,
+            'current_web_store' => $this->lsr->getActiveWebStore(),
+            'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
             ];
 
         return $result;
