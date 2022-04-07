@@ -3,7 +3,7 @@
 namespace Ls\Hospitality\Block\Adminhtml\System\Config;
 
 use \Ls\Core\Model\LSR;
-use \Ls\Hospitality\Helper\StoreHelper;
+use \Ls\Omni\Helper\StoreHelper;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
