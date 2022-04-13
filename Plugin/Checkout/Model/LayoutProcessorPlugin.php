@@ -12,7 +12,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
  */
 class LayoutProcessorPlugin
 {
-
     /**
      * @var LSR
      */
@@ -29,6 +28,8 @@ class LayoutProcessorPlugin
     }
 
     /**
+     * After plugin to remove unnecessary components based on the industry
+     *
      * @param LayoutProcessor $subject
      * @param array $jsLayout
      * @return array
@@ -38,17 +39,24 @@ class LayoutProcessorPlugin
         LayoutProcessor $subject,
         array $jsLayout
     ) {
+        $shippingStep = &$jsLayout['components']['checkout']['children']['steps']['children']['shipping-step'];
+        $billingStep  = &$jsLayout['components']['checkout']['children']['steps']['children']['billing-step'];
+
         if ($this->hospLsr->getCurrentIndustry() != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['billing-step']['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
+            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
+            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
+            unset($billingStep['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
+            unset($billingStep['children']['payment']['children']['additional-payment-validators']['children']['order-comment-validator']);
         }
+
         if (!$this->hospLsr->isServiceModeEnabled()) {
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
+            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
         }
+
         if (!($this->hospLsr->isPickupTimeslotsEnabled() && $this->hospLsr->isLSR($this->hospLsr->getCurrentStoreId()))) {
-            unset($jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
+            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
         }
+
         return $jsLayout;
     }
 }
