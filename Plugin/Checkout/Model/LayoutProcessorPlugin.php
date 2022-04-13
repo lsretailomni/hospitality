@@ -28,7 +28,7 @@ class LayoutProcessorPlugin
     }
 
     /**
-     * After plugin to remove unnecessary components based on the industry
+     * After plugin to unset and set required components for hospitality
      *
      * @param LayoutProcessor $subject
      * @param array $jsLayout
@@ -39,22 +39,72 @@ class LayoutProcessorPlugin
         LayoutProcessor $subject,
         array $jsLayout
     ) {
-        $shippingStep = &$jsLayout['components']['checkout']['children']['steps']['children']['shipping-step'];
-        $billingStep  = &$jsLayout['components']['checkout']['children']['steps']['children']['billing-step'];
+        $shippingStep               = &$jsLayout['components']['checkout']['children']['steps']['children']['shipping-step'];
+        $billingStep                = &$jsLayout['components']['checkout']['children']['steps']['children']['billing-step'];
+        $shippingAdditionalChildren = &$shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children'];
 
         if ($this->hospLsr->getCurrentIndustry() != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
-            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
+            unset($shippingAdditionalChildren['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
             unset($billingStep['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
             unset($billingStep['children']['payment']['children']['additional-payment-validators']['children']['order-comment-validator']);
         }
 
         if (!$this->hospLsr->isServiceModeEnabled()) {
-            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
+            unset($shippingAdditionalChildren['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
         }
 
-        if (!($this->hospLsr->isPickupTimeslotsEnabled() && $this->hospLsr->isLSR($this->hospLsr->getCurrentStoreId()))) {
-            unset($shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children']['ls-pickup-additional-options-wrapper']);
+        if ($this->hospLsr->getCurrentIndustry() == \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+            && $this->hospLsr->isPickupTimeslotsEnabled() &&
+            $this->hospLsr->isLSR($this->hospLsr->getCurrentStoreId())) {
+            $shippingAdditionalChildren['ls-pickup-additional-options-wrapper'] =
+                [
+                    'component' => 'Ls_Omni/js/view/checkout/shipping/pickup-date-time-block',
+                    'provider' => 'checkoutProvider',
+                    'sortOrder' => 1,
+                    'children' => [
+                        'shipping-option' => [
+                            'component' => 'uiComponent',
+                            'displayArea' => 'additionalShippingOptionField',
+                            'children' => [
+                                'pickup-date' => [
+                                    'component' => 'Ls_Omni/js/view/checkout/shipping/pickup-date-options',
+                                    'config' => [
+                                        'customScope' => 'shippingOptionSelect',
+                                        'id' => 'pickup-date',
+                                        'template' => 'ui/form/field',
+                                        'elementTmpl' => 'ui/form/element/select'
+                                    ],
+                                    'dataScope' => 'shippingOptionSelect.pickup-date',
+                                    'label' => __('Pick up Date'),
+                                    'provider' => 'checkoutProvider',
+                                    'visible' => true,
+                                    'validation' => [
+                                        'required-entry' => true,
+                                        'validate-no-empty' => true
+                                    ]
+                                ],
+                                'pickup-timeslot' => [
+                                    'component' => 'Ls_Omni/js/view/checkout/shipping/pickup-timeslot-options',
+                                    'config' => [
+                                        'customScope' => 'shippingOptionSelect',
+                                        'id' => 'pickup-date',
+                                        'template' => 'ui/form/field',
+                                        'elementTmpl' => 'ui/form/element/select'
+                                    ],
+                                    'dataScope' => 'shippingOptionSelect.pickup-timeslot',
+                                    'label' => __('Pick up Time'),
+                                    'provider' => 'checkoutProvider',
+                                    'visible' => true,
+                                    'validation' => [
+                                        'required-entry' => true,
+                                        'validate-no-empty' => true
+                                    ]
+                                ]
+
+                            ]
+                        ]
+                    ]
+                ];
         }
 
         return $jsLayout;

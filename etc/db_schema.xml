@@ -3,12 +3,10 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="quote" resource="checkout" engine="innodb" comment="Sales Flat Quote">
         <column xsi:type="varchar" name="service_mode" nullable="true" comment="Service Mode"/>
-        <column xsi:type="varchar" name="pickup_date_timeslot" nullable="true" comment="Pick Up Date Time Slot"/>
         <column xsi:type="text" name="ls_order_comment" nullable="true" comment="Additional comment"/>
     </table>
     <table name="sales_order" resource="sales" engine="innodb" comment="Sales Flat Order">
         <column xsi:type="varchar" name="service_mode" nullable="true" comment="Service Mode"/>
-        <column xsi:type="varchar" name="pickup_date_timeslot" nullable="true" comment="Pick Up Date Time Slot"/>
         <column xsi:type="text" name="ls_order_comment" nullable="true" comment="Additional comment"/>
     </table>
     <table name="catalog_product_option" resource="default" engine="innodb" comment="Catalog Product Option Table">

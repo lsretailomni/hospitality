@@ -41,36 +41,6 @@
                     </depends>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
-                <field id="pickup_date_time_slot" translate="label" type="select" sortOrder="6" showInDefault="1"
-                       showInWebsite="1">
-                    <label>Show Pick up Date and Time Slots</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="pickup_time_interval" translate="label" type="text" sortOrder="6" showInDefault="1"
-                       showInWebsite="1">
-                    <depends>
-                        <field id="ls_mag/hospitality/pickup_date_time_slot">1</field>
-                    </depends>
-                    <label>Time Interval</label>
-                    <comment>Time interval between pickup slots in minutes</comment>
-                </field>
-                <field id="pickup_date_format" translate="label" type="text" sortOrder="7" showInDefault="1"
-                       showInWebsite="1">
-                    <depends>
-                        <field id="ls_mag/hospitality/pickup_date_time_slot">1</field>
-                    </depends>
-                    <label>Pickup Date Format</label>
-                    <comment>Date format for pickup date</comment>
-                </field>
-                <field id="pickup_time_format" translate="label" type="select" sortOrder="8" showInDefault="1"
-                       showInWebsite="1"
-                       showInStore="1">
-                    <depends>
-                        <field id="ls_mag/hospitality/pickup_date_time_slot">1</field>
-                    </depends>
-                    <label>Pickup Time Format</label>
-                    <source_model>Ls\Omni\Block\Adminhtml\System\Config\TimeFormat</source_model>
-                </field>
                 <field id="show_in_checkout" sortOrder="9" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Show in checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

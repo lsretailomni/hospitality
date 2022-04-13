@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
-use \Ls\Hospitality\Helper\StoreHelper;
+use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use Magento\Checkout\Model\Session\Proxy as CheckoutSessionProxy;
@@ -99,8 +99,10 @@ class DataProviderPlugin
             $enabled = 0;
         }
         $result['shipping'] ['pickup_date_timeslots'] = [
-                'options' => $this->checkoutSession->getStorePickupHours(),
-                'enabled' => $enabled
+            'options'           => $this->checkoutSession->getStorePickupHours(),
+            'enabled'           => $enabled,
+            'current_web_store' => $this->lsr->getActiveWebStore(),
+            'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
             ];
 
         return $result;

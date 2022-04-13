@@ -4,7 +4,7 @@ namespace Ls\Hospitality\Controller\Adminhtml\System\Config;
 
 use Exception;
 use \Ls\Core\Model\LSR;
-use \Ls\Hospitality\Helper\StoreHelper;
+use \Ls\Omni\Helper\StoreHelper;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\Json;
