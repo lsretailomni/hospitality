@@ -48,7 +48,7 @@ class CustomProduct implements ArgumentInterface
      */
     public function currentProductHasOptions()
     {
-        $product = $this->hospitalityHelper->getCurrentProduct();
+        $product         = $this->hospitalityHelper->getCurrentProduct();
         $existingOptions = $this->hospitalityHelper->optionRepository->getProductOptions($product);
 
         return count($existingOptions);

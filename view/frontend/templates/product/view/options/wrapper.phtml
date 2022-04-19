@@ -1,0 +1,19 @@
+<?php
+use Magento\Framework\Escaper;
+
+/** @var $block Magento\Catalog\Block\Product\View */
+/* @var Escaper $escaper */
+$viewModel = $block->getData('view_model');
+$criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOptions();
+?>
+<?php
+$required = '';
+if ($block->hasRequiredOptions()) {
+    $required = ' data-hasrequired="' . $escaper->escapeHtmlAttr(__('* Required Fields')) . '"';
+}
+?>
+<div class="product-options-wrapper<?= $criteria ? ' main-custom-options-wrapper' : ''?>" id="product-options-wrapper"<?= /* @noEscape */ $required ?>>
+    <div class="fieldset" tabindex="0">
+        <?= $block->getChildHtml('', true) ?>
+    </div>
+</div>

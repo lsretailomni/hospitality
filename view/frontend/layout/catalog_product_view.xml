@@ -5,6 +5,11 @@
         <css src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" src_type="url"/>
     </head>
     <body>
+        <referenceBlock name="product.info.options.wrapper" template="Ls_Hospitality::product/view/options/wrapper.phtml">
+            <arguments>
+                <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomProduct</argument>
+            </arguments>
+        </referenceBlock>
         <referenceBlock name="product.info.options.select" template="Ls_Hospitality::product/view/options/type/select.phtml">
             <arguments>
                 <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomProduct</argument>
