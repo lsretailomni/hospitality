@@ -2,10 +2,11 @@
 
 namespace Ls\Hospitality\Plugin\Controller\Adminhtml\Product;
 
-use Ls\Hospitality\Helper\HospitalityHelper;
+use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Controller\Adminhtml\Product\Save;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class SavePlugin
@@ -46,6 +47,7 @@ class SavePlugin
     }
 
     /**
+     * Around execute
      * @param Save $subject
      * @param callable $proceed
      * @return mixed
@@ -65,7 +67,9 @@ class SavePlugin
     }
 
     /**
-     * @throws NoSuchEntityException
+     * Handle custom options
+     *
+     * @throws NoSuchEntityException|FileSystemException
      */
     public function handleCustomOptions($subject, $productId)
     {
@@ -109,6 +113,7 @@ class SavePlugin
      * @param $files
      * @param $valueId
      * @return string|null
+     * @throws FileSystemException
      */
     public function getFileUploadedIfFound($optionId, $post, $files, $valueId = null)
     {

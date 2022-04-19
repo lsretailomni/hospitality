@@ -1,7 +1,7 @@
 <?php
 namespace Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier;
 
-use Ls\Hospitality\Model\Catalog\Image;
+use \Ls\Hospitality\Model\Catalog\Image;
 use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\AbstractModifier;
 use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\CustomOptions;
 use Magento\Ui\Component\Form\Element\Input;

@@ -6,7 +6,7 @@ use Magento\Framework\Data\Form\Element\Image as ImageField;
 use Magento\Framework\Data\Form\Element\Factory as ElementFactory;
 use Magento\Framework\Data\Form\Element\CollectionFactory as ElementCollectionFactory;
 use Magento\Framework\Escaper;
-use Ls\Hospitality\Model\Catalog\Image as CatalogImage;
+use \Ls\Hospitality\Model\Catalog\Image as CatalogImage;
 use Magento\Framework\UrlInterface;
 
 /**
