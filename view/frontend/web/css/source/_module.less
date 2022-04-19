@@ -1,6 +1,144 @@
 & when (@media-common = true) {
-    .checkout-index-index {
+    .catalog-product-view {
+        .product-add-form {
+            .product-options-wrapper {
+                .custom-field {
+                    .control {
+                        width: 100%;
+                    }
+                }
+            }
+        }
 
+        .product-options-wrapper {
+            .fieldset {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            .custom-field.required {
+                .custom-option-container {
+                    .title {
+                        &:after {
+                            content: '*';
+                            color: #e02b27;
+                            font-size: 1.2rem;
+                            margin: 0 0 0 5px;
+                        }
+                    }
+                }
+            }
+
+            .custom-field {
+                .control {
+                    width: 100%;
+                    text-align: center;
+                }
+
+                margin-right: 30px;
+
+                label.label, .product-custom-option {
+                    display: none;
+                }
+
+                .title {
+                    font-weight: 600;
+                }
+
+                .image-container {
+                    max-width: 100px;
+                }
+
+                .custom-option-container {
+                    display: inline-block;
+                    position: relative;
+                    cursor: pointer;
+
+                    .fa-pencil {
+                        position: absolute;
+                        right: 5px;
+                        top: 5px;
+                    }
+                }
+            }
+        }
+
+        .custom-options-modal {
+            .modal-title {
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .custom-option-values-container {
+                ul {
+                    list-style: none;
+                    padding-left: 0;
+                    display: flex;
+                    flex-wrap:wrap;
+
+                    .option.default {
+                        display: none;
+                    }
+
+                    li {
+                        padding: 0 30px;
+                        text-align: center;
+                        flex-basis: 25%;
+
+                        .title {
+                            font-size: 1.1rem;
+                        }
+                    }
+                }
+
+                .image-container {
+                    max-width: 100px;
+                    margin: 0 auto;
+                }
+
+                .title {
+                    font-weight: 600;
+                }
+            }
+
+            .custom-option-values-container[data-ls_modifer_recipe_id='ls_rec'],
+            .custom-option-values-container:not([data-ls_modifer_recipe_id='ls_rec']) {
+                li.selected {
+                    position: relative;
+                    &:after {
+                        display: block;
+                        content: '';
+                        position: absolute;
+                        z-index: 1;
+                        width: 100%;
+                        top: 0;
+                        left: 40%;
+                        height: 75px;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+                }
+            }
+
+            .custom-option-values-container[data-ls_modifer_recipe_id='ls_rec'] {
+                li.selected {
+                    filter: grayscale(100%);
+                    &:after {
+                        background-image: url('@{baseDir}Ls_Hospitality/images/crossed.png');
+                        filter: grayscale(100%);
+                    }
+                }
+            }
+
+            .custom-option-values-container:not([data-ls_modifer_recipe_id='ls_rec']) {
+                li.selected {
+                    &:after {
+                        background-image: url('@{baseDir}Ls_Hospitality/images/checked.png');
+                    }
+                }
+            }
+        }
+    }
+    .checkout-index-index {
         ._error {
             .order-comment-input {
                 outline: none;
@@ -35,6 +173,26 @@
                 strong {
                     font-size: 2.2rem;
                     font-weight: 300;
+                }
+            }
+        }
+    }
+}
+
+.media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__m) {
+}
+
+
+.media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__s) {
+    .catalog-product-view {
+        .custom-options-modal {
+            .custom-option-values-container {
+                ul {
+                    justify-content: center;
+
+                    li {
+                        flex-basis: 50%;
+                    }
                 }
             }
         }

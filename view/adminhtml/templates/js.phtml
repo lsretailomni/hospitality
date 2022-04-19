@@ -1,0 +1,61 @@
+<script>
+  /******* Start Jquery *******/
+  require([
+  	'jquery'
+  ], function($){
+      "use strict";
+      // DOM ready
+      $(window).load(function() {
+        var checkContainer = function() {
+          //console.log('start');
+          //if the container is visible on the page
+          if($('.catalog-product-edit .fieldset-wrapper-title').length) {
+            isReady();
+          } else {
+            //wait 100 ms, then try again
+            setTimeout(checkContainer, 400);
+          }
+        },
+        addPreview = function($obj) {
+          var imgpath = $('.admin__control-text', $obj).val();
+          if(imgpath) $obj.append('<div class="img-wrapper"><img src="/media/'+imgpath+'" class="preview img-responsive" /></div><div class="x-close">remove</div>');
+        },
+        removeEvent = function() {
+          $('.catalog-product-edit .x-close').on('click', function () {
+              $(this).parent().find('.admin__control-text').val('').change();
+              $(this).parent().find('.img-wrapper').hide();
+          });
+        },
+        addEvent = function() {
+          $('.admin__control-file[type="file"]').on('change', function () {
+              var val = $(this).val();
+              $(this).next('label').text(val);
+          });
+          $('.catalog-product-edit .admin__field.awesome-upload .admin__field-control label').on('click', function () {
+              $(this).prev().trigger('click');
+          });
+        },
+        isReady = function(){
+          //console.log('ready');
+          if($('.catalog-product-edit .fieldset-wrapper-title').length) {
+            $('.catalog-product-edit .fieldset-wrapper[data-index="custom_options"] .fieldset-wrapper-title').on('click', function() {
+              setTimeout(function() {
+                var cntPreview = $('.catalog-product-edit .admin__field.preview-icon').length;
+                var cntUpload = $('.catalog-product-edit .admin__field.awesome-upload').length;
+                $('.catalog-product-edit .admin__field.preview-icon').each(function() {
+                  addPreview($(this));
+                  if (!--cntPreview) removeEvent();
+                });
+                $('.catalog-product-edit .admin__field.awesome-upload').each(function() {
+                  $('.admin__field-control', this).append('<label><svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17"><path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"></path></svg> <span>Choose a file…</span></label>');
+                  if (!--cntUpload) addEvent();
+                });
+              }, 2000);
+            });
+          }
+        };
+        // Start
+        checkContainer();
+      });
+  });
+</script>

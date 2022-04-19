@@ -105,8 +105,10 @@ class ProcessItemRecipe
     }
 
     /**
-     * @param null $storeData
-     * @throws InputException
+     * Execute
+     *
+     * @param $storeData
+     * @return void
      * @throws NoSuchEntityException
      */
     public function execute($storeData = null)
@@ -137,7 +139,7 @@ class ProcessItemRecipe
                         $this->store->getId()
                     );
                     $this->logger->debug(
-                        'End ProcessItemRecipe Task with remaining : ' . $this->getRemainingRecords($this->store)
+                        'End ProcessItemRecipe Task with remaining : ' . $this->getRemainingRecords()
                     );
                 }
                 $this->lsr->setStoreId(null);
@@ -146,20 +148,24 @@ class ProcessItemRecipe
     }
 
     /**
-     * @param null $storeData
-     * @return array
+     * Execute manually
+     *
+     * @param $storeData
+     * @return int[]
      * @throws InputException
      * @throws NoSuchEntityException
      */
     public function executeManually($storeData = null)
     {
         $this->execute($storeData);
-        $remainingRecords = (int)$this->getRemainingRecords($storeData, true);
+        $remainingRecords = (int)$this->getRemainingRecords(true);
         return [$remainingRecords];
     }
 
     /**
      * Item Recipes processing
+     *
+     * @return void
      */
     public function processItemRecipies()
     {
@@ -248,6 +254,16 @@ class ProcessItemRecipe
                                         ->setPriceType('fixed')
                                         ->setSortOrder($optionValueData->getLineNo())
                                         ->setPrice(-$optionValueData->getExclusionPrice());
+
+                                    if (!empty($optionValueData->getImageId())) {
+                                        $swatchPath = $this->hospitalityHelper->getImage(
+                                            $optionValueData->getImageId()
+                                        );
+
+                                        if (!empty($swatchPath)) {
+                                            $optionValue->setSwatch($swatchPath);
+                                        }
+                                    }
                                     $optionData['values'][] = $optionValue;
                                     $optionData['title']    = "Exclude Ingredients";
                                 }
@@ -275,7 +291,12 @@ class ProcessItemRecipe
                                         ->setType('multiple')
                                         ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
                                         ->setProductSku($itemSKU)
-                                        ->setSortOrder(99);
+                                        ->setSortOrder(99)
+                                        ->setSwatch(
+                                            $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
+                                                $optionData['values']
+                                            )
+                                        );
                                     $savedProductOption = $this->optionRepository->save($productOption);
                                     $product->addOption($savedProductOption);
                                     if (!$product->getHasOptions()) {
@@ -298,7 +319,7 @@ class ProcessItemRecipe
                     }
                 }
             }
-            $remainingItems = (int)$this->getRemainingRecords($this->store);
+            $remainingItems = (int)$this->getRemainingRecords();
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
@@ -308,12 +329,12 @@ class ProcessItemRecipe
     }
 
     /**
-     * @param $storeData
-     * @param false $forceReload
+     * Get remaining records
+     *
+     * @param $forceReload
      * @return int
      */
     public function getRemainingRecords(
-        $storeData,
         $forceReload = false
     ) {
         if (!$this->remainingRecords || $forceReload) {
