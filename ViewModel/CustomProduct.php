@@ -6,6 +6,7 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR as LSRModel;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
 class CustomProduct implements ArgumentInterface
@@ -21,13 +22,23 @@ class CustomProduct implements ArgumentInterface
     public $hospitalityHelper;
 
     /**
+     * @var Repository
+     */
+    public $assetRepository;
+
+    /**
      * @param LSRModel $lsr
      * @param HospitalityHelper $hospitalityHelper
+     * @param Repository $assetRepository
      */
-    public function __construct(LSRModel $lsr, HospitalityHelper $hospitalityHelper)
-    {
+    public function __construct(
+        LSRModel $lsr,
+        HospitalityHelper $hospitalityHelper,
+        Repository $assetRepository
+    ) {
         $this->lsr               = $lsr;
         $this->hospitalityHelper = $hospitalityHelper;
+        $this->assetRepository   = $assetRepository;
     }
 
     /**
@@ -63,6 +74,10 @@ class CustomProduct implements ArgumentInterface
      */
     public function getMediaUrl($swatch)
     {
+        if (empty($swatch)) {
+            return $this->assetRepository->getUrlWithParams('Ls_Hospitality::images/placeholder.jpg', []);
+        }
+
         return $this->hospitalityHelper
                     ->storeManager
                     ->getStore()

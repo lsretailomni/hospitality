@@ -41,9 +41,9 @@ class SavePlugin
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->productRepository = $productRepository;
-        $this->optionRepository = $optionRepository;
+        $this->optionRepository  = $optionRepository;
         $this->hospitalityHelper = $hospitalityHelper;
-        $this->logger = $logger;
+        $this->logger            = $logger;
     }
 
     /**
@@ -56,7 +56,7 @@ class SavePlugin
     public function aroundExecute(Save $subject, callable $proceed)
     {
         $productId = $subject->getRequest()->getParam('id');
-        $result = $proceed();
+        $result    = $proceed();
         try {
             $this->handleCustomOptions($subject, $productId);
         } catch (\Exception $e) {
@@ -85,7 +85,7 @@ class SavePlugin
         foreach ($options as $optionId => &$option) {
             $fileName = $this->getFileUploadedIfFound($optionId, $post, $files);
 
-            if ($fileName) {
+            if ($fileName !== null) {
                 $option->setSwatch($fileName);
             }
 
@@ -95,7 +95,7 @@ class SavePlugin
             foreach ($values as $valueId => &$value) {
                 $fileName = $this->getFileUploadedIfFound($optionId, $post, $files, $valueId);
 
-                if ($fileName) {
+                if ($fileName !== null) {
                     $value->setSwatch($fileName);
                 }
 
@@ -125,19 +125,36 @@ class SavePlugin
                         if (isset($optionValue['option_type_id']) && $optionValue['option_type_id'] == $valueId) {
                             if (isset($files[$i]) && isset($files[$i]['values']) &&
                                 isset($files[$i]['values'][$optionValueId]) &&
-                                isset($files[$i]['values'][$optionValueId]['swatch']) &&
-                                $files[$i]['values'][$optionValueId]['swatch']['error'] === 0
+                                isset($files[$i]['values'][$optionValueId]['swatch'])
                             ) {
-                                $filename = $this->hospitalityHelper->uploadFile(
-                                    $files[$i]['values'][$optionValueId]['swatch']
-                                );
+                                if ($files[$i]['values'][$optionValueId]['swatch']['error'] === 0) {
+                                    $filename = $this->hospitalityHelper->uploadFile(
+                                        $files[$i]['values'][$optionValueId]['swatch']
+                                    );
+                                } else {
+                                    if (isset($post[$i]) &&
+                                        isset($post[$i]['values']) &&
+                                        isset($post[$i]['values'][$optionValueId]) &&
+                                        isset($post[$i]['values'][$optionValueId]['swatch_hidden']) &&
+                                        empty($post[$i]['values'][$optionValueId]['swatch_hidden'])) {
+                                        $filename = '';
+                                    }
+                                }
                                 break;
                             }
                         }
                     }
                 } else {
-                    if (isset($files[$i]) && isset($files[$i]['swatch']) && $files[$i]['swatch']['error'] === 0) {
-                        $filename = $this->hospitalityHelper->uploadFile($files[$i]['swatch']);
+                    if (isset($files[$i]) && isset($files[$i]['swatch'])) {
+                        if ($files[$i]['swatch']['error'] === 0) {
+                            $filename = $this->hospitalityHelper->uploadFile($files[$i]['swatch']);
+                        } else {
+                            if (isset($post[$i]) &&
+                                isset($post[$i]['swatch_hidden']) &&
+                                empty($post[$i]['swatch_hidden'])) {
+                                $filename = '';
+                            }
+                        }
                         break;
                     }
                 }
