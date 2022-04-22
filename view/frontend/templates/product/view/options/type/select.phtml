@@ -31,7 +31,7 @@ $criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOpt
                 <div class="custom-option-container"
                      data-mage-init='{"options-modal": {}}'>
                     <div class="image-container">
-                        <img src="<?= $viewModel->getMediaUrl($_option->getSwatch())?>"
+                        <img class="notlazy" src="<?= $viewModel->getMediaUrl($_option->getSwatch())?>"
                              alt="<?= $escaper->escapeHtml($_option->getTitle()) ?>"/>
                     </div>
                     <p class="title"><?= $escaper->escapeHtml($_option->getTitle()) ?></p>
@@ -47,7 +47,7 @@ $criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOpt
                             <li class="option"
                                 data-custom-value-id="<?= $escaper->escapeHtmlAttr($val->getOptionTypeId()) ?>">
                                 <div class="image-container">
-                                    <img src="<?= $viewModel->getMediaUrl($val->getSwatch())?>"
+                                    <img class="notlazy" src="<?= $viewModel->getMediaUrl($val->getSwatch())?>"
                                          alt="<?= $escaper->escapeHtml($val->getTitle()) ?>"/>
                                 </div>
                                 <p class="title"><?= $escaper->escapeHtml($val->getTitle()) ?></p>
