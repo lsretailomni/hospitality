@@ -56,18 +56,35 @@ require(
                 optionId = parent.data('custom-option-id');
 
             if (!parent.hasClass('multiselect')) {
-                parent.find('li').removeClass('selected');
+                if ($(this).hasClass('selected')) {
+                    parent.find('li').removeClass('selected');
+                } else {
+                    parent.find('li').removeClass('selected');
+                    $(this).toggleClass('selected');
+                }
+            } else {
+                $(this).toggleClass('selected');
             }
-            $(this).addClass('selected');
             let option = $(".custom-field  .product-custom-option[name^='" + optionId +"']");
             option.next().find('.custom-option-values-container').remove();
             option.next().append(parent[0].outerHTML);
             option.next().find('.custom-option-values-container').hide();
 
             if (!option.hasClass('multiselect')) {
-                option.find('option').removeAttr('selected');
+                if (option.find('option[value="' + valueId + '"]').attr('selected')) {
+                    option.find('option').removeAttr('selected');
+                } else {
+                    option.find('option').removeAttr('selected');
+                    option.find('option[value="' + valueId + '"]').attr('selected', true);
+                }
+            } else {
+                if (option.find('option[value="' + valueId + '"]').attr('selected')) {
+                    option.find('option[value="' + valueId + '"]').attr('selected', false);
+                } else {
+                    option.find('option[value="' + valueId + '"]').attr('selected', true);
+                }
             }
-            option.find('option[value="' + valueId + '"]').attr('selected', true);
+
             option.trigger('change');
         });
     }
