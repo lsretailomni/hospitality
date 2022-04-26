@@ -1,0 +1,99 @@
+/**************** CUSTOM ***************/
+.catalog-product-edit {
+    .admin__fieldset {
+        .admin__field.preview-icon {
+            position: relative;
+            width: 55px;
+            vertical-align: bottom;
+
+            .img-wrapper {
+                position: absolute;
+                bottom: 10px;
+                left: 0;
+                width: 64px;
+                padding-left: 20px;
+
+                .img-responsive {
+                    max-width: 100%;
+                    height: auto;
+                }
+            }
+
+            .admin__field-label {
+              display: none;
+            }
+
+            .admin__field-control {
+                position: relative;
+                height: 44px;
+                width: 44px;
+                border: 1px solid #ccc;
+
+                .admin__control-text {
+                    visibility: hidden;
+                    opacity: 0;
+                }
+            }
+        }
+
+        td > .admin__field.preview-icon {
+            width: 44px;
+            left: 15px;
+
+            .img-wrapper {
+                position: absolute;
+                bottom: 10px;
+                left: 0;
+                width: 44px;
+                padding-left: 0;
+            }
+        }
+
+        .admin__field.awesome-upload {
+            .admin__control-file {
+                width: 0.1px;
+                height: 0.1px;
+                opacity: 0;
+                overflow: hidden;
+                position: absolute;
+                z-index: -1;
+
+                + label {
+                    font-size: 12px;
+                    color: #ffffff;
+                    max-width: 80%;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    cursor: pointer;
+                    display: inline-block;
+                    overflow: hidden;
+                    padding: 7px 15px;
+                    background-color: #514943;
+
+                    svg {
+                        width: 1em;
+                        height: 1em;
+                        vertical-align: middle;
+                        margin-top: -0.2em;
+                        margin-right: 1em;
+                        fill: #ffffff;
+                    }
+                }
+
+                &:focus + label, + label:hover {
+                    background-color: #eb5202;
+                }
+            }
+        }
+
+        .x-close {
+            background-color: #514943;
+            color: #ffffff;
+            font-size: 8px;
+            padding: 2px 4px;
+            width: 44px;
+            text-align: center;
+            cursor: pointer;
+        }
+    }
+}

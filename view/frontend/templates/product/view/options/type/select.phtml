@@ -1,0 +1,61 @@
+<?php
+/* @var $block Select */
+/* @var Escaper $escaper */
+
+use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
+use Magento\Catalog\Block\Product\View\Options\Type\Select;
+use Magento\Framework\Escaper;
+
+?>
+<?php
+$_option = $block->getOption();
+$class = ($_option->getIsRequire()) ? ' required' : '';
+$viewModel = $block->getData('view_model');
+$criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOptions();
+?>
+<div class="<?= $criteria ? 'custom-field ' : ''?>field<?= $escaper->escapeHtmlAttr($class) ?>">
+    <label class="label" for="select_<?= $escaper->escapeHtmlAttr($_option->getId()) ?>">
+        <span><?= $escaper->escapeHtml($_option->getTitle()) ?></span>
+    </label>
+    <div class="control">
+        <?= $block->getValuesHtml() ?>
+        <?php if ($_option->getIsRequire()) :?>
+            <?php if ($_option->getType() == ProductCustomOptionInterface::OPTION_TYPE_RADIO ||
+                $_option->getType() == ProductCustomOptionInterface::OPTION_TYPE_CHECKBOX
+            ) :?>
+                <span id="options-<?= $escaper->escapeHtmlAttr($_option->getId()) ?>-container"></span>
+            <?php endif; ?>
+        <?php endif;?>
+        <?php if ($criteria) : ?>
+            <div class="custom-container">
+                <div class="custom-option-container"
+                     data-mage-init='{"options-modal": {}}'>
+                    <div class="image-container">
+                        <img class="notlazy" src="<?= $viewModel->getMediaUrl($_option->getSwatch())?>"
+                             alt="<?= $escaper->escapeHtml($_option->getTitle()) ?>"/>
+                    </div>
+                    <p class="title"><?= $escaper->escapeHtml($_option->getTitle()) ?></p>
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                </div>
+                <div class="custom-option-values-container<?= $_option->getType() == 'multiple' ? ' multiselect' : ''?>"
+                     data-ls_modifer_recipe_id="<?= $escaper->escapeHtmlAttr($_option->getLsModifierRecipeId()) ?>"
+                     data-custom-option-id="options[<?= $escaper->escapeHtmlAttr($_option->getId())?>]"
+                     style="display:none;">
+                    <ul>
+                        <li class="option default"><?= $escaper->escapeHtml(__('-- Please Select --')) ?></li>
+                        <?php foreach($_option->getValues() as $val) :?>
+                            <li class="option"
+                                data-custom-value-id="<?= $escaper->escapeHtmlAttr($val->getOptionTypeId()) ?>">
+                                <div class="image-container">
+                                    <img class="notlazy" src="<?= $viewModel->getMediaUrl($val->getSwatch())?>"
+                                         alt="<?= $escaper->escapeHtml($val->getTitle()) ?>"/>
+                                </div>
+                                <p class="title"><?= $escaper->escapeHtml($val->getTitle()) ?></p>
+                            </li>
+                        <?php endforeach;?>
+                    </ul>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>

@@ -15,10 +15,20 @@
     },
     "catalog_product_option": {
         "column": {
-            "ls_modifier_recipe_id": true
+            "ls_modifier_recipe_id": true,
+            "swatch": true
         },
         "index": {
-            "CATALOG_PRODUCT_OPTION_LS_MODIFIER_RECIPE_ID": true
+            "CATALOG_PRODUCT_OPTION_LS_MODIFIER_RECIPE_ID": true,
+            "CATALOG_PRODUCT_OPTION_SWATCH": true
+        }
+    },
+    "catalog_product_option_type_value": {
+        "column": {
+            "swatch": true
+        },
+        "index": {
+            "CATALOG_PRODUCT_OPTION_TYPE_VALUE_SWATCH": true
         }
     }
 }
