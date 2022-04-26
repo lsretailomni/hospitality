@@ -5,25 +5,37 @@ namespace Ls\Hospitality\Helper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
+use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\ResponseInterface;
+use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
+use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
 use \Ls\Replication\Helper\ReplicationHelper;
+use \Ls\Replication\Model\ReplImageLinkSearchResults;
 use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Io\File;
+use Magento\Framework\Registry;
+use Magento\MediaStorage\Model\File\UploaderFactory;
+use Magento\Store\Model\StoreManagerInterface;
 use Zend_Db_Select;
 use Zend_Db_Select_Exception;
 
@@ -33,6 +45,7 @@ use Zend_Db_Select_Exception;
  */
 class HospitalityHelper extends AbstractHelper
 {
+    const DESTINATION_FOLDER = 'ls/swatch';
 
     /** @var ProductRepository $productRepository */
     public $productRepository;
@@ -88,6 +101,38 @@ class HospitalityHelper extends AbstractHelper
     public $replHierarchyHospDealRepository;
 
     /**
+     * @var Filesystem
+     */
+    public $filesystem;
+
+    /**
+     * @var UploaderFactory
+     */
+    public $uploaderFactory;
+
+    /** @var LoyaltyHelper */
+    public $loyaltyHelper;
+
+    /** @var File */
+    public $file;
+
+    /** @var ReplImageLinkRepositoryInterface */
+    public $replImageLinkRepositoryInterface;
+
+    /** @var ProductCustomOptionRepositoryInterface */
+    public $optionRepository;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    public $storeManager;
+
+    /**
+     * @var Registry
+     */
+    public $registry;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -101,6 +146,14 @@ class HospitalityHelper extends AbstractHelper
      * @param ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository
      * @param ResourceConnection $resourceConnection
      * @param LSR $lsr
+     * @param Filesystem $filesystem
+     * @param UploaderFactory $uploaderFactory
+     * @param LoyaltyHelper $loyaltyHelper
+     * @param File $file
+     * @param ReplImageLinkRepositoryInterface $replImageLinkRepository
+     * @param ProductCustomOptionRepositoryInterface $optionRepository
+     * @param StoreManagerInterface $storeManager
+     * @param Registry $registry
      */
     public function __construct(
         Context $context,
@@ -115,7 +168,15 @@ class HospitalityHelper extends AbstractHelper
         DealCollectionFactory $replHierarchyHospDealCollectionFactory,
         ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
         ResourceConnection $resourceConnection,
-        LSR $lsr
+        LSR $lsr,
+        Filesystem $filesystem,
+        UploaderFactory $uploaderFactory,
+        LoyaltyHelper $loyaltyHelper,
+        File $file,
+        ReplImageLinkRepositoryInterface $replImageLinkRepository,
+        ProductCustomOptionRepositoryInterface $optionRepository,
+        StoreManagerInterface $storeManager,
+        Registry $registry
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -130,6 +191,14 @@ class HospitalityHelper extends AbstractHelper
         $this->replHierarchyHospDealRepository            = $replHierarchyHospDealRepository;
         $this->resourceConnection                         = $resourceConnection;
         $this->lsr                                        = $lsr;
+        $this->filesystem                                 = $filesystem;
+        $this->uploaderFactory                            = $uploaderFactory;
+        $this->loyaltyHelper                              = $loyaltyHelper;
+        $this->file                                       = $file;
+        $this->replImageLinkRepositoryInterface           = $replImageLinkRepository;
+        $this->optionRepository                           = $optionRepository;
+        $this->storeManager                               = $storeManager;
+        $this->registry                                   = $registry;
     }
 
     /**
@@ -657,5 +726,138 @@ class HospitalityHelper extends AbstractHelper
     public function getLSR()
     {
         return $this->lsr;
+    }
+
+    /**
+     * Upload File
+     *
+     * @param $fileInfo
+     * @return string|null
+     * @throws FileSystemException
+     */
+    public function uploadFile($fileInfo)
+    {
+        $media    = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $fileName = null;
+
+        if (is_array($fileInfo)) {
+            $uploader   = $this->uploaderFactory->create(['fileId' => $fileInfo]);
+            $workingDir = $media->getAbsolutePath(self::DESTINATION_FOLDER);
+            $uploader->save($workingDir);
+            $fileName = self::DESTINATION_FOLDER . DIRECTORY_SEPARATOR . $uploader->getUploadedFileName();
+
+        }
+
+        return $fileName;
+    }
+
+    /**
+     * Get Image
+     *
+     * @param string $imageId
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getImage($imageId = '')
+    {
+        $image     = '';
+        $imageSize = [
+            'height' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_HEIGHT,
+            'width' => LSR::DEFAULT_IMAGE_WIDTH
+        ];
+        /** @var ImageSize $imageSizeObject */
+        $imageSizeObject = $this->loyaltyHelper->getImageSize($imageSize);
+        $result          = $this->loyaltyHelper->getImageById($imageId, $imageSizeObject);
+        if (!empty($result) && !empty($result['format']) && !empty($result['image'])) {
+            //check if directory exists or not and if it has the proper permission or not
+            $offerpath = $this->getMediaPathtoStore();
+            // @codingStandardsIgnoreStart
+            if (!is_dir($offerpath)) {
+                $this->file->mkdir($offerpath, 0775);
+            }
+            $format      = strtolower($result['format']);
+            $imageName   = $this->replicationHelper->oSlug($imageId);
+            $output_file = "{$imageName}.$format";
+            $file        = "{$offerpath}{$output_file}";
+            if (!$this->file->fileExists($file)) {
+                $base64     = $result['image'];
+                $image_file = fopen($file, 'wb');
+                fwrite($image_file, base64_decode($base64));
+                fclose($image_file);
+            }
+            // @codingStandardsIgnoreEnd
+            $image = self::DESTINATION_FOLDER . DIRECTORY_SEPARATOR . "{$output_file}";
+        }
+        return $image;
+    }
+
+    /**
+     * Return the media path of the swatches
+     *
+     * @return string
+     */
+    public function getMediaPathtoStore()
+    {
+        $mediaDirectory = $this->loyaltyHelper->getMediaPathtoStore();
+        return $mediaDirectory . self::DESTINATION_FOLDER . DIRECTORY_SEPARATOR;
+    }
+
+    /**
+     * Get First Available Option Value Image Path
+     *
+     * @param $optionValues
+     * @return mixed|null
+     */
+    public function getFirstAvailableOptionValueImagePath($optionValues)
+    {
+        foreach ($optionValues as $value) {
+            if (!$value->getSwatch()) {
+                continue;
+            }
+            break;
+        }
+
+        return $value ? $value->getSwatch() : null;
+    }
+
+    /**
+     * Get Image given Item
+     *
+     * @param $sku
+     * @param $scopeId
+     * @return false|mixed|null
+     */
+    public function getImageGivenItem($sku, $scopeId)
+    {
+        $replImage = null;
+        // Check for all images.
+        $filtersForAllImages  = [
+            ['field' => 'KeyValue', 'value' => $sku, 'condition_type' => 'eq'],
+            ['field' => 'TableName', 'value' => 'Item', 'condition_type' => 'eq'],
+            ['field' => 'scope_id', 'value' => $scopeId, 'condition_type' => 'eq']
+        ];
+        $criteriaForAllImages = $this->replicationHelper->buildCriteriaForDirect(
+            $filtersForAllImages,
+            1,
+            false
+        );
+        /** @var ReplImageLinkSearchResults $newImagestoProcess */
+        $newImagesToProcess = $this->replImageLinkRepositoryInterface->getList($criteriaForAllImages);
+
+        if ($newImagesToProcess->getTotalCount() > 0) {
+            $replImage = current($newImagesToProcess->getItems());
+        }
+
+        return $replImage;
+    }
+
+    /**
+     * Get Current product
+     *
+     * @return mixed|null
+     */
+    public function getCurrentProduct()
+    {
+        return $this->registry->registry('current_product');
     }
 }

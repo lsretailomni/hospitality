@@ -48,4 +48,48 @@
     <type name="Magento\Sales\Block\Adminhtml\Order\View\Info">
         <plugin name="ls_ordercomment_show_comment" type="Ls\Hospitality\Plugin\Block\Adminhtml\SalesOrderViewInfo" sortOrder="1" />
     </type>
+    <type name="Magento\Catalog\Controller\Adminhtml\Product\Save">
+        <plugin name="save_product_options_swatch" type="Ls\Hospitality\Plugin\Controller\Adminhtml\Product\SavePlugin" sortOrder="1" />
+    </type>
+    <virtualType name="Magento\CatalogStaging\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="ls-option-all" xsi:type="array">
+                    <item name="class" xsi:type="string">Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Swatch</item>
+                    <item name="sortOrder" xsi:type="number">71</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="ls-option-all" xsi:type="array">
+                    <item name="class" xsi:type="string">Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Swatch</item>
+                    <item name="sortOrder" xsi:type="number">71</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Swatch">
+        <arguments>
+            <argument name="pool" xsi:type="object">Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Pool</argument>
+        </arguments>
+    </type>
+    <virtualType name="Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="ls-option-base" xsi:type="array">
+                    <item name="class" xsi:type="string">Ls\Hospitality\Ui\DataProvider\Product\Form\Modifier\Base</item>
+                    <item name="sortOrder" xsi:type="number">72</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

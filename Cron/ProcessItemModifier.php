@@ -107,7 +107,10 @@ class ProcessItemModifier
     }
 
     /**
-     * @param null $storeData
+     * Execute
+     *
+     * @param $storeData
+     * @return void
      * @throws NoSuchEntityException
      */
     public function execute($storeData = null)
@@ -138,7 +141,7 @@ class ProcessItemModifier
                         $this->store->getId()
                     );
                     $this->logger->debug(
-                        'End ProcessItemModifier Task with remaining : ' . $this->getRemainingRecords($this->store)
+                        'End ProcessItemModifier Task with remaining : ' . $this->getRemainingRecords()
                     );
                 }
                 $this->lsr->setStoreId(null);
@@ -147,19 +150,23 @@ class ProcessItemModifier
     }
 
     /**
-     * @param null $storeData
-     * @return array
+     * Execute manually
+     *
+     * @param $storeData
+     * @return int[]
      * @throws NoSuchEntityException
      */
     public function executeManually($storeData = null)
     {
         $this->execute($storeData);
-        $remainingRecords = (int)$this->getRemainingRecords($storeData, true);
+        $remainingRecords = (int)$this->getRemainingRecords(true);
         return [$remainingRecords];
     }
 
     /**
      * Item modifier processing
+     *
+     * @return void
      */
     public function processItemModifiers()
     {
@@ -235,7 +242,8 @@ class ProcessItemModifier
                                 $ls_modifier_recipe_id = LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode;
                                 if (!empty($existingOptions)) {
                                     foreach ($existingOptions as $existingOption) {
-                                        if ($existingOption->getData('ls_modifier_recipe_id') == $ls_modifier_recipe_id) {
+                                        if ($existingOption->getData('ls_modifier_recipe_id') ==
+                                            $ls_modifier_recipe_id) {
                                             $isOptionExist = true;
                                             $productOption = $existingOption;
                                             break;
@@ -265,7 +273,8 @@ class ProcessItemModifier
                                         $isOptionValueExist = false;
                                         if (!empty($existingOptionValues)) {
                                             foreach ($existingOptionValues as $existingOptionValue) {
-                                                if ($existingOptionValue->getTitle() == $optionValueData->getDescription()) {
+                                                if ($existingOptionValue->getTitle() ==
+                                                    $optionValueData->getDescription()) {
                                                     $isOptionValueExist = true;
                                                     break;
                                                 }
@@ -278,6 +287,24 @@ class ProcessItemModifier
                                                 ->setPriceType('fixed')
                                                 ->setSortOrder($subcode)
                                                 ->setPrice($optionValueData->getAmountPercent());
+
+                                            if (!empty($optionValueData->getTriggerCode())) {
+                                                $replImage = $this->hospitalityHelper->getImageGivenItem(
+                                                    $optionValueData->getTriggerCode(),
+                                                    $this->store->getId()
+                                                );
+
+                                                if ($replImage) {
+                                                    $swatchPath = $this->hospitalityHelper->getImage(
+                                                        $replImage->getImageId()
+                                                    );
+
+                                                    if (!empty($swatchPath)) {
+                                                        $optionValue->setSwatch($swatchPath);
+                                                    }
+                                                }
+
+                                            }
                                             $optionData['values'][] = $optionValue;
                                             $optionData['title']    = $title;
                                             $optionData ['code']    = $optionValueData->getCode();
@@ -301,8 +328,12 @@ class ProcessItemModifier
                                                 ->setIsRequire(0)
                                                 ->setType('drop_down')
                                                 ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
-                                                ->setProductSku($itemSKU);
-
+                                                ->setProductSku($itemSKU)
+                                                ->setSwatch(
+                                                    $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
+                                                        $optionData['values']
+                                                    )
+                                                );
                                             if (isset($dataToProcess[$optionData['code']])) {
                                                 if (isset($dataToProcess[$optionData['code']]['min_select']) &&
                                                     $dataToProcess[$optionData['code']]['min_select'] >= 1) {
@@ -338,7 +369,7 @@ class ProcessItemModifier
                     }
                 }
             }
-            $remainingItems = (int)$this->getRemainingRecords($this->store);
+            $remainingItems = (int)$this->getRemainingRecords();
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
@@ -348,12 +379,12 @@ class ProcessItemModifier
     }
 
     /**
-     * @param $storeData
-     * @param false $forceReload
+     * Get remaining records
+     *
+     * @param $forceReload
      * @return int
      */
     public function getRemainingRecords(
-        $storeData,
         $forceReload = false
     ) {
         if (!$this->remainingRecords || $forceReload) {

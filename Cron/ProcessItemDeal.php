@@ -142,10 +142,14 @@ class ProcessItemDeal
     }
 
     /**
-     * @param null $storeData
+     * Execute Manually
+     *
+     * @param $storeData
      * @return int[]
      * @throws InputException
+     * @throws LocalizedException
      * @throws NoSuchEntityException
+     * @throws StateException
      * @throws Zend_Db_Select_Exception
      */
     public function executeManually($storeData = null)
@@ -157,6 +161,8 @@ class ProcessItemDeal
     }
 
     /**
+     * Execute
+     *
      * @param null $storeData
      * @throws InputException
      * @throws LocalizedException
@@ -236,7 +242,9 @@ class ProcessItemDeal
     }
 
     /**
-     * @param false $forceReload
+     * Get Remaining Records
+     *
+     * @param $forceReload
      * @return int
      */
     public function getRemainingRecords(
@@ -251,6 +259,8 @@ class ProcessItemDeal
     }
 
     /**
+     * Cater deal lines add or update
+     *
      * @throws InputException
      * @throws NoSuchEntityException
      * @throws Zend_Db_Select_Exception
@@ -287,6 +297,8 @@ class ProcessItemDeal
     }
 
     /**
+     * Process item deals
+     *
      * @throws InputException
      * @throws NoSuchEntityException
      * @throws StateException
@@ -396,6 +408,8 @@ class ProcessItemDeal
     }
 
     /**
+     * Process item deal line
+     *
      * @param $product
      * @throws InputException
      */
@@ -456,9 +470,13 @@ class ProcessItemDeal
     }
 
     /**
+     * Create custom options for modifiers
+     *
      * @param $replHierarchyHospDeal
      * @param $replHierarchyHospDealLines
      * @param $product
+     * @return void
+     * @throws NoSuchEntityException
      */
     public function createCustomOptionsForModifiers(&$replHierarchyHospDeal, $replHierarchyHospDealLines, $product)
     {
@@ -481,9 +499,13 @@ class ProcessItemDeal
     }
 
     /**
+     * Create custom options for recipes
+     *
      * @param $replHierarchyHospDeal
      * @param $repItemRecipes
      * @param $product
+     * @return void
+     * @throws NoSuchEntityException
      */
     public function createCustomOptionsForRecipe(&$replHierarchyHospDeal, $repItemRecipes, $product)
     {
@@ -507,6 +529,8 @@ class ProcessItemDeal
     }
 
     /**
+     * Create custom option against given data
+     *
      * @param $description
      * @param $type
      * @param $required
@@ -536,7 +560,12 @@ class ProcessItemDeal
             ->setIsRequire($required)
             ->setSortOrder($sortOrder)
             ->setProductSku($sku)
-            ->setData('ls_modifier_recipe_id', $lsModifierRecipeId);
+            ->setData('ls_modifier_recipe_id', $lsModifierRecipeId)
+            ->setSwatch(
+                $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
+                    $values
+                )
+            );
         $savedProductOption = $this->optionRepository->save($productOption);
         $product->addOption($savedProductOption);
 
@@ -547,9 +576,12 @@ class ProcessItemDeal
     }
 
     /**
+     * Get custom options values
+     *
      * @param $dealLines
      * @param $type
-     * @return mixed
+     * @return array
+     * @throws NoSuchEntityException
      */
     public function getCustomOptionsValues($dealLines, $type)
     {
@@ -560,6 +592,15 @@ class ProcessItemDeal
             $optionValue->setTitle($dealLine->getDescription())
                 ->setPriceType('fixed')
                 ->setSortOrder($dealLine->getLineNo());
+
+            if (!empty($dealLine->getImageId())) {
+                $swatchPath = $this->hospitalityHelper->getImage($dealLine->getImageId());
+
+                if (!empty($swatchPath)) {
+                    $optionValue->setSwatch($swatchPath);
+                }
+            }
+
             $dealLine->setProcessed(1)
                 ->setProcessedAt($this->replicationHelper->getDateTime())
                 ->setIsUpdated(0);
@@ -578,7 +619,9 @@ class ProcessItemDeal
     }
 
     /**
-     * @param int $productBatchSize
+     * Get deals to process
+     *
+     * @param $productBatchSize
      * @return mixed
      */
     public function getDealsToProcess($productBatchSize = -1)
