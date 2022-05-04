@@ -28,8 +28,7 @@ $criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOpt
         <?php endif;?>
         <?php if ($criteria) : ?>
             <div class="custom-container">
-                <div class="custom-option-container"
-                     data-mage-init='{"options-modal": {}}'>
+                <div class="custom-option-container">
                     <div class="image-container">
                         <img class="notlazy" src="<?= $viewModel->getMediaUrl($_option->getSwatch())?>"
                              alt="<?= $escaper->escapeHtml($_option->getTitle()) ?>"/>

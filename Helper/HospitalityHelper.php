@@ -763,7 +763,7 @@ class HospitalityHelper extends AbstractHelper
         $image     = '';
         $imageSize = [
             'height' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_HEIGHT,
-            'width' => LSR::DEFAULT_IMAGE_WIDTH
+            'width' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
         ];
         /** @var ImageSize $imageSizeObject */
         $imageSizeObject = $this->loyaltyHelper->getImageSize($imageSize);

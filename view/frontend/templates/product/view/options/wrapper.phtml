@@ -12,7 +12,9 @@ if ($block->hasRequiredOptions()) {
     $required = ' data-hasrequired="' . $escaper->escapeHtmlAttr(__('* Required Fields')) . '"';
 }
 ?>
-<div class="product-options-wrapper<?= $criteria ? ' main-custom-options-wrapper' : ''?>" id="product-options-wrapper"<?= /* @noEscape */ $required ?>>
+<div class="product-options-wrapper<?= $criteria ? ' main-custom-options-wrapper' : ''?>"
+     id="product-options-wrapper"<?= /* @noEscape */ $required ?>
+    <?= $criteria ? 'data-mage-init=\'{"options-modal": {}}\'' : '' ?>>
     <div class="fieldset" tabindex="0">
         <?= $block->getChildHtml('', true) ?>
     </div>
