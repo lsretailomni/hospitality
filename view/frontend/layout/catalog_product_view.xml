@@ -15,8 +15,5 @@
                 <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomProduct</argument>
             </arguments>
         </referenceBlock>
-        <referenceContainer name="footer">
-            <block class="Magento\Framework\View\Element\Template" name="options-modal" as="options-modal" after="footer_links" template="Ls_Hospitality::options/modal.phtml"/>
-        </referenceContainer>
     </body>
 </page>
