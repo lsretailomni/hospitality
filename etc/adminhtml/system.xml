@@ -5,24 +5,79 @@
         <section id="ls_mag">
             <tab>ls_retail</tab>
             <resource>Ls_Core::config</resource>
-            <group id="hospitality" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1">
+            <group id="replication">
+                <field id="item_modifier_batch_size"
+                       translate="label"
+                       type="text"
+                       sortOrder="160"
+                       showInDefault="40"
+                       showInWebsite="0"
+                       showInStore="0">
+                    <label>Item Modifiers Batch Size</label>
+                    <comment>Select how many Modifiers you want to process in a single job</comment>
+                </field>
+                <field id="item_recipe_batch_size"
+                       translate="label"
+                       type="text"
+                       sortOrder="170"
+                       showInDefault="1"
+                       showInWebsite="0"
+                       showInStore="0">
+                    <label>Item Recipe Batch Size</label>
+                    <comment>Select how many Recipes you want to process in a single job</comment>
+                </field>
+            </group>
+            <group id="hospitality"
+                   translate="label"
+                   type="text"
+                   sortOrder="100"
+                   showInWebsite="1"
+                   showInDefault="0"
+                   showInStore="0">
                 <label>Hospitality</label>
-                <field id="service_mode_status" translate="label" type="select" sortOrder="1"
-                       showInWebsite="1">
+                <depends>
+                    <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                </depends>
+                <field id="service_mode_status"
+                       translate="label"
+                       type="select"
+                       sortOrder="10"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Service Mode Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="service_mode_options" translate="label" type="text" sortOrder="2" showInWebsite="1">
+                <field id="service_mode_options"
+                       translate="label"
+                       type="text"
+                       sortOrder="20"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Service Mode Options</label>
-                    <comment>Comma separated values for e.g Dine-In,Takeaway e.t.c</comment>
+                    <comment>Comma separated values for e.g. Dine-In,Takeaway e.t.c</comment>
+                    <depends>
+                        <field id="ls_mag/hospitality/service_mode_status">1</field>
+                    </depends>
                 </field>
-                <field id="order_tracking" translate="label" type="select" sortOrder="3"
-                       showInWebsite="1">
+                <field id="order_tracking"
+                       translate="label"
+                       type="select"
+                       sortOrder="30"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Show Order Tracking and Status on Success Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="delivery_salas_type" translate="label comment" type="select" sortOrder="4"
-                       showInWebsite="1">
+                <field id="delivery_salas_type"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="40"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Delivery Sales Type</label>
                     <validate>required-entry</validate>
                     <comment>For delivery orders</comment>
@@ -31,8 +86,13 @@
                     </depends>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
-                <field id="takeaway_sales_type" translate="label comment" type="select" sortOrder="5"
-                       showInWebsite="1">
+                <field id="takeaway_sales_type"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="50"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Takeaway Sales Type</label>
                     <validate>required-entry</validate>
                     <comment>For click and collect orders</comment>
@@ -41,36 +101,52 @@
                     </depends>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
-                <field id="show_in_checkout" sortOrder="9" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="show_in_checkout"
+                       sortOrder="60"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Show in checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Show order comments section in the checkout</comment>
                 </field>
-                <field id="max_length" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="max_length"
+                       translate="label"
+                       type="text"
+                       sortOrder="70"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Maximum length in characters</label>
                     <comment>Leave empty for no limit</comment>
+                    <depends>
+                        <field id="ls_mag/hospitality/show_in_checkout">1</field>
+                    </depends>
                 </field>
-                <field id="collapse_state" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="collapse_state"
+                       translate="label"
+                       type="select"
+                       sortOrder="80"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Initial collapse state on checkout page</label>
                     <source_model>Ls\Hospitality\Model\Order\Config\Source\Collapse</source_model>
+                    <depends>
+                        <field id="ls_mag/hospitality/show_in_checkout">1</field>
+                    </depends>
                 </field>
-                <field id="content_block" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="content_block"
+                       translate="label"
+                       type="select"
+                       sortOrder="90"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
                     <label>Content Block</label>
                     <source_model>Ls\Hospitality\Model\Config\Source\Block</source_model>
                     <comment>Content Block For QR Code Ordering Page</comment>
-                </field>
-            </group>
-            <group id="replication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
-                   showInStore="1">
-                <field id="item_modifier_batch_size" translate="label" type="text" sortOrder="2" showInDefault="40"
-                       showInWebsite="0" showInStore="0">
-                    <label>Item Modifiers Batch Size</label>
-                    <comment>Select how much Modifiers you want to process in a single job</comment>
-                </field>
-                <field id="item_recipe_batch_size" translate="label" type="text" sortOrder="3" showInDefault="1"
-                       showInWebsite="0" showInStore="0">
-                    <label>Item Recipe Batch Size</label>
-                    <comment>Select how much Recipes you want to process in a single job</comment>
                 </field>
             </group>
         </section>
