@@ -2,9 +2,11 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
+use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
+use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Checkout\Model\Session\Proxy as CheckoutSessionProxy;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -48,7 +50,7 @@ class DataProviderPlugin
      *
      * @param DataProvider $subject
      * @param callable $proceed
-     * @return void
+     * @return Collection
      * @throws NoSuchEntityException
      */
     public function aroundGetStores(
@@ -57,21 +59,31 @@ class DataProviderPlugin
     ) {
         $salesTypeStoreIdArray = [];
         $storeHoursArray       = [];
-        if ($subject->lsr->getCurrentIndustry($subject->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+
+        if ($subject->lsr->getCurrentIndustry($subject->getStoreId()) != LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed();
         }
         $takeAwaySalesType = $this->lsr->getTakeAwaySalesType();
         $allStores         = $this->storeHelper->getAllStores($subject->getStoreId());
+
         foreach ($allStores as $store) {
             if ($this->checkSalesType($store->getHospSalesTypes()->getSalesType(), $takeAwaySalesType) &&
-                $store->getIsClickAndCollect() == true) {
+                $store->getIsClickAndCollect()) {
                 $webStoreId                   = $store->getId();
                 $salesTypeStoreIdArray[]      = $webStoreId;
-                $storeHoursArray[$webStoreId] = $this->storeHelper->formatDateTimeSlotsValues($store->getStoreHours());
+                if ($this->lsr->isPickupTimeslotsEnabled()) {
+                    $storeHoursArray[$webStoreId] = $this->storeHelper->formatDateTimeSlotsValues(
+                        $store->getStoreHours()
+                    );
+                }
             }
         }
+
         if (!empty($salesTypeStoreIdArray)) {
-            $this->checkoutSession->setStorePickupHours($storeHoursArray);
+            if (!empty($storeHoursArray)) {
+                $this->checkoutSession->setStorePickupHours($storeHoursArray);
+            }
+
             return $subject->storeCollectionFactory
                 ->create()
                 ->addFieldToFilter('nav_id', array(

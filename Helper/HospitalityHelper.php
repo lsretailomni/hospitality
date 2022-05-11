@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Helper;
 
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
 use \Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
 use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
 use \Ls\Omni\Client\Ecommerce\Operation;
@@ -710,6 +711,10 @@ class HospitalityHelper extends AbstractHelper
             }
 
             if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                    $estimatedTime = 0;
+                }
+
                 $status = $this->lsr->kitchenStatusMapping()[$status];
             }
 

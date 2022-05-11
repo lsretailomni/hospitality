@@ -197,7 +197,7 @@ class LSR extends \Ls\Core\Model\LSR
             KOTStatus::SERVED      => __("Your order has been served"),
             KOTStatus::VOIDED      => __("Order is cancelled"),
             KOTStatus::POSTED      => __("Order completed"),
-            KOTStatus::NONE        => ''
+            KOTStatus::NONE        => __("Order completed")
         ];
     }
 
