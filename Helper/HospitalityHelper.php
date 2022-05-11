@@ -12,6 +12,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\LoyaltyHelper;
+use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
@@ -134,6 +135,11 @@ class HospitalityHelper extends AbstractHelper
     public $registry;
 
     /**
+     * @var ReplHierarchyHospDealLineRepositoryInterface
+     */
+    public $replHierarchyHospDealLineRepository;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -155,6 +161,7 @@ class HospitalityHelper extends AbstractHelper
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param StoreManagerInterface $storeManager
      * @param Registry $registry
+     * @param ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
      */
     public function __construct(
         Context $context,
@@ -177,7 +184,8 @@ class HospitalityHelper extends AbstractHelper
         ReplImageLinkRepositoryInterface $replImageLinkRepository,
         ProductCustomOptionRepositoryInterface $optionRepository,
         StoreManagerInterface $storeManager,
-        Registry $registry
+        Registry $registry,
+        ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -200,6 +208,7 @@ class HospitalityHelper extends AbstractHelper
         $this->optionRepository                           = $optionRepository;
         $this->storeManager                               = $storeManager;
         $this->registry                                   = $registry;
+        $this->replHierarchyHospDealLineRepository        = $replHierarchyHospDealLineRepository;
     }
 
     /**
@@ -208,6 +217,7 @@ class HospitalityHelper extends AbstractHelper
      * @param $quoteItem
      * @param $lineNumber
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
     {
@@ -258,14 +268,17 @@ class HospitalityHelper extends AbstractHelper
                 if (isset($option['ls_modifier_recipe_id'])) {
                     continue;
                 }
-
+                $dealLineId = $this->getCustomOptionSortOrder($product, $option['option_id']);
+                $dealModLineId = $this->getCustomOptionValueSortOrder(
+                    $product,
+                    $option['option_id'],
+                    trim($option['value'])
+                );
+                $uom = $this->getDealLineUomGivenData($product->getSku(), $dealLineId, $dealModLineId);
                 $selectedOrderHospSubLine['deal'][] = [
-                    'DealLineId'    => $this->getCustomOptionSortOrder($product, $option['option_id']),
-                    'DealModLineId' => $this->getCustomOptionValueSortOrder(
-                        $product,
-                        $option['option_id'],
-                        trim($option['value'])
-                    )
+                    'DealLineId'    => $dealLineId,
+                    'DealModLineId' => $dealModLineId,
+                    'uom'         => $uom
                 ];
                 unset($selectedOptionsOfQuoteItem[$index]);
             }
@@ -356,6 +369,7 @@ class HospitalityHelper extends AbstractHelper
      * @param $item
      * @param $index
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isSameAsSelectedLine(OrderHospLine $line, $item, $index)
     {
@@ -864,5 +878,34 @@ class HospitalityHelper extends AbstractHelper
     public function getCurrentProduct()
     {
         return $this->registry->registry('current_product');
+    }
+
+    /**
+     * Get deal line uom
+     *
+     * @param $sku
+     * @param $dealLineId
+     * @param $dealModLineId
+     * @return null
+     * @throws NoSuchEntityException
+     */
+    public function getDealLineUomGivenData($sku, $dealLineId, $dealModLineId)
+    {
+        $uom = null;
+        $filterForDealLine  = [
+            ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
+            ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
+            ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
+            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentStoreId(), 'condition_type' => 'eq']
+        ];
+        $criteria = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
+        $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
+
+        if ($replHierarchyHospDealLines->getTotalCount() > 0) {
+            $dealLine = current($replHierarchyHospDealLines->getItems());
+            $uom =  $dealLine->getUnitOfMeasure();
+        }
+
+        return $uom;
     }
 }
