@@ -8,6 +8,7 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Checkout\Model\Session\Proxy as CheckoutSessionProxy;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -51,7 +52,7 @@ class DataProviderPlugin
      * @param DataProvider $subject
      * @param callable $proceed
      * @return Collection
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function aroundGetStores(
         DataProvider $subject,
@@ -83,14 +84,32 @@ class DataProviderPlugin
             if (!empty($storeHoursArray)) {
                 $this->checkoutSession->setStorePickupHours($storeHoursArray);
             }
+            if (!$subject->availableStoresOnlyEnabled()) {
+                return $subject->storeCollectionFactory
+                    ->create()
+                    ->addFieldToFilter('nav_id', [
+                        'in' => implode(',', $salesTypeStoreIdArray),
+                    ])
+                    ->addFieldToFilter('scope_id', $subject->getStoreId())
+                    ->addFieldToFilter('ClickAndCollect', 1);
+            } else {
+                $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
+                list($response) = $subject->stockHelper->getGivenItemsStockInGivenStore($items);
 
-            return $subject->storeCollectionFactory
-                ->create()
-                ->addFieldToFilter('nav_id', array(
-                    'in' => implode(',', $salesTypeStoreIdArray),
-                ))
-                ->addFieldToFilter('scope_id', $subject->getStoreId())
-                ->addFieldToFilter('ClickAndCollect', 1);
+                if ($response) {
+                    if (is_object($response)) {
+                        if (!is_array($response->getInventoryResponse())) {
+                            $response = [$response->getInventoryResponse()];
+                        } else {
+                            $response = $response->getInventoryResponse();
+                        }
+                    }
+                }
+
+                $subject->filterClickAndCollectStores($response, $salesTypeStoreIdArray);
+            }
+
+            return $subject->filterStoresOnTheBasisOfQty($response, $items);
         }
 
         return $proceed();

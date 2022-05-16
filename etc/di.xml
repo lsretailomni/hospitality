@@ -70,6 +70,11 @@
         <plugin name="ls_hospitaity_omni_orderhelper"
                 type="Ls\Hospitality\Plugin\Omni\Helper\OrderHelperPlugin"/>
     </type>
+    <!-- To override stock helper from core -->
+    <type name="Ls\Omni\Helper\StockHelper">
+        <plugin name="ls_hospitaity_omni_stockhelper"
+                type="Ls\Hospitality\Plugin\Omni\Helper\StockHelperPlugin"/>
+    </type>
     <!-- For Service Mode -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="ls_hospitality_saveServiceModeToQuote"
