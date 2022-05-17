@@ -75,6 +75,11 @@
         <plugin name="ls_hospitaity_omni_stockhelper"
                 type="Ls\Hospitality\Plugin\Omni\Helper\StockHelperPlugin"/>
     </type>
+    <!-- To override Replication helper from core -->
+    <type name="Ls\Replication\Helper\ReplicationHelper">
+        <plugin name="ls_hospitaity_replication_replicationhelper"
+                type="Ls\Hospitality\Plugin\Replication\Helper\ReplicationHelperPlugin"/>
+    </type>
     <!-- For Service Mode -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="ls_hospitality_saveServiceModeToQuote"

@@ -2,9 +2,8 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
+use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Helper\StockHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -21,14 +20,13 @@ class StockHelperPlugin
     /**
      * @param HospitalityHelper $hospitalityHelper
      */
-    public function __construct(
-        HospitalityHelper $hospitalityHelper
-    ) {
+    public function __construct(HospitalityHelper $hospitalityHelper)
+    {
         $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
-     * Around plugin to filter out deal type items before inventory lookup call
+     * Around plugin to get main deal item sku and pass it
      *
      * @param StockHelper $subject
      * @param $proceed
@@ -40,7 +38,7 @@ class StockHelperPlugin
     public function aroundGetGivenItemsStockInGivenStore(StockHelper $subject, $proceed, $items, $storeId = '')
     {
         if ($this->hospitalityHelper->getLSR()->getCurrentIndustry()
-            != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed(
                 $items,
@@ -50,7 +48,7 @@ class StockHelperPlugin
 
         $stockCollection = [];
 
-        foreach ($items as $i => &$item) {
+        foreach ($items as &$item) {
             $itemQty = $item->getQty();
             list($parentProductSku, $childProductSku, , , $uomQty) = $subject->itemHelper->getComparisonValues(
                 $item->getProductId(),
@@ -61,22 +59,16 @@ class StockHelperPlugin
                 $itemQty = $itemQty * $uomQty;
             }
             $sku            = $item->getSku();
-            $searchCriteria = $this->hospitalityHelper->searchCriteriaBuilder->addFilter(
-                'sku',
-                $sku,
-                'eq'
-            )->create();
+            $product = $this->hospitalityHelper->getProductFromRepositoryGivenSku($sku);
 
-            $productList = $this->hospitalityHelper->productRepository->getList($searchCriteria)->getItems();
+            if ($product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
+                $lineNo = $this->hospitalityHelper->getMealMainItemSku($product->getSku());
 
-            $product = array_pop($productList);
-
-            if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
-                $stockCollection[] = [
-                    'sku' => $sku, 'name' => $item->getName(), 'qty' => $itemQty, 'type' => SubLineType::DEAL
-                ];
-                unset($items[$i]);
-                continue;
+                if ($lineNo) {
+                    $stockCollection[] = [
+                        'sku' => $lineNo, 'name' => $item->getName(), 'qty' => $itemQty
+                    ];
+                }
             } else {
                 $stockCollection[] = ['sku' => $sku, 'name' => $item->getName(), 'qty' => $itemQty];
             }
@@ -91,27 +83,37 @@ class StockHelperPlugin
     }
 
     /**
-     * After plugin to add all deal type items status
+     * Before plugin to replace all deal type items sku
      *
      * @param StockHelper $subject
-     * @param $result
-     * @param $response
-     * @param $stockCollection
-     * @return mixed
+     * @param $storeId
+     * @param $items
+     * @return array
+     * @throws NoSuchEntityException
      */
-    public function afterUpdateStockCollection(
-        StockHelper $subject,
-        $result,
-        $response,
-        $stockCollection
-    ) {
-        foreach ($result as &$values) {
-            if (isset($values['type']) && $values['type'] == SubLineType::DEAL) {
-                $values['status']  = '1';
-                $values['display'] = __('This item is available');
+    public function beforeGetItemsStockInStoreFromSourcingLocation(StockHelper $subject, $storeId, $items)
+    {
+        if ($this->hospitalityHelper->getLSR()->getCurrentIndustry()
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
+            return [$storeId, $items];
+        }
+
+        foreach ($items as &$item) {
+            if (isset($item['parent'])) {
+                $product = $this->hospitalityHelper->getProductFromRepositoryGivenSku($item['parent']);
+
+                if ($product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
+                    $lineNo = $this->hospitalityHelper->getMealMainItemSku($item['parent']);
+
+                    if ($lineNo) {
+                        $item['parent'] = $lineNo;
+                    }
+                }
+
             }
         }
 
-        return $result;
+        return [$storeId, $items];
     }
 }

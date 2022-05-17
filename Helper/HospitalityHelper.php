@@ -224,12 +224,8 @@ class HospitalityHelper extends AbstractHelper
         $lineNumber *= 10000;
         $sku        = $quoteItem->getSku();
 
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku, 'eq')->create();
-
-        $productList = $this->productRepository->getList($searchCriteria)->getItems();
-
         /** @var Interceptor $product */
-        $product = array_pop($productList);
+        $product = $this->getProductFromRepositoryGivenSku($sku);
 
         $uom     = $product->getAttributeText('lsr_uom');
         $itemSku = explode("-", $sku);
@@ -597,6 +593,24 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get All Deals Given Main Item Sku And scope
+     *
+     * @param $mainItemSku
+     * @param $scopeId
+     * @return mixed
+     */
+    public function getAllDealsGivenMainItemSku($mainItemSku, $scopeId)
+    {
+        return $this->replHierarchyHospDealRepository->getList(
+            $this->searchCriteriaBuilder
+                ->addFilter('No', $mainItemSku)
+                ->addFilter('Type', 'Item')
+                ->addFilter('scope_id', $scopeId)
+                ->create()
+        )->getItems();
+    }
+
+    /**
      * Get selected custom option sort order
      *
      * @param $product
@@ -907,5 +921,32 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return $uom;
+    }
+
+    /**
+     * Get meal item main item sku
+     *
+     * @param $sku
+     * @return null
+     */
+    public function getMealMainItemSku($sku)
+    {
+        $mainDealLine = current($this->getMainDealLine($sku));
+
+        return $mainDealLine ? $mainDealLine->getNo() : null;
+    }
+
+    /**
+     * Get product given sku
+     *
+     * @param $sku
+     * @return mixed|null
+     */
+    public function getProductFromRepositoryGivenSku($sku)
+    {
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku)->create();
+        $productList = $this->productRepository->getList($searchCriteria)->getItems();
+
+        return array_pop($productList);
     }
 }
