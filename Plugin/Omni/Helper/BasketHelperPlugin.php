@@ -109,6 +109,7 @@ class BasketHelperPlugin
                         ->setDealLineId($subLine['DealLineId'] ?? null)
                         ->setDealModLineId($subLine['DealModLineId'] ?? null)
                         ->setLineNumber($subLine['LineNumber'] ?? null)
+                        ->setUom($subLine['uom'] ?? null)
                         ->setQuantity(1)
                         ->setType(SubLineType::DEAL);
                     $oneListSubLinesArray[] = $oneListSubLine;
