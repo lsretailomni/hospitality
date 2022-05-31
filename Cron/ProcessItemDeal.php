@@ -314,6 +314,11 @@ class ProcessItemDeal
 
         /* @var  ReplHierarchyLeaf $item */
         foreach ($replHierarchyLeaves->getItems() as $item) {
+            $storeId = $this->lsr->getStoreConfig(
+                \Ls\Core\Model\LSR::SC_SERVICE_STORE,
+                $this->store->getId()
+            );
+            $lineNo  = $this->hospitalityHelper->getMealMainItemSku($item->getNavId());
             try {
                 $productData     = $this->productRepository->get(
                     $item->getNavId(),
@@ -331,11 +336,19 @@ class ProcessItemDeal
                 $productData->setName($item->getDescription());
                 $productData->setMetaTitle($item->getDescription());
                 $productData->setPrice($item->getDealPrice());
-                $productData->setStockData([
-                    'use_config_manage_stock' => 1,
-                    'is_in_stock'             => $item->getIsActive(),
-                    'qty'                     => 100
-                ]);
+
+                if ($lineNo) {
+                    $itemStock = $this->replicationHelper->getInventoryStatus(
+                        $lineNo,
+                        $storeId,
+                        $this->store->getId()
+                    );
+                    $productData->setStockData([
+                        'use_config_manage_stock' => 1,
+                        'is_in_stock'             => ($itemStock > 0) ? 1 : 0,
+                        'qty'                     => $itemStock
+                    ]);
+                }
 
                 try {
                     // @codingStandardsIgnoreLine
@@ -377,11 +390,19 @@ class ProcessItemDeal
                 );
                 $product->setAttributeSetId($attributeSetId);
                 $product->setTypeId(Type::TYPE_SIMPLE);
-                $product->setStockData([
-                    'use_config_manage_stock' => 1,
-                    'is_in_stock'             => $item->getIsActive(),
-                    'qty'                     => 100
-                ]);
+
+                if ($lineNo) {
+                    $itemStock = $this->replicationHelper->getInventoryStatus(
+                        $lineNo,
+                        $storeId,
+                        $this->store->getId()
+                    );
+                    $product->setStockData([
+                        'use_config_manage_stock' => 1,
+                        'is_in_stock'             => ($itemStock > 0) ? 1 : 0,
+                        'qty'                     => $itemStock
+                    ]);
+                }
                 try {
                     // @codingStandardsIgnoreLine
                     $this->logger->debug('Trying to save product ' . $item->getNavId() . ' in store ' . $this->store->getName());
