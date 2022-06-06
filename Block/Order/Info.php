@@ -4,17 +4,17 @@ namespace Ls\Hospitality\Block\Order;
 
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Model\LSR as HospitalityLsr;
+use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
 use \Ls\Omni\Helper\Data as DataHelper;
-use Magento\Customer\Model\Session\Proxy;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Http\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Pricing\Helper\Data;
-use Magento\Framework\Registry;
-use Magento\Framework\View\Element\Template\Context as TemplateContext;
+use Magento\Framework\Pricing\Helper\Data as PriceHelper;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\OrderRepository;
+use Magento\Framework\View\Element\Template\Context;
 
 /**
  * Overriding the Info block to change the page title on hospitality
@@ -28,48 +28,47 @@ class Info extends \Ls\Customer\Block\Order\Info
     public $hospitalityLsr;
 
     /**
-     * Info constructor.
-     * @param TemplateContext $context
-     * @param Registry $registry
-     * @param CountryFactory $countryFactory
-     * @param Data $priceHelper
-     * @param OrderRepository $orderRepository
-     * @param OrderHelper $orderHelper
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param Proxy $customerSession
-     * @param Context $httpContext
+     * @param Context $context
+     * @param PriceCurrencyInterface $priceCurrency
+     * @param LoyaltyHelper $loyaltyHelper
      * @param LSR $lsr
-     * @param HospitalityLsr $hospitalityLsr
+     * @param OrderHelper $orderHelper
      * @param DataHelper $dataHelper
+     * @param PriceHelper $priceHelper
+     * @param OrderRepository $orderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param CustomerSession $customerSession
+     * @param CountryFactory $countryFactory
+     * @param HospitalityLsr $hospitalityLsr
      * @param array $data
      */
     public function __construct(
-        TemplateContext $context,
-        Registry $registry,
-        CountryFactory $countryFactory,
-        Data $priceHelper,
-        OrderRepository $orderRepository,
+        Context $context,
+        PriceCurrencyInterface $priceCurrency,
+        LoyaltyHelper $loyaltyHelper,
+        LSR $lsr,
         OrderHelper $orderHelper,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        Proxy $customerSession,
-        Context $httpContext,
-        Lsr $lsr,
-        HospitalityLsr $hospitalityLsr,
         DataHelper $dataHelper,
+        PriceHelper $priceHelper,
+        OrderRepository $orderRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        CustomerSession $customerSession,
+        CountryFactory $countryFactory,
+        HospitalityLsr $hospitalityLsr,
         array $data = []
     ) {
         parent::__construct(
             $context,
-            $registry,
-            $countryFactory,
+            $priceCurrency,
+            $loyaltyHelper,
+            $lsr,
+            $orderHelper,
+            $dataHelper,
             $priceHelper,
             $orderRepository,
-            $orderHelper,
             $searchCriteriaBuilder,
             $customerSession,
-            $httpContext,
-            $lsr,
-            $dataHelper,
+            $countryFactory,
             $data
         );
 

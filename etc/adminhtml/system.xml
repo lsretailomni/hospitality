@@ -30,13 +30,14 @@
             <group id="hospitality"
                    translate="label"
                    type="text"
-                   sortOrder="100"
+                   sortOrder="170"
                    showInWebsite="1"
                    showInDefault="0"
                    showInStore="0">
                 <label>Hospitality</label>
                 <depends>
                     <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    <field id="ls_mag/ls_enable/enabled">1</field>
                 </depends>
                 <field id="service_mode_status"
                        translate="label"
