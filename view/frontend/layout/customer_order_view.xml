@@ -9,8 +9,6 @@
                     <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\CustomerOrderInfo</argument>
                 </arguments>
             </block>
-            <referenceBlock name="custom_order_items" template="Ls_Hospitality::customer/order/items.phtml">
-            </referenceBlock>
         </referenceContainer>
     </body>
 </page>
