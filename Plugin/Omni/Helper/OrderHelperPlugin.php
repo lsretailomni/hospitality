@@ -260,10 +260,30 @@ class OrderHelperPlugin
      */
     public function afterGetDocumentIdGivenSalesEntry(OrderHelper $subject, $result, $salesEntry)
     {
-        if ($subject->lsr->getCurrentIndustry() != \Ls\Hospitality\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $result;
         }
 
         return $salesEntry->getId();
+    }
+
+    /**
+     * Around plugin for fetch order from Central using supported method for hospitality
+     *
+     * @param OrderHelper $subject
+     * @param $proceed
+     * @param $docId
+     * @param $type
+     * @return Entity\SalesEntry|Entity\SalesEntryGetResponse|ResponseInterface|mixed|null
+     * @throws InvalidEnumException
+     * @throws NoSuchEntityException
+     */
+    public function aroundFetchOrder(OrderHelper $subject, $proceed, $docId, $type)
+    {
+        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($docId, $type);
+        }
+
+        return  $subject->getOrderDetailsAgainstId($docId, $type);
     }
 }
