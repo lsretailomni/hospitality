@@ -8,15 +8,17 @@ use \Ls\Replication\Ui\DataProvider\CronsProvider;
 use Magento\Store\Model\ScopeInterface;
 
 /**
- * Plugin for CronsProviderPlugin
+ * Plugin for CronsProvider
  */
 class CronsProviderPlugin
 {
 
     /**
+     * After plugin to intercept readCronFile
+     *
      * @param CronsProvider $subject
-     * @param $result
-     * @return array
+     * @param mixed $result
+     * @return array|mixed
      */
     public function afterReadCronFile(CronsProvider $subject, $result)
     {
@@ -27,23 +29,26 @@ class CronsProviderPlugin
             // merge both data.
             return array_merge($hospitalityJobs, $result);
         } catch (Exception $e) {
+            $subject->logger->debug($e);
             // just return base data.
             return $result;
         }
     }
 
     /**
+     * After plugin to intercept getStatusByCronCode
+     *
      * @param CronsProvider $subject
-     * @param $result
-     * @param null $cronName
-     * @param null $storeId
+     * @param mixed $result
+     * @param string $cronName
+     * @param string $storeId
      * @return string
      */
     public function afterGetStatusByCronCode(
         CronsProvider $subject,
         $result,
-        $cronName = null,
-        $storeId = null
+        $cronName,
+        $storeId
     ) {
         if ($cronName == 'process_item_modifier') {
             $fullReplicationStatus = $subject->lsr->getConfigValueFromDb(
@@ -71,6 +76,7 @@ class CronsProviderPlugin
             );
             $result                = $fullReplicationStatus;
         }
+
         return $result;
     }
 }
