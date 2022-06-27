@@ -7,7 +7,7 @@ use \Ls\Hospitality\Model\LSR as HospitalityLsr;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
 use \Ls\Omni\Helper\Data as DataHelper;
-use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Customer\Model\Session;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -21,7 +21,6 @@ use Magento\Framework\View\Element\Template\Context;
  */
 class Info extends \Ls\Customer\Block\Order\Info
 {
-
     /**
      * @var HospitalityLsr
      */
@@ -37,7 +36,7 @@ class Info extends \Ls\Customer\Block\Order\Info
      * @param PriceHelper $priceHelper
      * @param OrderRepository $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param CustomerSession $customerSession
+     * @param Session $customerSession
      * @param CountryFactory $countryFactory
      * @param HospitalityLsr $hospitalityLsr
      * @param array $data
@@ -52,7 +51,7 @@ class Info extends \Ls\Customer\Block\Order\Info
         PriceHelper $priceHelper,
         OrderRepository $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        CustomerSession $customerSession,
+        Session $customerSession,
         CountryFactory $countryFactory,
         HospitalityLsr $hospitalityLsr,
         array $data = []
@@ -77,6 +76,7 @@ class Info extends \Ls\Customer\Block\Order\Info
 
     /**
      * @inheritDoc
+     *
      * @throws NoSuchEntityException
      */
     protected function _prepareLayout()
