@@ -57,17 +57,29 @@ class OrderHelperPlugin
      * @param OrderHelper $subject
      * @param callable $proceed
      * @param Model\Order $order
-     * @param $oneListCalculateResponse
+     * @param mixed $oneListCalculateResponse
      * @return Entity\OrderHospCreate
+     * @throws NoSuchEntityException
      */
-    public function aroundPrepareOrder(OrderHelper $subject, callable $proceed, Model\Order $order, $oneListCalculateResponse)
-    {
+    public function aroundPrepareOrder(
+        OrderHelper $subject,
+        callable $proceed,
+        Model\Order $order,
+        $oneListCalculateResponse
+    ) {
+        if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($order, $oneListCalculateResponse);
+        }
+        // @codingStandardsIgnoreLine
+        $request         = new Entity\OrderHospCreate();
+        $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
         try {
-            if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-                return $proceed($order, $oneListCalculateResponse);
-            }
-            $storeId = $oneListCalculateResponse->getStoreId();
-            $cardId  = $oneListCalculateResponse->getCardId();
+            $storeId       = $oneListCalculateResponse->getStoreId();
+            $cardId        = $oneListCalculateResponse->getCardId();
+            $customerEmail = $order->getCustomerEmail();
+            $customerName  = $order->getBillingAddress()->getFirstname() . ' ' .
+                $order->getBillingAddress()->getLastname();
+            $billToName    = $customerName;
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
             $shippingMethod          = $order->getShippingMethod(true);
@@ -105,8 +117,8 @@ class OrderHelperPlugin
                 $comment .= $orderComment;
             }
 
-            if(!empty($comment)) {
-               $comment = nl2br($comment);
+            if (!empty($comment)) {
+                $comment = nl2br($comment);
             }
 
             $oneListCalculateResponse
@@ -114,22 +126,21 @@ class OrderHelperPlugin
                 ->setStoreId($storeId)
                 ->setRestaurantNo($storeId)
                 ->setPickUpTime($pickupDateTime)
-                ->setComment($comment);
-
+                ->setComment($comment)
+                ->setEmail($customerEmail)
+                ->setName($customerName)
+                ->setBillToName($billToName);
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
-            $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
             $orderLinesArray = $subject->updateShippingAmount($orderLinesArray, $order);
-            // @codingStandardsIgnoreLine
-            $request = new Entity\OrderHospCreate();
-            $oneListCalculateResponse->setOrderLines($orderLinesArray);
-            $request->setRequest($oneListCalculateResponse);
-
-            return $request;
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
+        $oneListCalculateResponse->setOrderLines($orderLinesArray);
+        $request->setRequest($oneListCalculateResponse);
+
+        return $request;
     }
 
     /**
