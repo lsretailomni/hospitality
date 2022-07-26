@@ -10,3 +10,12 @@ type CustomizableDropDownValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
 }
+
+type Cart {
+    pickup_store: StoreInfo @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Cart\\StoreInfoOutput") @doc(description: "Fetch Pickup StoreId from Quote.")
+}
+
+type StoreInfo @doc(description: "Defines the pick up store id and store name.") {
+    store_id: String @doc(description: "To fetch store id")
+    store_name: String @doc(description: "To fetch store name")
+}
