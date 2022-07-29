@@ -18,4 +18,5 @@ type Cart {
 type StoreInfo @doc(description: "Defines the pick up store id and store name.") {
     store_id: String @doc(description: "To fetch store id")
     store_name: String @doc(description: "To fetch store name")
+    pickup_date_timeslot: String @doc(description: "To fetch pickup date and time")
 }
