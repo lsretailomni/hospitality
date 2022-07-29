@@ -7,3 +7,15 @@ type CustomizableMultipleValue {
 type CustomizableDropDownValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
 }
+
+type StoreConfig {
+    ls_mag_hospitality_service_mode_status: String @doc(description: "To fetch service module status.")
+    ls_mag_hospitality_service_mode_options: String @doc(description: "To fetch service module options.")
+    ls_mag_hospitality_order_tracking: String @doc(description: "To fetch order tracking and status section status on success page.")
+    ls_mag_hospitality_takeaway_sales_type: String @doc(description: "To fetch the configured takeaway sales type.")
+    ls_mag_hospitality_delivery_salas_type: String @doc(description: "To fetch the configured delivery sales type.")
+    ls_mag_hospitality_show_in_checkout: String @doc(description: "To fetch order comments & status section status on success page.")
+    ls_mag_hospitality_max_length: String @doc(description: "To fetch order comment allowable max length.")
+    ls_mag_hospitality_collapse_state: String @doc(description: "To fetch initial collapse status of order comments.")
+    ls_mag_hospitality_content_block: String @doc(description: "To fetch content block for QR Code Ordering Page.")
+}
