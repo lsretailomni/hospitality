@@ -4,4 +4,9 @@
     <type name="Ls\OmniGraphQl\Helper\DataHelper">
         <plugin name="custom_omni_graphql_data_helper" type="Ls\Hospitality\Plugin\OmniGraphQl\Helper\DataHelperPlugin"/>
     </type>
+
+    <type name="Magento\QuoteGraphQl\Model\Resolver\AvailablePaymentMethods">
+        <plugin name="clickandcollect_available_payment_methods" type="Ls\Hospitality\Plugin\QuoteGraphQl\Resolver\AvailablePaymentMethodsPlugin"
+                sortOrder="1"/>
+    </type>
 </config>
