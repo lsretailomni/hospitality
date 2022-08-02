@@ -20,9 +20,6 @@
                 <collapse_state>0</collapse_state>
                 <max_length>150</max_length>
             </hospitality>
-            <delivery_pickup_date_time>
-                <stock_validation_active>1</stock_validation_active>
-            </delivery_pickup_date_time>
         </ls_mag>
     </default>
 </config>
