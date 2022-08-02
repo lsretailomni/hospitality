@@ -158,7 +158,12 @@
                     <source_model>Ls\Hospitality\Model\Config\Source\Block</source_model>
                     <comment>Content Block For QR Code Ordering Page</comment>
                 </field>
-
+                <group id="delivery_pickup_date_time">
+                    <field id="stock_validation_active" translate="label" type="select"  sortOrder="6" showInWebsite="1">
+                        <label>Enable Stock Validation Before Order Creation</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                </group>
             </group>
         </section>
     </system>

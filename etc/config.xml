@@ -21,6 +21,9 @@
                 <max_length>150</max_length>
                 <dateandtime_range_validation_active>0</dateandtime_range_validation_active>
             </hospitality>
+            <delivery_pickup_date_time>
+                <stock_validation_active>1</stock_validation_active>
+            </delivery_pickup_date_time>
         </ls_mag>
     </default>
 </config>
