@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Ls\Hospitality\Model\Resolver\Cart;
 
 use \Ls\Omni\Helper\Data as DataHelper;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
@@ -22,9 +23,11 @@ class StoreInfoOutput implements ResolverInterface
      * @param DataHelper $dataHelper
      */
     public function __construct(
-        DataHelper $dataHelper
+        DataHelper $dataHelper,
+        CheckoutSession $checkoutSession
     ) {
-        $this->dataHelper = $dataHelper;
+        $this->dataHelper       = $dataHelper;
+        $this->checkoutSession  = $checkoutSession;
     }
 
     /**
@@ -51,8 +54,7 @@ class StoreInfoOutput implements ResolverInterface
     ) {
 
         $storeInfo = [];
-        $cart = $value['model'];
-        $cartId = $cart->getId();
+        $cart   = $this->checkoutSession->getQuote();
         $pickupStoreId = $cart->getPickupStore();
         $pickupStoreName = ($pickupStoreId) ? $this->dataHelper->getStoreNameById($pickupStoreId) : "";
 

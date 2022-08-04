@@ -11,7 +11,7 @@ type CustomizableDropDownValue {
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
 }
 
-type Cart {
+type SelectedShippingMethod {
     pickup_store: StoreInfo @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Cart\\StoreInfoOutput") @doc(description: "Fetch Pickup StoreId from Quote.")
 }
 
