@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <head>
-        <css src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" src_type="url"/>
-    </head>
     <body>
         <referenceBlock name="product.info.options.wrapper" template="Ls_Hospitality::product/view/options/wrapper.phtml">
             <arguments>
