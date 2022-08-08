@@ -5,5 +5,19 @@
         <plugin name="custom_omni_graphql_data_helper" type="Ls\Hospitality\Plugin\OmniGraphQl\Helper\DataHelperPlugin"/>
     </type>
 
-
+    <type name="Magento\StoreGraphQl\Model\Resolver\Store\StoreConfigDataProvider">
+        <arguments>
+            <argument name="extendedConfigData">
+                <item name="ls_mag_hospitality_service_mode_status" xsi:type="string">ls_mag/hospitality/service_mode_status</item>
+                <item name="ls_mag_hospitality_service_mode_options" xsi:type="string">ls_mag/hospitality/service_mode_options</item>
+                <item name="ls_mag_hospitality_order_tracking" xsi:type="string">ls_mag/hospitality/order_tracking</item>
+                <item name="ls_mag_hospitality_takeaway_sales_type" xsi:type="string">ls_mag/hospitality/takeaway_sales_type</item>
+                <item name="ls_mag_hospitality_delivery_salas_type" xsi:type="string">ls_mag/hospitality/delivery_salas_type</item>
+                <item name="ls_mag_hospitality_show_in_checkout" xsi:type="string">ls_mag/hospitality/show_in_checkout</item>
+                <item name="ls_mag_hospitality_max_length" xsi:type="string">ls_mag/hospitality/max_length</item>
+                <item name="ls_mag_hospitality_collapse_state" xsi:type="string">ls_mag/hospitality/collapse_state</item>
+                <item name="ls_mag_hospitality_content_block" xsi:type="string">ls_mag/hospitality/content_block</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
