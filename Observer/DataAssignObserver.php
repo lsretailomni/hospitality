@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Observer;
 
-use Ls\Hospitality\Model\LSR;
+use \Ls\Hospitality\Model\LSR;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 

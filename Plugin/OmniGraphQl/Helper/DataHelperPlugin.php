@@ -3,8 +3,8 @@
 namespace Ls\Hospitality\Plugin\OmniGraphQl\Helper;
 
 use \Ls\Hospitality\Model\LSR;
-use Ls\Omni\Helper\StockHelper;
-use Ls\Omni\Model\Checkout\DataProvider;
+use \Ls\Omni\Helper\StockHelper;
+use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\OmniGraphQl\Helper\DataHelper;
 use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -19,8 +19,17 @@ class DataHelperPlugin
      * @var LSR
      */
     public $hospitalityLsr;
+    /**
+     * @var CheckoutSession
+     */
     private CheckoutSession $checkoutSession;
+    /**
+     * @var StockHelper
+     */
     private StockHelper $stockHelper;
+    /**
+     * @var DataProvider
+     */
     private DataProvider $dataProvider;
 
     /**
