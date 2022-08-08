@@ -1,4 +1,4 @@
-# LS Ecommerce - Hospitality (1.17.0)
+# LS Ecommerce - Hospitality (1.18.0)
 
 ## Compatibility:
 1. Magento Commerce/Enterprise 2.3.5 - current version
