@@ -79,24 +79,45 @@ class DataHelperPlugin
             ->addFieldToFilter('scope_id', $scopeId)
             ->addFieldToFilter('ClickAndCollect', 1);
 
-        $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
-        list($response) = $this->stockHelper->getGivenItemsStockInGivenStore($items);
-
-        if ($response) {
-            if (is_object($response)) {
-                if (!is_array($response->getInventoryResponse())) {
-                    $response = [$response->getInventoryResponse()];
-                } else {
-                    $response = $response->getInventoryResponse();
-                }
-            }
-
-            $clickNCollectStoresIds = $this->dataProvider->getClickAndCollectStoreIds($storesData);
-            $this->dataProvider->filterClickAndCollectStores($response, $clickNCollectStoresIds);
-
-            return $this->dataProvider->filterStoresOnTheBasisOfQty($response, $items);
+        if (!$this->availableStoresOnlyEnabled()) {
+            return $storesData;
         }
 
-        return null;
+        $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
+        if ($itemsCount > 0) {
+            $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
+            list($response) = $this->stockHelper->getGivenItemsStockInGivenStore($items);
+
+            if ($response) {
+                if (is_object($response)) {
+                    if (!is_array($response->getInventoryResponse())) {
+                        $response = [$response->getInventoryResponse()];
+                    } else {
+                        $response = $response->getInventoryResponse();
+                    }
+                }
+
+                $clickNCollectStoresIds = $this->dataProvider->getClickAndCollectStoreIds($storesData);
+                $this->dataProvider->filterClickAndCollectStores($response, $clickNCollectStoresIds);
+
+                return $this->dataProvider->filterStoresOnTheBasisOfQty($response, $items);
+            }
+        }
+
+        return $storesData;
+    }
+
+    /**
+     * Available Stores only enabled
+     *
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function availableStoresOnlyEnabled()
+    {
+        return $this->hospitalityLsr->getStoreConfig(
+            DataProvider::XPATH_CHECKOUT_ITEM_AVAILABILITY,
+            $this->hospitalityLsr->getStoreId()
+        );
     }
 }

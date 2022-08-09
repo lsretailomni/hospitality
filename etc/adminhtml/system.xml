@@ -114,6 +114,7 @@
                 </field>
                 <field id="dateandtime_range_validation_active"
                        translate="label"
+                       type = "select"
                        sortOrder="70"
                        showInWebsite="1"
                        showInDefault="0"
