@@ -11,16 +11,6 @@ type CustomizableDropDownValue {
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
 }
 
-type SelectedShippingMethod {
-    pickup_store: StoreInfo @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Cart\\StoreInfoOutput") @doc(description: "Fetch Pickup StoreId from Quote.")
-}
-
-type StoreInfo @doc(description: "Defines the pick up store id and store name.") {
-    store_id: String @doc(description: "To fetch store id")
-    store_name: String @doc(description: "To fetch store name")
-    pickup_date_timeslot: String @doc(description: "To fetch pickup date and time")
-}
-
 type StoreConfig {
     ls_mag_hospitality_service_mode_status: String @doc(description: "To fetch service module status.")
     ls_mag_hospitality_service_mode_options: String @doc(description: "To fetch service module options.")
