@@ -33,7 +33,7 @@
                    sortOrder="170"
                    showInWebsite="1"
                    showInDefault="0"
-                   showInStore="0">
+                   showInStore="1">
                 <label>Hospitality</label>
                 <depends>
                     <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
@@ -148,6 +148,30 @@
                     <label>Content Block</label>
                     <source_model>Ls\Hospitality\Model\Config\Source\Block</source_model>
                     <comment>Content Block For QR Code Ordering Page</comment>
+                </field>
+                <field id="anonymous_order_enabled"
+                       sortOrder="100"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Anonymous Ordering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If enabled, customer will be able to place only anonymous orders for current scope</comment>
+                </field>
+                <field id="required_address_attributes"
+                       translate="label"
+                       type="multiselect"
+                       sortOrder="110"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <depends>
+                        <field id="ls_mag/hospitality/anonymous_order_enabled">1</field>
+                    </depends>
+                    <label>Required shipping and billing address attributes</label>
+                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\AddressAttributes</source_model>
+                    <comment>Selected address attributes must be provided by the customer during placing anonymous order, otherwise default values will be used</comment>
                 </field>
             </group>
         </section>

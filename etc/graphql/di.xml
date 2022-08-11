@@ -19,4 +19,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\QuoteGraphQl\Model\Resolver\CreateEmptyCart">
+        <plugin name="custom_omni_graphql_data_helper" type="Ls\Hospitality\Plugin\Model\Resolver\CreateEmptyCartPlugin"/>
+    </type>
 </config>
