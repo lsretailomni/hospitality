@@ -16,10 +16,13 @@
                 <item name="ls_mag_hospitality_max_length" xsi:type="string">ls_mag/hospitality/max_length</item>
                 <item name="ls_mag_hospitality_collapse_state" xsi:type="string">ls_mag/hospitality/collapse_state</item>
                 <item name="ls_mag_hospitality_content_block" xsi:type="string">ls_mag/hospitality/content_block</item>
+                <item name="ls_mag_hospitality_anonymous_order_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_enabled</item>
+                <item name="ls_mag_hospitality_anonymous_order_email_address_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_email_address_enabled</item>
+                <item name="ls_mag_hospitality_anonymous_order_address_attributes_required" xsi:type="string">ls_mag/hospitality/anonymous_order_address_attributes_required</item>
             </argument>
         </arguments>
     </type>
     <type name="Magento\QuoteGraphQl\Model\Resolver\CreateEmptyCart">
-        <plugin name="custom_omni_graphql_data_helper" type="Ls\Hospitality\Plugin\Model\Resolver\CreateEmptyCartPlugin"/>
+        <plugin name="anonymous_order_prefill_address" type="Ls\Hospitality\Plugin\Model\Resolver\CreateEmptyCartPlugin"/>
     </type>
 </config>

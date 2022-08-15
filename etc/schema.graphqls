@@ -18,4 +18,7 @@ type StoreConfig {
     ls_mag_hospitality_max_length: String @doc(description: "To fetch order comment allowable max length.")
     ls_mag_hospitality_collapse_state: String @doc(description: "To fetch initial collapse status of order comments.")
     ls_mag_hospitality_content_block: String @doc(description: "To fetch block identifier for QR Code Ordering Page.")
+    ls_mag_hospitality_anonymous_order_enabled: Boolean @doc(description: "Indicates whether anonymous order is enabled (true) or disabled (false).")
+    ls_mag_hospitality_anonymous_order_email_address_enabled: Boolean @doc(description: "Indicates whether anonymous order is enabled (true) or disabled (false).")
+    ls_mag_hospitality_anonymous_order_address_attributes_required: String @doc(description: "To fetch comma separated required shipping & billing address attributes.")
 }

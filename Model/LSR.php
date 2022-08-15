@@ -28,7 +28,8 @@ class LSR extends \Ls\Core\Model\LSR
     const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
     const QRCODE_CONTENT_BLOCK = 'ls_mag/hospitality/content_block';
     const ANONYMOUS_ORDER_ENABLED = 'ls_mag/hospitality/anonymous_order_enabled';
-    const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/required_address_attributes';
+    const ANONYMOUS_ORDER_EMAIL_ADDRESS_ENABLED = 'ls_mag/hospitality/anonymous_order_email_address_enabled';
+    const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/anonymous_order_address_attributes_required';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';

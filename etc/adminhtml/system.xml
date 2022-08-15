@@ -159,10 +159,23 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>If enabled, customer will be able to place only anonymous orders for current scope</comment>
                 </field>
-                <field id="required_address_attributes"
+                <field id="anonymous_order_email_address_enabled"
+                       sortOrder="110"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <depends>
+                        <field id="ls_mag/hospitality/anonymous_order_enabled">1</field>
+                    </depends>
+                    <label>Required Email Address</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If enabled, email address must be provided by the customer during placing anonymous order, otherwise default value will be used</comment>
+                </field>
+                <field id="anonymous_order_address_attributes_required"
                        translate="label"
                        type="multiselect"
-                       sortOrder="110"
+                       sortOrder="120"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="1">
