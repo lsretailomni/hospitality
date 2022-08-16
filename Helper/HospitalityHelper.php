@@ -1057,6 +1057,22 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get all address attributes code
+     *
+     * @return AttributeInterface[]
+     */
+    public function getAllAddressAttributesCodes()
+    {
+        $addressAttributes = $this->getAllAddressAttributes();
+
+        foreach ($addressAttributes as &$addressAttribute) {
+            $addressAttribute = $addressAttribute->getAttributeCode();
+        }
+
+        return $addressAttributes;
+    }
+
+    /**
      * Get customer email for anonymous orders
      *
      * @return mixed
