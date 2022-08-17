@@ -125,7 +125,7 @@
                 <field id="graphql_dateandtime_range_validation_active"
                        translate="label"
                        type = "select"
-                       sortOrder="70"
+                       sortOrder="80"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">
@@ -135,7 +135,7 @@
                 <field id="max_length"
                        translate="label"
                        type="text"
-                       sortOrder="80"
+                       sortOrder="90"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">
@@ -148,7 +148,7 @@
                 <field id="collapse_state"
                        translate="label"
                        type="select"
-                       sortOrder="90"
+                       sortOrder="100"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">
@@ -161,7 +161,7 @@
                 <field id="content_block"
                        translate="label"
                        type="select"
-                       sortOrder="100"
+                       sortOrder="110"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">
