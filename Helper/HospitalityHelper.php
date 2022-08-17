@@ -164,9 +164,6 @@ class HospitalityHelper extends AbstractHelper
     /** @var AddressInterfaceFactory */
     public $addressFactory;
 
-    /** @var Config */
-    public $eavConfig;
-
     /**
      * @var AttributeRepositoryInterface
      */
@@ -200,6 +197,10 @@ class HospitalityHelper extends AbstractHelper
      * @param StoreManagerInterface $storeManager
      * @param Registry $registry
      * @param ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
+     * @param Information $storeInfo
+     * @param AddressInterfaceFactory $addressFactory
+     * @param AttributeRepositoryInterface $attributeRepository
+     * @param SerializerJson $serializerJson
      */
     public function __construct(
         Context $context,
@@ -226,7 +227,6 @@ class HospitalityHelper extends AbstractHelper
         ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
         Information $storeInfo,
         AddressInterfaceFactory $addressFactory,
-        Config $eavConfig,
         AttributeRepositoryInterface $attributeRepository,
         SerializerJson $serializerJson
     ) {
@@ -254,9 +254,8 @@ class HospitalityHelper extends AbstractHelper
         $this->replHierarchyHospDealLineRepository        = $replHierarchyHospDealLineRepository;
         $this->storeInfo                                  = $storeInfo;
         $this->addressFactory                             = $addressFactory;
-        $this->eavConfig = $eavConfig;
-        $this->attributeRepository = $attributeRepository;
-        $this->serializerJson = $serializerJson;
+        $this->attributeRepository                        = $attributeRepository;
+        $this->serializerJson                             = $serializerJson;
     }
 
     /**
