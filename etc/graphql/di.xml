@@ -17,7 +17,6 @@
                 <item name="ls_mag_hospitality_collapse_state" xsi:type="string">ls_mag/hospitality/collapse_state</item>
                 <item name="ls_mag_hospitality_content_block" xsi:type="string">ls_mag/hospitality/content_block</item>
                 <item name="ls_mag_hospitality_anonymous_order_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_enabled</item>
-                <item name="ls_mag_hospitality_anonymous_order_email_address_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_email_address_enabled</item>
                 <item name="ls_mag_hospitality_anonymous_order_address_attributes_required" xsi:type="string">ls_mag/hospitality/anonymous_order_address_attributes_required</item>
             </argument>
         </arguments>
