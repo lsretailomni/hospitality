@@ -41,6 +41,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Registry;
+use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
@@ -172,6 +173,11 @@ class HospitalityHelper extends AbstractHelper
     public $attributeRepository;
 
     /**
+     * @var SerializerJson
+     */
+    public $serializerJson;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -221,7 +227,8 @@ class HospitalityHelper extends AbstractHelper
         Information $storeInfo,
         AddressInterfaceFactory $addressFactory,
         Config $eavConfig,
-        AttributeRepositoryInterface $attributeRepository
+        AttributeRepositoryInterface $attributeRepository,
+        SerializerJson $serializerJson
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -249,6 +256,7 @@ class HospitalityHelper extends AbstractHelper
         $this->addressFactory                             = $addressFactory;
         $this->eavConfig = $eavConfig;
         $this->attributeRepository = $attributeRepository;
+        $this->serializerJson = $serializerJson;
     }
 
     /**
@@ -1016,7 +1024,9 @@ class HospitalityHelper extends AbstractHelper
         $address = $this->addressFactory->create();
 
         foreach ($anonymousOrderRequiredAttributes as $addressAttribute) {
-            if (isset(self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute])) {
+            if ($addressAttribute == 'email') {
+                continue;
+            } elseif (isset(self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute])) {
                 if (is_array(self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute])) {
                     $streets = [];
 
@@ -1088,25 +1098,45 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get anonymous order prefill attributes
      *
-     * @param int $storeId
+     * @param array $anonymousOrderRequiredAttributes
      * @return array
      */
-    public function getAnonymousOrderPrefillAttributes($storeId)
+    public function getAnonymousOrderPrefillAttributes($anonymousOrderRequiredAttributes)
     {
         $prefillAttributes = [];
         $addressAttributes = $this->getAllAddressAttributes();
-        $anonymousOrderRequiredAttributes = explode(',', $this->lsr->getStoreConfig(
-            Lsr::ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES,
-            $storeId
-        ));
 
         foreach ($addressAttributes as $addressAttribute) {
-            if (in_array($addressAttribute->getAttributeCode(), $anonymousOrderRequiredAttributes)) {
+            if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()]) &&
+                $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
+            ) {
                 continue;
             }
             $prefillAttributes[] = $addressAttribute->getAttributeCode();
         }
 
         return $prefillAttributes;
+    }
+
+    /**
+     * Get formatted address attributes config
+     *
+     * @param int $storeId
+     * @return array
+     */
+    public function getformattedAddressAttributesConfig($storeId)
+    {
+        $config = $this->serializerJson->unserialize($this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES,
+            $storeId
+        ));
+
+        $formattedConfig = [];
+
+        foreach ($config as $value) {
+            $formattedConfig [$value['address_attribute_code']] =  $value['is_required'] ?? '0';
+        }
+
+        return $formattedConfig;
     }
 }

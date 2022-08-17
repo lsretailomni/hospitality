@@ -10,7 +10,7 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 
 /**
- * Resolver class responsible for getting useful information related to address attributes
+ * Resolver class responsible for getting json encoded config for anonymous order address attributes
  */
 class Attributes implements ResolverInterface
 {
@@ -41,16 +41,9 @@ class Attributes implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        $addressAttributes    = $this->hospitalityHelper->getAllAddressAttributes();
-        $addressAttributeInfo = [];
+        $storeId           = (int)$context->getExtensionAttributes()->getStore()->getId();
+        $addressAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig($storeId);
 
-        foreach ($addressAttributes as $addressAttribute) {
-            $addressAttributeInfo[] = [
-                'attribute_code' => $addressAttribute->getAttributeCode(),
-                'is_required' => $addressAttribute->getIsRequired()
-            ];
-        }
-
-        return $this->serializerJson->serialize($addressAttributeInfo);
+        return $this->serializerJson->serialize($addressAttributes);
     }
 }

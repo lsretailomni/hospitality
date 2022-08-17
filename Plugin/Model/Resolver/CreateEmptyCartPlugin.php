@@ -86,12 +86,15 @@ class CreateEmptyCartPlugin
         $anonymousOrderEnabled = $this->hospitalityLsr->getStoreConfig(Lsr::ANONYMOUS_ORDER_ENABLED, $storeId);
 
         if ($anonymousOrderEnabled && $maskedQuoteId) {
-            $anonymousOrderEmailAddress = $this->hospitalityLsr->getStoreConfig(
-                Lsr::ANONYMOUS_ORDER_EMAIL_ADDRESS_ENABLED,
+            $quote                            = $this->getCartForUser->execute(
+                $maskedQuoteId,
+                $currentUserId,
                 $storeId
             );
-            $quote = $this->getCartForUser->execute($maskedQuoteId, $currentUserId, $storeId);
-            $prefillAttributes = $this->hospitalityHelper->getAnonymousOrderPrefillAttributes($storeId);
+            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig($storeId);
+            $prefillAttributes                = $this->hospitalityHelper->getAnonymousOrderPrefillAttributes(
+                $anonymousOrderRequiredAttributes
+            );
 
             if (!empty($prefillAttributes)) {
                 $anonymousAddress = $this->hospitalityHelper->getAnonymousAddress($prefillAttributes);
@@ -99,7 +102,10 @@ class CreateEmptyCartPlugin
                 $quote->setBillingAddress($anonymousAddress);
             }
 
-            if (!$anonymousOrderEmailAddress) {
+            if (((isset($anonymousOrderRequiredAttributes['email']) &&
+                    $anonymousOrderRequiredAttributes['email'] == '0')) ||
+                !isset($anonymousOrderRequiredAttributes['email'])
+            ) {
                 $quote->setCustomerEmail($this->hospitalityHelper->getAnonymousOrderCustomerEmail());
             }
 
