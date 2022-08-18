@@ -59,9 +59,25 @@ class StoreInfoOutput implements ResolverInterface
         $pickupStoreName = ($pickupStoreId) ? $this->dataHelper->getStoreNameById($pickupStoreId) : "";
 
         if ($pickupStoreId && $cart->getShippingAddress()->getShippingMethod() == "clickandcollect_clickandcollect") {
+
+            $pickupDate = $pickupTime = "";
+            if ($cart->getPickupDateTimeslot()
+                && count($dateTimeArr = explode(" ", $cart->getPickupDateTimeslot()))>0
+            ) {
+                $pickupDate  = $dateTimeArr[0];
+                if (array_key_exists("1", $dateTimeArr)) {
+                    $pickupTime  = array_key_exists("2", $dateTimeArr) ?
+                        $dateTimeArr["1"]." ".$dateTimeArr["2"]
+                        : $dateTimeArr[1];
+                }
+
+            }
+
             $storeInfo["store_id"] = $pickupStoreId;
             $storeInfo["store_name"] = $pickupStoreName;
-            $storeInfo["pickup_date_timeslot"] = ($cart->getPickupDateTimeslot()) ? $cart->getPickupDateTimeslot() : "";
+            $storeInfo["pickup_date"] = $pickupDate;
+            $storeInfo["pickup_time"] = $pickupTime;
+
         }
 
         return $storeInfo;
