@@ -24,9 +24,10 @@ type StoreConfig {
 
 type Mutation {
     setGivenFieldsOnAddress(input: SetGivenFieldsOnAddressInput): SetGivenFieldsOnAddressOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\SetGivenFieldsOnAddress") @doc(description: "Set Given fields on both shipping and billing address.")
+    setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
 }
 
-input SetGivenFieldsOnAddressInput @doc(description: "Contain address fields.") {
+input SetGivenFieldsOnAddressInput @doc(description: "Contain required input for setting given fields on address.") {
     cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
     address_fields: [AddressFieldData] @doc(description: "Array of all required address fields.")
 }
@@ -38,4 +39,18 @@ input AddressFieldData {
 
 type SetGivenFieldsOnAddressOutput @doc(description: "Contains details about the cart.") {
     cart: Cart! @doc(description: "The cart after setting the given address fields.")
+}
+
+input SetLsOrderCommentsOnCartInput @doc(description: "Contain required input for setting ls_order_comments on cart.") {
+    cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
+    ls_order_comment: String @doc(description: "Comment to set on given cart.")
+}
+
+type SetLsOrderCommentsOnCartOutput @doc(description: "Contains details about the cart.") {
+    cart: Cart! @doc(description: "The cart after setting the given address fields.")
+}
+
+
+type Cart {
+    ls_order_comment: String @resolver(class: "\\Ls\\Hospitality\\Model\\Resolver\\Quote\\LsOrderComment") @doc(description: "Ls Order Comment.")
 }
