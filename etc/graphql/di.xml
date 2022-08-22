@@ -15,7 +15,9 @@
                 <item name="ls_mag_hospitality_show_in_checkout" xsi:type="string">ls_mag/hospitality/show_in_checkout</item>
                 <item name="ls_mag_hospitality_max_length" xsi:type="string">ls_mag/hospitality/max_length</item>
                 <item name="ls_mag_hospitality_collapse_state" xsi:type="string">ls_mag/hospitality/collapse_state</item>
-                <item name="ls_mag_hospitality_content_block" xsi:type="string">ls_mag/hospitality/content_block</item>
+                <item name="ls_mag_hospitality_qr_order_enabled" xsi:type="string">ls_mag/hospitality/qr_order_enabled</item>
+                <item name="ls_mag_hospitality_qr_order_content_block" xsi:type="string">ls_mag/hospitality/qr_order_content_block</item>
+                <item name="ls_mag_hospitality_qr_order_content_block_pwa" xsi:type="string">ls_mag/hospitality/qr_order_content_block_pwa</item>
                 <item name="ls_mag_hospitality_anonymous_order_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_enabled</item>
                 <item name="ls_mag_hospitality_anonymous_order_address_attributes_required" xsi:type="string">ls_mag/hospitality/anonymous_order_address_attributes_required</item>
             </argument>
