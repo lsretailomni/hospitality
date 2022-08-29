@@ -104,7 +104,10 @@ class DataAssignObserver implements ObserverInterface
             $pickupDateTimeArr = explode(" ", $quote->getPickupDateTimeslot());
 
             $pickupTimeStamp = Carbon::parse($quote->getPickupDateTimeslot());
-            $websiteId = $quote->getStoreId();
+            /**
+             * @var \Magento\Quote\Model\Quote $quote
+             */
+            $websiteId = $quote->getStore()->getWebsiteId();
             $store = $this->storeHelper->getStore($websiteId, $storeId);
             $storeHoursArray = $this->storeHelper->formatDateTimeSlotsValues(
                 $store->getStoreHours()

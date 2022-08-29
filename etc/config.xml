@@ -22,10 +22,6 @@
                 <dateandtime_range_validation_active>0</dateandtime_range_validation_active>
                 <graphql_dateandtime_range_validation_active>1</graphql_dateandtime_range_validation_active>
             </hospitality>
-            <delivery_pickup_date_time>
-                <stock_validation_active>0</stock_validation_active>
-                <graphql_stock_validation_active>1</graphql_stock_validation_active>
-            </delivery_pickup_date_time>
         </ls_mag>
     </default>
 </config>
