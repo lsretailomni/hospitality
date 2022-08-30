@@ -4,6 +4,7 @@
     <type name="Ls\OmniGraphQl\Helper\DataHelper">
         <plugin name="custom_omni_graphql_data_helper" type="Ls\Hospitality\Plugin\OmniGraphQl\Helper\DataHelperPlugin"/>
     </type>
+
     <type name="Magento\StoreGraphQl\Model\Resolver\Store\StoreConfigDataProvider">
         <arguments>
             <argument name="extendedConfigData">

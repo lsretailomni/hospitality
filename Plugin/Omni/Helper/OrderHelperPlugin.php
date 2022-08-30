@@ -195,9 +195,8 @@ class OrderHelperPlugin
      */
     public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
     {
-        if ($subject->lsr->getCurrentIndustry(
-                $subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null
-            ) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($request);
         }
