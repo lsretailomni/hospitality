@@ -19,6 +19,8 @@
                 <show_in_checkout>1</show_in_checkout>
                 <collapse_state>0</collapse_state>
                 <max_length>150</max_length>
+                <qr_order_enabled>1</qr_order_enabled>
+                <anonymous_order_enabled>0</anonymous_order_enabled>
             </hospitality>
         </ls_mag>
     </default>

@@ -33,7 +33,7 @@
                    sortOrder="170"
                    showInWebsite="1"
                    showInDefault="0"
-                   showInStore="0">
+                   showInStore="1">
                 <label>Hospitality</label>
                 <depends>
                     <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
@@ -138,16 +138,65 @@
                         <field id="ls_mag/hospitality/show_in_checkout">1</field>
                     </depends>
                 </field>
-                <field id="content_block"
+                <field id="qr_order_enabled"
+                       sortOrder="100"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable QR Code Ordering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If enabled, customer will be able to scan QR code and sync relevant information related to Store name, table number, sales type e.tc. on placing order with Central</comment>
+                </field>
+                <field id="qr_order_content_block"
                        translate="label"
                        type="select"
-                       sortOrder="90"
+                       sortOrder="110"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">
-                    <label>Content Block</label>
+                    <depends>
+                        <field id="ls_mag/hospitality/qr_order_enabled">1</field>
+                    </depends>
+                    <label>Content Block for QR Code Ordering Page on classic frontend</label>
                     <source_model>Ls\Hospitality\Model\Config\Source\Block</source_model>
-                    <comment>Content Block For QR Code Ordering Page</comment>
+                </field>
+                <field id="qr_order_content_block_pwa"
+                       translate="label"
+                       type="select"
+                       sortOrder="120"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
+                    <depends>
+                        <field id="ls_mag/hospitality/qr_order_enabled">1</field>
+                    </depends>
+                    <label>Content Block for QR Code Ordering Page on pwa frontend</label>
+                    <source_model>Ls\Hospitality\Model\Config\Source\Block</source_model>
+                </field>
+                <field id="anonymous_order_enabled"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Anonymous Ordering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If enabled, customer will be able to place only anonymous orders for current scope</comment>
+                </field>
+                <field id="anonymous_order_address_attributes_required"
+                       translate="label"
+                       sortOrder="140"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <depends>
+                        <field id="ls_mag/hospitality/anonymous_order_enabled">1</field>
+                    </depends>
+                    <label>Shipping and billing address attributes</label>
+                    <frontend_model>Ls\Hospitality\Block\System\Backend\Config\AddressAttributes</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                    <comment>These address attributes are shown to the customer during placing an anonymous order. Attributes marked as required are mandatory on the checkout whereas others are optional.</comment>
                 </field>
             </group>
         </section>
