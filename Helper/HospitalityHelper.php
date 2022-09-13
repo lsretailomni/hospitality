@@ -12,6 +12,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\LoyaltyHelper;
+use \Ls\Omni\Helper\OrderHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
@@ -175,6 +176,11 @@ class HospitalityHelper extends AbstractHelper
     public $serializerJson;
 
     /**
+     * @var OrderHelper
+     */
+    public $orderHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -201,6 +207,7 @@ class HospitalityHelper extends AbstractHelper
      * @param AddressInterfaceFactory $addressFactory
      * @param AttributeRepositoryInterface $attributeRepository
      * @param SerializerJson $serializerJson
+     * @param OrderHelper $orderHelper
      */
     public function __construct(
         Context $context,
@@ -228,7 +235,8 @@ class HospitalityHelper extends AbstractHelper
         Information $storeInfo,
         AddressInterfaceFactory $addressFactory,
         AttributeRepositoryInterface $attributeRepository,
-        SerializerJson $serializerJson
+        SerializerJson $serializerJson,
+        OrderHelper $orderHelper
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -256,6 +264,7 @@ class HospitalityHelper extends AbstractHelper
         $this->addressFactory                             = $addressFactory;
         $this->attributeRepository                        = $attributeRepository;
         $this->serializerJson                             = $serializerJson;
+        $this->orderHelper                                = $orderHelper;
     }
 
     /**
@@ -770,8 +779,7 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status        = '';
-        $estimatedTime = '';
+        $status = $estimatedTime = $statusDescription = '';
         $response      = $this->getKitchenOrderStatus(
             $orderId,
             $storeId
@@ -790,12 +798,12 @@ class HospitalityHelper extends AbstractHelper
                     $estimatedTime = 0;
                 }
 
-                $status = $this->lsr->kitchenStatusMapping()[$status];
+                $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
             }
 
         }
 
-        return [$status, $estimatedTime];
+        return [$status, $statusDescription, $estimatedTime];
     }
 
     /**
@@ -1137,5 +1145,44 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return $formattedConfig;
+    }
+
+    /**
+     * Get order pickup date time slot given document_id
+     *
+     * @param string $documentId
+     * @return mixed
+     */
+    public function getOrderPickupDateTimeSlotGivenDocumentId($documentId)
+    {
+        $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
+
+        return $magentoOrder->getData('pickup_date_timeslot');
+    }
+
+    /**
+     * Get order pickup date
+     *
+     * @param string $documentId
+     * @return string
+     */
+    public function getOrderPickupDate($documentId)
+    {
+        $dateTime = $this->getOrderPickupDateTimeSlotGivenDocumentId($documentId);
+
+        return $dateTime ? explode(' ', $dateTime)[0] : '';
+    }
+
+    /**
+     * Get order pickup date
+     *
+     * @param string $documentId
+     * @return string
+     */
+    public function getOrderPickupTime($documentId)
+    {
+        $dateTime = $this->getOrderPickupDateTimeSlotGivenDocumentId($documentId);
+
+        return $dateTime ? explode(' ', $dateTime)[1]. ' '. explode(' ', $dateTime)[2] : '';
     }
 }
