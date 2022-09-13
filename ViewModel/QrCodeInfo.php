@@ -42,7 +42,7 @@ class QrCodeInfo implements ArgumentInterface
      */
     public function getContentBlockIdentifier()
     {
-        return $this->lsr->getStoreConfig(LSR::QRCODE_CONTENT_BLOCK, $this->lsr->getCurrentStoreId());
+        return $this->lsr->getStoreConfig(LSR::QRCODE_ORDER_CONTENT_BLOCK, $this->lsr->getCurrentStoreId());
     }
 
     /**

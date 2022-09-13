@@ -69,6 +69,14 @@ class QrCodeHelper extends AbstractHelper
     }
 
     /**
+     * Get QR code ordering data
+     */
+    public function getQrCodeOrderingInSession()
+    {
+        return $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+    }
+
+    /**
      * validate store id
      *
      * @param $storeId
@@ -87,5 +95,33 @@ class QrCodeHelper extends AbstractHelper
         }
 
         return $check;
+    }
+
+    /**
+     * Is Qr Code ordering enabled
+     *
+     * @return array|string
+     * @throws NoSuchEntityException
+     */
+    public function isQrCodeOrderingEnabled()
+    {
+        return $this->lsr->isQrCodeOrderingEnabled();
+    }
+
+    /**
+     * Get formatted Qr Code Params in customer session
+     *
+     * @return array
+     */
+    public function getFormattedQrCodeParamsInCustomerSession()
+    {
+        $qrCodeParams = $this->getQrCodeOrderingInSession();
+        $formattedValues = [];
+
+        foreach ($qrCodeParams ?? [] as $index => $param) {
+            $formattedValues[] = ['param_name' => $index, 'param_value' => $param];
+        }
+
+        return $formattedValues;
     }
 }

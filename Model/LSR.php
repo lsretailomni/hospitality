@@ -26,7 +26,11 @@ class LSR extends \Ls\Core\Model\LSR
     const COMMENT_MAX_LENGTH = 'ls_mag/hospitality/max_length';
     const COMMENT_COLLAPSE_STATE = 'ls_mag/hospitality/collapse_state';
     const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
-    const QRCODE_CONTENT_BLOCK = 'ls_mag/hospitality/content_block';
+    const QRCODE_ORDER_ENABLED = 'ls_mag/hospitality/qr_order_enabled';
+    const QRCODE_ORDER_CONTENT_BLOCK = 'ls_mag/hospitality/qr_order_content_block';
+    const QRCODE_ORDER_CONTENT_BLOCK_PWA = 'ls_mag/hospitality/qr_order_content_block_pwa';
+    const ANONYMOUS_ORDER_ENABLED = 'ls_mag/hospitality/anonymous_order_enabled';
+    const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/anonymous_order_address_attributes_required';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -42,8 +46,6 @@ class LSR extends \Ls\Core\Model\LSR
 
     const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
     const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
-
-    const SC_CLICKCOLLECT_PAYMENT_OPTION = 'carriers/clickandcollect/payment_option';
 
     /**
      * Check service mode is enabled
@@ -209,5 +211,16 @@ class LSR extends \Ls\Core\Model\LSR
     public function getStoreId()
     {
         return $this->storeManager->getStore()->getStoreId();
+    }
+
+    /**
+     * Is Qr Code ordering enabled
+     *
+     * @return array|string
+     * @throws NoSuchEntityException
+     */
+    public function isQrCodeOrderingEnabled()
+    {
+        return $this->getStoreConfig(LSR::QRCODE_ORDER_ENABLED, $this->getCurrentStoreId());
     }
 }

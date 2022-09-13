@@ -26,17 +26,27 @@ use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Customer\Api\AddressMetadataInterface;
+use Magento\Eav\Api\AttributeRepositoryInterface;
+use Magento\Eav\Api\Data\AttributeInterface;
+use Magento\Eav\Model\Config;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Registry;
+use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 use Magento\MediaStorage\Model\File\UploaderFactory;
+use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Api\Data\AddressInterfaceFactory;
+use Magento\Store\Model\Information;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Zend_Db_Select;
 use Zend_Db_Select_Exception;
@@ -47,7 +57,14 @@ use Zend_Db_Select_Exception;
  */
 class HospitalityHelper extends AbstractHelper
 {
-    const DESTINATION_FOLDER = 'ls/swatch';
+    public const DESTINATION_FOLDER = 'ls/swatch';
+
+    public const ADDRESS_ATTRIBUTE_MAPPER = [
+        'firstname' => 'name',
+        'lastname' => 'name',
+        'telephone' => 'phone',
+        'street' => ['street_line1', 'street_line2']
+    ];
 
     /** @var ProductRepository $productRepository */
     public $productRepository;
@@ -140,6 +157,24 @@ class HospitalityHelper extends AbstractHelper
     public $replHierarchyHospDealLineRepository;
 
     /**
+     * @var Information
+     */
+    public $storeInfo;
+
+    /** @var AddressInterfaceFactory */
+    public $addressFactory;
+
+    /**
+     * @var AttributeRepositoryInterface
+     */
+    public $attributeRepository;
+
+    /**
+     * @var SerializerJson
+     */
+    public $serializerJson;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -162,6 +197,10 @@ class HospitalityHelper extends AbstractHelper
      * @param StoreManagerInterface $storeManager
      * @param Registry $registry
      * @param ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
+     * @param Information $storeInfo
+     * @param AddressInterfaceFactory $addressFactory
+     * @param AttributeRepositoryInterface $attributeRepository
+     * @param SerializerJson $serializerJson
      */
     public function __construct(
         Context $context,
@@ -185,7 +224,11 @@ class HospitalityHelper extends AbstractHelper
         ProductCustomOptionRepositoryInterface $optionRepository,
         StoreManagerInterface $storeManager,
         Registry $registry,
-        ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
+        ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
+        Information $storeInfo,
+        AddressInterfaceFactory $addressFactory,
+        AttributeRepositoryInterface $attributeRepository,
+        SerializerJson $serializerJson
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -209,6 +252,10 @@ class HospitalityHelper extends AbstractHelper
         $this->storeManager                               = $storeManager;
         $this->registry                                   = $registry;
         $this->replHierarchyHospDealLineRepository        = $replHierarchyHospDealLineRepository;
+        $this->storeInfo                                  = $storeInfo;
+        $this->addressFactory                             = $addressFactory;
+        $this->attributeRepository                        = $attributeRepository;
+        $this->serializerJson                             = $serializerJson;
     }
 
     /**
@@ -948,5 +995,147 @@ class HospitalityHelper extends AbstractHelper
         $productList = $this->productRepository->getList($searchCriteria)->getItems();
 
         return array_pop($productList);
+    }
+
+    /**
+     * Get store information
+     *
+     * @return DataObject
+     * @throws NoSuchEntityException
+     */
+    public function getStoreInformation()
+    {
+        $store = $this->storeManager->getStore();
+
+        return $this->storeInfo->getStoreInformationObject($store);
+    }
+
+    /**
+     * Get anonymous address
+     *
+     * @param array $anonymousOrderRequiredAttributes
+     * @return AddressInterface
+     * @throws NoSuchEntityException
+     */
+    public function getAnonymousAddress($anonymousOrderRequiredAttributes)
+    {
+        $storeInformation = $this->getStoreInformation();
+        $address = $this->addressFactory->create();
+
+        foreach ($anonymousOrderRequiredAttributes as $addressAttribute) {
+            if ($addressAttribute == 'email') {
+                continue;
+            } elseif (isset(self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute])) {
+                if (is_array(self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute])) {
+                    $streets = [];
+
+                    foreach (self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute] as $at) {
+
+                        if ($storeInformation->getData($at)) {
+                            $streets[] = $storeInformation->getData($at);
+                        }
+                    }
+                    $address->setData($addressAttribute, $streets);
+                } else {
+                    $address->setData(
+                        $addressAttribute,
+                        $storeInformation->getData(self::ADDRESS_ATTRIBUTE_MAPPER[$addressAttribute])
+                    );
+                }
+            } else {
+                $address->setData($addressAttribute, $storeInformation->getData($addressAttribute));
+            }
+        }
+
+        $address->setShippingMethod('flatrate_flatrate');
+
+        return $address;
+    }
+
+    /**
+     * Get all address attributes
+     *
+     * @return AttributeInterface[]
+     */
+    public function getAllAddressAttributes()
+    {
+        return $this->attributeRepository->getList(
+            AddressMetadataInterface::ENTITY_TYPE_ADDRESS,
+            $this->searchCriteriaBuilder->create()
+        )->getItems();
+    }
+
+    /**
+     * Get all address attributes code
+     *
+     * @return AttributeInterface[]
+     */
+    public function getAllAddressAttributesCodes()
+    {
+        $addressAttributes = $this->getAllAddressAttributes();
+
+        foreach ($addressAttributes as &$addressAttribute) {
+            $addressAttribute = $addressAttribute->getAttributeCode();
+        }
+
+        return $addressAttributes;
+    }
+
+    /**
+     * Get customer email for anonymous orders
+     *
+     * @return mixed
+     */
+    public function getAnonymousOrderCustomerEmail()
+    {
+        return $this->scopeConfig->getValue(
+            'trans_email/ident_custom1/email',
+            ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Get anonymous order prefill attributes
+     *
+     * @param array $anonymousOrderRequiredAttributes
+     * @return array
+     */
+    public function getAnonymousOrderPrefillAttributes($anonymousOrderRequiredAttributes)
+    {
+        $prefillAttributes = [];
+        $addressAttributes = $this->getAllAddressAttributes();
+
+        foreach ($addressAttributes as $addressAttribute) {
+            if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()]) &&
+                $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
+            ) {
+                continue;
+            }
+            $prefillAttributes[] = $addressAttribute->getAttributeCode();
+        }
+
+        return $prefillAttributes;
+    }
+
+    /**
+     * Get formatted address attributes config
+     *
+     * @param int $storeId
+     * @return array
+     */
+    public function getformattedAddressAttributesConfig($storeId)
+    {
+        $config = $this->serializerJson->unserialize($this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES,
+            $storeId
+        ));
+
+        $formattedConfig = [];
+
+        foreach ($config as $value) {
+            $formattedConfig [$value['address_attribute_code']] =  $value['is_required'] ?? '0';
+        }
+
+        return $formattedConfig;
     }
 }
