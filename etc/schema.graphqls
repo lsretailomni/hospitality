@@ -20,5 +20,55 @@ type StoreConfig {
     ls_mag_hospitality_show_in_checkout: Boolean @doc(description: "Indicates whether order comments & status section on success page are enabled (true) or disabled (false).")
     ls_mag_hospitality_max_length: String @doc(description: "To fetch order comment allowable max length.")
     ls_mag_hospitality_collapse_state: String @doc(description: "To fetch initial collapse status of order comments.")
-    ls_mag_hospitality_content_block: String @doc(description: "To fetch block identifier for QR Code Ordering Page.")
+    ls_mag_hospitality_qr_order_enabled: Boolean @doc(description: "Indicates whether QR code ordering is enabled (true) or disabled (false).")
+    ls_mag_hospitality_qr_order_content_block: String @doc(description: "To fetch block identifier for QR Code Ordering Page on classic frontend.")
+    ls_mag_hospitality_qr_order_content_block_pwa: String @doc(description: "To fetch block identifier for QR Code Ordering Page on pwa frontend.")
+    ls_mag_hospitality_anonymous_order_enabled: Boolean @doc(description: "Indicates whether anonymous order is enabled (true) or disabled (false).")
+    ls_mag_hospitality_anonymous_order_address_attributes_required: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\Attributes") @doc(description: "To fetch anonymous order address attributes with information like required or optional.")
+}
+
+type Mutation {
+    setGivenFieldsOnAddress(input: SetGivenFieldsOnAddressInput): SetGivenFieldsOnAddressOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\SetGivenFieldsOnAddress") @doc(description: "Set Given fields on both shipping and billing address.")
+    setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
+    setQRCodeParamsInSession(qr_code_id: String!): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Session\\SetQRCodeParamsInSession") @doc(description: "Set QR code params in session to sync on placing order with Central.")
+}
+
+type Query {
+    current_qr_code_params: QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Session\\QrCodeParams") @doc(description: "Fetch current QR Code Params in the session.")
+}
+
+input SetGivenFieldsOnAddressInput @doc(description: "Contain required input for setting given fields on address.") {
+    cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
+    address_fields: [AddressFieldData] @doc(description: "Array of all required address fields.")
+}
+
+input AddressFieldData {
+    field_name: String! @doc(description: "Address Field name.")
+    field_value: String @doc(description: "Address Field value.")
+}
+
+type SetGivenFieldsOnAddressOutput @doc(description: "Contains details about the cart.") {
+    cart: Cart! @doc(description: "The cart after setting the given address fields.")
+}
+
+input SetLsOrderCommentsOnCartInput @doc(description: "Contain required input for setting ls_order_comments on cart.") {
+    cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
+    ls_order_comment: String @doc(description: "Comment to set on given cart.")
+}
+
+type SetLsOrderCommentsOnCartOutput @doc(description: "Contains details about the cart.") {
+    cart: Cart! @doc(description: "The cart after setting the given address fields.")
+}
+
+type Cart {
+    ls_order_comment: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsOrderComment") @doc(description: "Ls Order Comment.")
+}
+
+type QrCodeParamsOutput {
+    qr_code_params: [QrCodeParams] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Session\\QrCodeParams") @doc(description: "Array of all QR Code Params.")
+}
+
+type QrCodeParams {
+    param_name: String @doc(description: "QR Code Param Name.")
+    param_value: String @doc(description: "QR Code Param Value.")
 }
