@@ -112,10 +112,30 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Show order comments section in the checkout</comment>
                 </field>
+                <field id="dateandtime_range_validation_active"
+                       translate="label"
+                       type = "select"
+                       sortOrder="70"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
+                    <label>Enable Store Pick Up Date and Time Validation Before Order Creation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="graphql_dateandtime_range_validation_active"
+                       translate="label"
+                       type = "select"
+                       sortOrder="80"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
+                    <label>Enable Store Pick Up Date and Time Validation Before Order Creation via GraphQl</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="max_length"
                        translate="label"
                        type="text"
-                       sortOrder="70"
+                       sortOrder="90"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">
@@ -128,7 +148,7 @@
                 <field id="collapse_state"
                        translate="label"
                        type="select"
-                       sortOrder="80"
+                       sortOrder="100"
                        showInWebsite="1"
                        showInDefault="0"
                        showInStore="0">

@@ -1,11 +1,14 @@
 interface CustomizableOptionInterface {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
+    ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
 }
 type CustomizableMultipleValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
+    ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
 }
 type CustomizableDropDownValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
+    ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
 }
 
 type StoreConfig {

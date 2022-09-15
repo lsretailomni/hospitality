@@ -47,6 +47,7 @@ class LSR extends \Ls\Core\Model\LSR
     const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
     const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
 
+    const SC_CLICKCOLLECT_PAYMENT_OPTION = 'carriers/clickandcollect/payment_option';
 
     /**
      * Check service mode is enabled
