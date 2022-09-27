@@ -1,7 +1,7 @@
 <?php
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
-list($status, $estimatedTime, $pickupOrderTime) = $block->getData('data');
+list(,$status, $estimatedTime, $pickupOrderTime) = $block->getData('data');
 if (empty($status)) {
     $status = __('Kitchen status service is down. Please try again by refreshing the page.');
 }

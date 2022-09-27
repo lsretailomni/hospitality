@@ -27,4 +27,14 @@
     <type name="Magento\QuoteGraphQl\Model\Resolver\CreateEmptyCart">
         <plugin name="anonymous_order_prefill_address" type="Ls\Hospitality\Plugin\Model\Resolver\CreateEmptyCartPlugin"/>
     </type>
+    <type name="Magento\QuoteGraphQl\Model\Resolver\PlaceOrder">
+        <plugin name="inject_custom_values_place_order_response_for_hospitality"
+                type="Ls\Hospitality\Plugin\Model\Resolver\PlaceOrderPlugin"
+                sortOrder="2"/>
+    </type>
+    <type name="Magento\QuoteGraphQl\Model\Resolver\SetPaymentAndPlaceOrder">
+        <plugin name="inject_custom_values_place_order_response_for_hospitality"
+                type="Ls\Hospitality\Plugin\Model\Resolver\PlaceOrderPlugin"
+                sortOrder="2"/>
+    </type>
 </config>
