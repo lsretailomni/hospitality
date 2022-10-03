@@ -8,6 +8,10 @@ define([
     return function (Component) {
         return Component.extend({
             validateShippingInformation: function () {
+                if (!window.checkoutConfig.ls_enabled) {
+                    return this._super();
+                }
+
                 if (quote.shippingMethod().carrier_code == 'clickandcollect') {
                     let isEnabled = window.checkoutConfig.shipping.service_mode.enabled;
                     let stores = $.parseJSON(window.checkoutConfig.shipping.select_store.stores);
