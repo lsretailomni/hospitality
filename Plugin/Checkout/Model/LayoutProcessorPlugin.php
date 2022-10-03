@@ -43,6 +43,12 @@ class LayoutProcessorPlugin
         $billingStep                = &$jsLayout['components']['checkout']['children']['steps']['children']['billing-step'];
         $shippingAdditionalChildren = &$shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children'];
 
+        if (!$this->hospLsr->isEnabled()) {
+            unset($shippingAdditionalChildren['ls-shipping-option-wrapper']);
+            unset($billingStep['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
+            unset($billingStep['children']['payment']['children']['additional-payment-validators']['children']['order-comment-validator']);
+        }
+
         if ($this->hospLsr->getCurrentIndustry() != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             unset($shippingAdditionalChildren['ls-shipping-option-wrapper']['children']['shipping-option']['children']['service-mode']);
             unset($billingStep['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
