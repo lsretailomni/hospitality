@@ -7,11 +7,15 @@
 
     return function (payloadExtender) {
         return wrapper.wrap(payloadExtender, function (originalFunction, payload) {
-            let serviceMode = $('[name="service-mode"]') ? $('[name="service-mode"]').val() : '';
-            let pickupDate = $('[name="pickup-date"]') ? $('[name="pickup-date"]').val() : '';
-            let pickupTimeslot = $('[name="pickup-timeslot"]') ? $('[name="pickup-timeslot"]').val() : '';
-
             payload = originalFunction(payload);
+
+            if (!window.checkoutConfig.ls_enabled) {
+                return payload;
+            }
+
+            let serviceMode = $('[name="service-mode"]') ? $('[name="service-mode"]').val() : '',
+                pickupDate = $('[name="pickup-date"]') ? $('[name="pickup-date"]').val() : '',
+                pickupTimeslot = $('[name="pickup-timeslot"]') ? $('[name="pickup-timeslot"]').val() : '';
 
             _.extend(payload.addressInformation, {
                 extension_attributes: {
