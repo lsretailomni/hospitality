@@ -24,7 +24,6 @@ use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
-use \Ls\Webhooks\Helper\Data;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
@@ -222,7 +221,6 @@ class HospitalityHelper extends AbstractHelper
      * @param SerializerJson $serializerJson
      * @param OrderHelper $orderHelper
      * @param ItemHelper $itemHelper
-     * @param Data $webhookHelper
      * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
