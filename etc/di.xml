@@ -114,4 +114,7 @@
         <plugin name="ls_load_ordercomment" type="Ls\Hospitality\Plugin\Order\LoadOrderComment"/>
     </type>
 
+    <type name="Ls\Webhooks\Model\Order\Status">
+        <plugin name="fake_lines" type="Ls\Hospitality\Plugin\Webhooks\Model\Order\StatusPlugin"/>
+    </type>
 </config>
