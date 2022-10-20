@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Plugin\Cron;
 
 use \Ls\Replication\Cron\SyncImages;
 use \Ls\Replication\Model\ResourceModel\ReplImageLink\Collection;
+use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Plugin to merge two collections
@@ -11,10 +12,13 @@ use \Ls\Replication\Model\ResourceModel\ReplImageLink\Collection;
 class SyncImagesPlugin
 {
     /**
+     * After plugin to process images for deal type items
+     *
      * @param SyncImages $subject
-     * @param $result
-     * @param false $totalCount
-     * @return Collection
+     * @param mixed $result
+     * @param bool $totalCount
+     * @return Collection|mixed
+     * @throws LocalizedException
      */
     public function afterGetRecordsForImagesToProcess(SyncImages $subject, $result, $totalCount = false)
     {

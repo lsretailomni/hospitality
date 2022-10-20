@@ -582,9 +582,7 @@ class HospitalityHelper extends AbstractHelper
             $collection2,
             $criteria2,
             'DealNo',
-            null,
-            'catalog_product_entity',
-            'sku'
+            null
         );
         $collection2->getSelect()->group('main_table.DealNo')
             ->reset(Zend_Db_Select::COLUMNS)
@@ -605,9 +603,7 @@ class HospitalityHelper extends AbstractHelper
             $collection1,
             $criteria1,
             'DealNo',
-            null,
-            'catalog_product_entity',
-            'sku'
+            null
         );
         $collection1->getSelect()->group('main_table.DealNo')
             ->reset(Zend_Db_Select::COLUMNS)
