@@ -32,7 +32,6 @@ use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Api\AddressMetadataInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
-use Magento\Eav\Model\Config;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -48,6 +47,8 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
+use Magento\Sales\Api\Data\OrderSearchResultInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -188,6 +189,11 @@ class HospitalityHelper extends AbstractHelper
     public $itemHelper;
 
     /**
+     * @var OrderRepositoryInterface
+     */
+    public $orderRepository;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -216,6 +222,7 @@ class HospitalityHelper extends AbstractHelper
      * @param SerializerJson $serializerJson
      * @param OrderHelper $orderHelper
      * @param ItemHelper $itemHelper
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Context $context,
@@ -245,7 +252,8 @@ class HospitalityHelper extends AbstractHelper
         AttributeRepositoryInterface $attributeRepository,
         SerializerJson $serializerJson,
         OrderHelper $orderHelper,
-        ItemHelper $itemHelper
+        ItemHelper $itemHelper,
+        OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -275,6 +283,7 @@ class HospitalityHelper extends AbstractHelper
         $this->serializerJson                             = $serializerJson;
         $this->orderHelper                                = $orderHelper;
         $this->itemHelper                                 = $itemHelper;
+        $this->orderRepository                            = $orderRepository;
     }
 
     /**
@@ -1202,5 +1211,126 @@ class HospitalityHelper extends AbstractHelper
         $dateTime = $this->getOrderPickupDateTimeSlotGivenDocumentId($documentId);
 
         return $dateTime ? explode(' ', $dateTime)[1]. ' '. explode(' ', $dateTime)[2] : '';
+    }
+
+    /**
+     * Fake lines order status webhook
+     *
+     * @param array $data
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function fakeOrderLinesStatusWebhook(&$data)
+    {
+        $magentoOrder = $this->getOrderByDocumentId($data['OrderId']);
+
+        if (!empty($magentoOrder) && $this->lsr->isHospitalityStore($magentoOrder->getStoreId())) {
+            $lineNo = 10000;
+            $index  = $qtyOrdered = 0;
+            $status = $data['HeaderStatus'];
+
+            foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
+                list($itemId, $variantId, $uom) = $this->itemHelper->getComparisonValues(
+                    $orderItem->getProductId(),
+                    $orderItem->getSku()
+                );
+
+                $qtyOrdered += $orderItem->getQtyOrdered();
+
+                while ($index <= $qtyOrdered - 1) {
+                    $data['Lines'][$index] = $this->getLine(
+                        $orderItem->getPrice() / $orderItem->getQtyOrdered(),
+                        $itemId,
+                        $uom,
+                        $variantId,
+                        $status,
+                        1,
+                        '',
+                        '',
+                        $lineNo
+                    );
+
+                    $lineNo += 10000;
+                    $index++;
+                }
+            }
+
+            $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
+
+            if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
+                $data['Lines'][$index] = $this->getLine(
+                    $magentoOrder->getShippingAmount(),
+                    $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $magentoOrder->getStoreId()),
+                    '',
+                    '',
+                    $status,
+                    $qtyOrdered,
+                    '',
+                    '',
+                    $lineNo
+                );
+            }
+        }
+    }
+
+    /**
+     * Get order by document id
+     *
+     * @param string $documentId
+     * @return false|OrderSearchResultInterface|mixed
+     */
+    public function getOrderByDocumentId($documentId)
+    {
+        try {
+            $order = false;
+            $order = $this->orderRepository->getList(
+                $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
+            );
+            $order = current($order->getItems());
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
+
+        return $order;
+    }
+
+    /**
+     * Check is click and collect order
+     *
+     * @param mixed $magentoOrder
+     * @return bool
+     */
+    public function isClickAndcollectOrder($magentoOrder)
+    {
+        return $magentoOrder->getShippingMethod() == 'clickandcollect_clickandcollect';
+    }
+
+    /**
+     * Get Line
+     *
+     * @param mixed $amount
+     * @param mixed $itemId
+     * @param mixed $uom
+     * @param mixed $variantId
+     * @param mixed $status
+     * @param mixed $qty
+     * @param mixed $prevStatus
+     * @param mixed $extLineStatus
+     * @param mixed $lineNo
+     * @return array
+     */
+    public function getLine($amount, $itemId, $uom, $variantId, $status, $qty, $prevStatus, $extLineStatus, $lineNo)
+    {
+        return [
+            'Amount' => $amount,
+            'ItemId' => $itemId,
+            'UnitOfMeasureId' => $uom,
+            'VariantId' => $variantId,
+            'NewStatus' => $status,
+            'Quantity' => $qty,
+            'PrevStatus' => $prevStatus,
+            'ExtLineStatus' => $extLineStatus,
+            'LineNo' => $lineNo
+        ];
     }
 }
