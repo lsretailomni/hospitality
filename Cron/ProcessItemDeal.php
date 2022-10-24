@@ -271,7 +271,7 @@ class ProcessItemDeal
 
         if (count($fetchResult) > 0) {
             foreach ($fetchResult as $dealLine) {
-                $product = $this->replicationHelper->getProductDataByItemId(
+                $product = $this->replicationHelper->getProductDataByIdentificationAttributes(
                     $dealLine['DealNo'],
                     '',
                     '',
@@ -282,7 +282,7 @@ class ProcessItemDeal
                     foreach ($product->getOptions() as $option) {
                         $this->optionRepository->delete($option);
                     }
-                    $product = $this->replicationHelper->getProductDataByItemId(
+                    $product = $this->replicationHelper->getProductDataByIdentificationAttributes(
                         $dealLine['DealNo'],
                         '',
                         '',
@@ -320,7 +320,7 @@ class ProcessItemDeal
             );
             $lineNo  = $this->hospitalityHelper->getMealMainItemSku($item->getNavId());
             try {
-                $productData     = $this->replicationHelper->getProductDataByItemId(
+                $productData     = $this->replicationHelper->getProductDataByIdentificationAttributes(
                     $item->getNavId(),
                     '',
                     '',
@@ -442,7 +442,7 @@ class ProcessItemDeal
             ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
             [
                 'field' => 'DealNo',
-                'value' => $product->getData(\Ls\Core\Model\LSR::LS_ITEM_ID_ATTRIBUTE_CODE), 'condition_type' => 'eq'
+                'value' => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE), 'condition_type' => 'eq'
             ]
         ];
         $criteria = $this->replicationHelper->buildCriteriaForDirect($filters, -1);
@@ -458,7 +458,7 @@ class ProcessItemDeal
                     ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
                     [
                         'field' => 'DealNo',
-                        'value' => $product->getData(\Ls\Core\Model\LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                        'value' => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
                         'condition_type' => 'eq'
                     ],
                     ['field' => 'DealLineCode', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']

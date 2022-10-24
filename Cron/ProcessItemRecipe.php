@@ -205,7 +205,7 @@ class ProcessItemRecipe
                     $productOptions = [];
                     if (!empty($optionArray)) {
                         try {
-                            $product         = $this->replicationHelper->getProductDataByItemId(
+                            $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
                                 $itemSKU,
                                 '',
                                 '',

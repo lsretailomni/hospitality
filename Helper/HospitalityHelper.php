@@ -11,6 +11,7 @@ use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\ResponseInterface;
+use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
@@ -23,6 +24,7 @@ use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
@@ -181,6 +183,11 @@ class HospitalityHelper extends AbstractHelper
     public $orderHelper;
 
     /**
+     * @var ItemHelper
+     */
+    public $itemHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -208,6 +215,7 @@ class HospitalityHelper extends AbstractHelper
      * @param AttributeRepositoryInterface $attributeRepository
      * @param SerializerJson $serializerJson
      * @param OrderHelper $orderHelper
+     * @param ItemHelper $itemHelper
      */
     public function __construct(
         Context $context,
@@ -236,7 +244,8 @@ class HospitalityHelper extends AbstractHelper
         AddressInterfaceFactory $addressFactory,
         AttributeRepositoryInterface $attributeRepository,
         SerializerJson $serializerJson,
-        OrderHelper $orderHelper
+        OrderHelper $orderHelper,
+        ItemHelper $itemHelper
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -265,6 +274,7 @@ class HospitalityHelper extends AbstractHelper
         $this->attributeRepository                        = $attributeRepository;
         $this->serializerJson                             = $serializerJson;
         $this->orderHelper                                = $orderHelper;
+        $this->itemHelper                                 = $itemHelper;
     }
 
     /**
@@ -282,10 +292,7 @@ class HospitalityHelper extends AbstractHelper
 
         /** @var Interceptor $product */
         $product = $this->getProductFromRepositoryGivenSku($sku);
-
-        $uom     = $product->getAttributeText('lsr_uom');
-        $itemSku = explode("-", $sku);
-        $lsrId   = $itemSku[0];
+        list($lsrId, , $uom)   = $this->itemHelper->getComparisonValues($sku);
 
         /**
          * Business Logic ***
@@ -326,7 +333,11 @@ class HospitalityHelper extends AbstractHelper
                     $option['option_id'],
                     trim($option['value'])
                 );
-                $uom = $this->getDealLineUomGivenData($product->getSku(), $dealLineId, $dealModLineId);
+                $uom = $this->getDealLineUomGivenData(
+                    $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                    $dealLineId,
+                    $dealModLineId
+                );
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId'    => $dealLineId,
                     'DealModLineId' => $dealModLineId,
@@ -999,6 +1010,17 @@ class HospitalityHelper extends AbstractHelper
         $productList = $this->productRepository->getList($searchCriteria)->getItems();
 
         return array_pop($productList);
+    }
+
+    /**
+     * Get products by Item Ids
+     *
+     * @param string $itemId
+     * @return array|ProductInterface[]
+     */
+    public function getProductsByItemId($itemId)
+    {
+        return current($this->itemHelper->getProductsInfoByItemIds([$itemId]));
     }
 
     /**

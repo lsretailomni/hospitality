@@ -51,26 +51,35 @@ class StockHelperPlugin
         foreach ($items as &$item) {
             $itemQty = $item->getQty();
             list($parentProductSku, $childProductSku, , , $uomQty) = $subject->itemHelper->getComparisonValues(
-                $item->getProductId(),
                 $item->getSku()
             );
 
             if (!empty($uomQty)) {
                 $itemQty = $itemQty * $uomQty;
             }
-            $sku            = $item->getSku();
+            $sku     = $item->getSku();
             $product = $this->hospitalityHelper->getProductFromRepositoryGivenSku($sku);
 
             if ($product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
-                $lineNo = $this->hospitalityHelper->getMealMainItemSku($product->getSku());
+                $lineNo = $this->hospitalityHelper->getMealMainItemSku(
+                    $product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_ID_ATTRIBUTE_CODE)
+                );
 
                 if ($lineNo) {
                     $stockCollection[] = [
-                        'sku' => $lineNo, 'name' => $item->getName(), 'qty' => $itemQty
+                        'item_id' => $lineNo,
+                        'variant_id' => $childProductSku,
+                        'name' => $item->getName(),
+                        'qty' => $itemQty
                     ];
                 }
             } else {
-                $stockCollection[] = ['sku' => $sku, 'name' => $item->getName(), 'qty' => $itemQty];
+                $stockCollection[] = [
+                    'item_id' => $parentProductSku,
+                    'variant_id' => $childProductSku,
+                    'name' => $item->getName(),
+                    'qty' => $itemQty
+                ];
             }
 
             $item = ['parent' => $parentProductSku, 'child' => $childProductSku];
@@ -101,9 +110,9 @@ class StockHelperPlugin
 
         foreach ($items as &$item) {
             if (isset($item['parent'])) {
-                $product = $this->hospitalityHelper->getProductFromRepositoryGivenSku($item['parent']);
+                $product = $this->hospitalityHelper->getProductsByItemId($item['parent']);
 
-                if ($product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
+                if (!empty($product) && $product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
                     $lineNo = $this->hospitalityHelper->getMealMainItemSku($item['parent']);
 
                     if ($lineNo) {

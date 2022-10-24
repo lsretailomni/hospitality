@@ -232,7 +232,7 @@ class ProcessItemModifier
                         // get Product Repository;
                         /** @var  $product */
                         try {
-                            $product         = $this->replicationHelper->getProductDataByItemId(
+                            $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
                                 $itemSKU,
                                 '',
                                 '',

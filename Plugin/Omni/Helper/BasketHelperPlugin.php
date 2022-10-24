@@ -92,7 +92,6 @@ class BasketHelperPlugin
         foreach ($quoteItems as $index => $quoteItem) {
             ++$index;
             list($itemId, $variantId, $uom, $barCode) = $subject->itemHelper->getComparisonValues(
-                $quoteItem->getProductId(),
                 $quoteItem->getSku()
             );
             $product = $subject->productRepository->getById($quoteItem->getProductId());
@@ -286,7 +285,6 @@ class BasketHelperPlugin
         $rowTotal = "";
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
-            $item->getProductId(),
             $item->getSku()
         );
         $basketData = $subject->getOneListCalculation();
