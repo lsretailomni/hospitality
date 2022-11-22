@@ -142,9 +142,9 @@ class ProcessItemDeal
     }
 
     /**
-     * Execute Manually
+     * Execute manually
      *
-     * @param $storeData
+     * @param mixed $storeData
      * @return int[]
      * @throws InputException
      * @throws LocalizedException
@@ -161,9 +161,9 @@ class ProcessItemDeal
     }
 
     /**
-     * Execute
+     * Entry point for cron
      *
-     * @param null $storeData
+     * @param mixed $storeData
      * @throws InputException
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -244,7 +244,7 @@ class ProcessItemDeal
     /**
      * Get Remaining Records
      *
-     * @param $forceReload
+     * @param bool $forceReload
      * @return int
      */
     public function getRemainingRecords(
@@ -271,22 +271,22 @@ class ProcessItemDeal
 
         if (count($fetchResult) > 0) {
             foreach ($fetchResult as $dealLine) {
-                $product = $this->productRepository->get(
+                $product = $this->replicationHelper->getProductDataByIdentificationAttributes(
                     $dealLine['DealNo'],
-                    false,
-                    $this->store->getId(),
-                    true
+                    '',
+                    '',
+                    $this->store->getId()
                 );
 
                 if ($product->getOptions()) {
                     foreach ($product->getOptions() as $option) {
                         $this->optionRepository->delete($option);
                     }
-                    $product = $this->productRepository->get(
+                    $product = $this->replicationHelper->getProductDataByIdentificationAttributes(
                         $dealLine['DealNo'],
-                        false,
-                        $this->store->getId(),
-                        true
+                        '',
+                        '',
+                        $this->store->getId()
                     );
                 }
                 $this->processItemDealLine(
@@ -320,9 +320,10 @@ class ProcessItemDeal
             );
             $lineNo  = $this->hospitalityHelper->getMealMainItemSku($item->getNavId());
             try {
-                $productData     = $this->productRepository->get(
+                $productData     = $this->replicationHelper->getProductDataByIdentificationAttributes(
                     $item->getNavId(),
-                    false,
+                    '',
+                    '',
                     $this->store->getId()
                 );
                 $websitesProduct = $productData->getWebsiteIds();
@@ -380,6 +381,7 @@ class ProcessItemDeal
                 $product->setWeight(1);
                 $product->setPrice($item->getDealPrice());
                 $product->setData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE, 1);
+                $product->setCustomAttribute(\Ls\Core\Model\LSR::LS_ITEM_ID_ATTRIBUTE_CODE, $item->getNavId());
 
                 $attributeSetId = $this->replicationHelper->getAttributeSetId(
                     null,
@@ -431,14 +433,17 @@ class ProcessItemDeal
     /**
      * Process item deal line
      *
-     * @param $product
-     * @throws InputException
+     * @param mixed $product
+     * @throws InputException|NoSuchEntityException
      */
     public function processItemDealLine($product)
     {
         $filters  = [
             ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
-            ['field' => 'DealNo', 'value' => $product->getSku(), 'condition_type' => 'eq']
+            [
+                'field' => 'DealNo',
+                'value' => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE), 'condition_type' => 'eq'
+            ]
         ];
         $criteria = $this->replicationHelper->buildCriteriaForDirect($filters, -1);
         $criteria->setSortOrders(
@@ -451,7 +456,11 @@ class ProcessItemDeal
             if ($replHierarchyHospDeal->getType() == 'Modifier') {
                 $filters  = [
                     ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
-                    ['field' => 'DealNo', 'value' => $product->getSku(), 'condition_type' => 'eq'],
+                    [
+                        'field' => 'DealNo',
+                        'value' => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                        'condition_type' => 'eq'
+                    ],
                     ['field' => 'DealLineCode', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']
                 ];
                 $criteria = $this->replicationHelper->buildCriteriaForDirect($filters, -1);
@@ -493,9 +502,9 @@ class ProcessItemDeal
     /**
      * Create custom options for modifiers
      *
-     * @param $replHierarchyHospDeal
-     * @param $replHierarchyHospDealLines
-     * @param $product
+     * @param mixed $replHierarchyHospDeal
+     * @param mixed $replHierarchyHospDealLines
+     * @param mixed $product
      * @return void
      * @throws NoSuchEntityException
      */
@@ -522,9 +531,9 @@ class ProcessItemDeal
     /**
      * Create custom options for recipes
      *
-     * @param $replHierarchyHospDeal
-     * @param $repItemRecipes
-     * @param $product
+     * @param mixed $replHierarchyHospDeal
+     * @param mixed $repItemRecipes
+     * @param mixed $product
      * @return void
      * @throws NoSuchEntityException
      */
@@ -552,14 +561,14 @@ class ProcessItemDeal
     /**
      * Create custom option against given data
      *
-     * @param $description
-     * @param $type
-     * @param $required
-     * @param $sortOrder
-     * @param $sku
-     * @param $values
-     * @param $product
-     * @param null $lsModifierRecipeId
+     * @param mixed $description
+     * @param mixed $type
+     * @param mixed $required
+     * @param mixed $sortOrder
+     * @param mixed $sku
+     * @param mixed $values
+     * @param mixed $product
+     * @param mixed $lsModifierRecipeId
      * @throws CouldNotSaveException
      * @throws InputException
      * @throws StateException
@@ -599,8 +608,8 @@ class ProcessItemDeal
     /**
      * Get custom options values
      *
-     * @param $dealLines
-     * @param $type
+     * @param mixed $dealLines
+     * @param mixed $type
      * @return array
      * @throws NoSuchEntityException
      */
@@ -642,7 +651,7 @@ class ProcessItemDeal
     /**
      * Get deals to process
      *
-     * @param $productBatchSize
+     * @param mixed $productBatchSize
      * @return mixed
      */
     public function getDealsToProcess($productBatchSize = -1)

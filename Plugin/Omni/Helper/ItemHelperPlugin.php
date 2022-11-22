@@ -79,7 +79,6 @@ class ItemHelperPlugin
         foreach ($quoteItemList as $quoteItem) {
             $baseUnitOfMeasure = $quoteItem->getProduct()->getData('uom');
             list($itemId, $variantId, $uom) = $subject->getComparisonValues(
-                $quoteItem->getProductId(),
                 $quoteItem->getSku()
             );
 
@@ -134,7 +133,6 @@ class ItemHelperPlugin
             } else {
                 $baseUnitOfMeasure = $item->getProduct()->getData('uom');
                 list($itemId, $variantId, $uom) = $subject->getComparisonValues(
-                    $item->getProductId(),
                     $item->getSku()
                 );
                 $customPrice = $item->getCustomPrice();

@@ -16,12 +16,11 @@ use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterfaceFactory;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
 
 /**
- * Class ProcessItemRecipe
  * To Process Item Recipe into the Magento data structure.
  */
 class ProcessItemRecipe
@@ -105,11 +104,11 @@ class ProcessItemRecipe
     }
 
     /**
-     * Execute
+     * Entry point for cron
      *
-     * @param $storeData
+     * @param mixed $storeData
      * @return void
-     * @throws NoSuchEntityException
+     * @throws LocalizedException
      */
     public function execute($storeData = null)
     {
@@ -150,9 +149,9 @@ class ProcessItemRecipe
     /**
      * Execute manually
      *
-     * @param $storeData
+     * @param mixed $storeData
      * @return int[]
-     * @throws InputException
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function executeManually($storeData = null)
@@ -166,6 +165,7 @@ class ProcessItemRecipe
      * Item Recipes processing
      *
      * @return void
+     * @throws LocalizedException
      */
     public function processItemRecipies()
     {
@@ -187,8 +187,7 @@ class ProcessItemRecipe
             $criteria,
             'RecipeNo',
             null,
-            'catalog_product_entity',
-            'sku'
+            ['repl_item_recipe_id']
         );
         $dataToProcess = [];
 
@@ -206,9 +205,10 @@ class ProcessItemRecipe
                     $productOptions = [];
                     if (!empty($optionArray)) {
                         try {
-                            $product         = $this->productRepository->get(
+                            $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
                                 $itemSKU,
-                                true,
+                                '',
+                                '',
                                 $this->store->getId()
                             );
                             $existingOptions = $this->optionRepository->getProductOptions($product);
@@ -331,8 +331,9 @@ class ProcessItemRecipe
     /**
      * Get remaining records
      *
-     * @param $forceReload
+     * @param bool $forceReload
      * @return int
+     * @throws LocalizedException
      */
     public function getRemainingRecords(
         $forceReload = false
@@ -353,8 +354,7 @@ class ProcessItemRecipe
                 $criteria,
                 'RecipeNo',
                 null,
-                'catalog_product_entity',
-                'sku'
+                ['repl_item_recipe_id']
             );
             $this->remainingRecords = $collection->getSize();
         }

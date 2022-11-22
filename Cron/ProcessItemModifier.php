@@ -17,11 +17,11 @@ use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterfaceFactory;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
 
 /**
- * Class ProcessItemModifier
  * To Process Item Modifiers into the Magento data structure.
  */
 class ProcessItemModifier
@@ -107,10 +107,11 @@ class ProcessItemModifier
     }
 
     /**
-     * Execute
+     * Entry point for cron
      *
-     * @param $storeData
+     * @param mixed $storeData
      * @return void
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function execute($storeData = null)
@@ -152,8 +153,9 @@ class ProcessItemModifier
     /**
      * Execute manually
      *
-     * @param $storeData
+     * @param mixed $storeData
      * @return int[]
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function executeManually($storeData = null)
@@ -167,6 +169,7 @@ class ProcessItemModifier
      * Item modifier processing
      *
      * @return void
+     * @throws LocalizedException
      */
     public function processItemModifiers()
     {
@@ -188,8 +191,7 @@ class ProcessItemModifier
             $criteria,
             'nav_id',
             null,
-            'catalog_product_entity',
-            'sku'
+            ['repl_item_modifier_id']
         );
         $dataToProcess = [];
 
@@ -230,9 +232,10 @@ class ProcessItemModifier
                         // get Product Repository;
                         /** @var  $product */
                         try {
-                            $product         = $this->productRepository->get(
+                            $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
                                 $itemSKU,
-                                true,
+                                '',
+                                '',
                                 $this->store->getId()
                             );
                             $existingOptions = $this->optionRepository->getProductOptions($product);
@@ -381,8 +384,9 @@ class ProcessItemModifier
     /**
      * Get remaining records
      *
-     * @param $forceReload
+     * @param bool $forceReload
      * @return int
+     * @throws LocalizedException
      */
     public function getRemainingRecords(
         $forceReload = false
@@ -403,8 +407,7 @@ class ProcessItemModifier
                 $criteria,
                 'nav_id',
                 null,
-                'catalog_product_entity',
-                'sku'
+                ['repl_item_modifier_id']
             );
             $this->remainingRecords = $collection->getSize();
         }

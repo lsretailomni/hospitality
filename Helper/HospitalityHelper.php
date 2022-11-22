@@ -24,6 +24,7 @@ use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
@@ -300,10 +301,7 @@ class HospitalityHelper extends AbstractHelper
 
         /** @var Interceptor $product */
         $product = $this->getProductFromRepositoryGivenSku($sku);
-
-        $uom     = $product->getAttributeText('lsr_uom');
-        $itemSku = explode("-", $sku);
-        $lsrId   = $itemSku[0];
+        list($lsrId, , $uom)   = $this->itemHelper->getComparisonValues($sku);
 
         /**
          * Business Logic ***
@@ -344,7 +342,11 @@ class HospitalityHelper extends AbstractHelper
                     $option['option_id'],
                     trim($option['value'])
                 );
-                $uom = $this->getDealLineUomGivenData($product->getSku(), $dealLineId, $dealModLineId);
+                $uom = $this->getDealLineUomGivenData(
+                    $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                    $dealLineId,
+                    $dealModLineId
+                );
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId'    => $dealLineId,
                     'DealModLineId' => $dealModLineId,
@@ -600,9 +602,7 @@ class HospitalityHelper extends AbstractHelper
             $collection2,
             $criteria2,
             'DealNo',
-            null,
-            'catalog_product_entity',
-            'sku'
+            null
         );
         $collection2->getSelect()->group('main_table.DealNo')
             ->reset(Zend_Db_Select::COLUMNS)
@@ -623,9 +623,7 @@ class HospitalityHelper extends AbstractHelper
             $collection1,
             $criteria1,
             'DealNo',
-            null,
-            'catalog_product_entity',
-            'sku'
+            null
         );
         $collection1->getSelect()->group('main_table.DealNo')
             ->reset(Zend_Db_Select::COLUMNS)
@@ -1021,6 +1019,17 @@ class HospitalityHelper extends AbstractHelper
         $productList = $this->productRepository->getList($searchCriteria)->getItems();
 
         return array_pop($productList);
+    }
+
+    /**
+     * Get products by Item Ids
+     *
+     * @param string $itemId
+     * @return array|ProductInterface[]
+     */
+    public function getProductsByItemId($itemId)
+    {
+        return current($this->itemHelper->getProductsInfoByItemIds([$itemId]));
     }
 
     /**
