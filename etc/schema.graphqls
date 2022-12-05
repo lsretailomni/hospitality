@@ -92,3 +92,52 @@ type KitchenInformation {
     pickup_date: String @doc(description: "Order pickup date.")
     pickup_time: String @doc(description: "Order pickup time.")
 }
+
+type SalesEntryLine {
+ modifiers: [Modifiers]
+}
+
+type Modifiers @doc(description: "Item Selection") {
+    amount: Float @doc(description: "Amount")
+    click_and_collect_line: String @doc(description: "Click and Collect Line")
+    discount_amount: Float @doc(description: "Discount Amount")
+    discount_percent: Float @doc(description: "Discount Percent")
+    item_description: String @doc(description: "Item Description")
+    item_id: String @doc(description: "Item Id")
+    item_image_id: String @doc(description: "Item Image Id")
+    line_number: String @doc(description: "Line Number")
+    line_type: String @doc(description: "Line Type")
+    net_amount: Float @doc(description: "Net Amount")
+    net_price: Float @doc(description: "Net Price")
+    parent_line: String @doc(description: "Parent Line")
+    price: Float @doc(description: "Price")
+    quantity: Float @doc(description: "Quantity")
+    store_id: String @doc(description: "Store Id")
+    tax_amount: Float @doc(description: "Tax Amount")
+    uom_id: String @doc(description: "Unit of Measure Id")
+    variant_description: String @doc(description: "Variant Description")
+    variant_id: String @doc(description: "Variant Id")
+    ingredients: [item]
+}
+
+type item @doc(description: "Item Information") {
+    amount: Float @doc(description: "Amount")
+    click_and_collect_line: String @doc(description: "Click and Collect Line")
+    discount_amount: Float @doc(description: "Discount Amount")
+    discount_percent: Float @doc(description: "Discount Percent")
+    item_description: String @doc(description: "Item Description")
+    item_id: String @doc(description: "Item Id")
+    item_image_id: String @doc(description: "Item Image Id")
+    line_number: String @doc(description: "Line Number")
+    line_type: String @doc(description: "Line Type")
+    net_amount: Float @doc(description: "Net Amount")
+    net_price: Float @doc(description: "Net Price")
+    parent_line: String @doc(description: "Parent Line")
+    price: Float @doc(description: "Price")
+    quantity: Float @doc(description: "Quantity")
+    store_id: String @doc(description: "Store Id")
+    tax_amount: Float @doc(description: "Tax Amount")
+    uom_id: String @doc(description: "Unit of Measure Id")
+    variant_description: String @doc(description: "Variant Description")
+    variant_id: String @doc(description: "Variant Id")
+}
