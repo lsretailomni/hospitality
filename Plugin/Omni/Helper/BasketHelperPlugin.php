@@ -118,6 +118,8 @@ class BasketHelperPlugin
             if (!empty($selectedSubLines['modifier'])) {
                 foreach ($selectedSubLines['modifier'] as $subLine) {
                     $oneListSubLine         = (new Entity\OneListItemSubLine())
+                        ->setDealLineId($subLine['DealLineId'] ?? null)
+                        ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
                         ->setModifierGroupCode($subLine['ModifierGroupCode'])
                         ->setModifierSubCode($subLine['ModifierSubCode'])
                         ->setQuantity(1)

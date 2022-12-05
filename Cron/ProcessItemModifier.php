@@ -3,14 +3,14 @@
 namespace Ls\Hospitality\Cron;
 
 use Exception;
-use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Hospitality\Model\LSR;
-use \Ls\Replication\Api\ReplItemModifierRepositoryInterface;
-use \Ls\Replication\Helper\ReplicationHelper;
-use \Ls\Replication\Logger\Logger;
-use \Ls\Replication\Model\ReplItemModifier;
-use \Ls\Replication\Model\ResourceModel\ReplItemModifier\Collection;
-use \Ls\Replication\Model\ResourceModel\ReplItemModifier\CollectionFactory as ReplItemModifierCollectionFactory;
+use Ls\Hospitality\Helper\HospitalityHelper;
+use Ls\Hospitality\Model\LSR;
+use Ls\Replication\Api\ReplItemModifierRepositoryInterface;
+use Ls\Replication\Helper\ReplicationHelper;
+use Ls\Replication\Logger\Logger;
+use Ls\Replication\Model\ReplItemModifier;
+use Ls\Replication\Model\ResourceModel\ReplItemModifier\Collection;
+use Ls\Replication\Model\ResourceModel\ReplItemModifier\CollectionFactory as ReplItemModifierCollectionFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
@@ -196,188 +196,216 @@ class ProcessItemModifier
         $dataToProcess = [];
 
         if ($collection->getSize() > 0) {
-            /** @var ReplItemModifier $itemModifier */
-            foreach ($collection->getItems() as $itemModifier) {
-                /**
-                 * There are types of Modifiers which we dont need to process
-                 * i-e All modifiers whose TriggerFunction = Infocode
-                 **/
-                if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
-                    $dataToProcess['data'][$itemModifier->getNavId()][$itemModifier->getCode()]
-                    [$itemModifier->getSubCode()] = $itemModifier;
-                    if ($itemModifier->getGroupMaxSelection()) {
-                        $dataToProcess[$itemModifier->getCode()] ['max_select'] = $itemModifier->getGroupMaxSelection();
-                    }
-
-                    if ($itemModifier->getGroupMinSelection()) {
-                        $dataToProcess[$itemModifier->getCode()] ['min_select'] = $itemModifier->getGroupMinSelection();
-                    }
-                } else {
-                    $dataToProcess[$itemModifier->getTriggerCode()] ['min_select'] = $itemModifier->getMinSelection();
-                    $dataToProcess[$itemModifier->getTriggerCode()] ['max_select'] = $itemModifier->getMaxSelection();
-                    $itemModifier->setProcessed(1)
-                        ->setProcessedAt($this->replicationHelper->getDateTime())
-                        ->setIsUpdated(0);
-
-                    $this->replItemModifierRepositoryInterface->save($itemModifier);
-                }
-            }
-
-            if (!empty($dataToProcess)) {
-                // loop against each Product.
-                foreach ($dataToProcess['data'] as $itemSKU => $optionArray) {
-                    // generate options.
-                    $productOptions = [];
-                    if (!empty($optionArray)) {
-                        // get Product Repository;
-                        /** @var  $product */
-                        try {
-                            $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
-                                $itemSKU,
-                                '',
-                                '',
-                                $this->store->getId()
-                            );
-                            $existingOptions = $this->optionRepository->getProductOptions($product);
-
-                            foreach ($optionArray as $optionCode => $optionValuesArray) {
-                                $isOptionExist         = false;
-                                $ls_modifier_recipe_id = LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode;
-                                if (!empty($existingOptions)) {
-                                    foreach ($existingOptions as $existingOption) {
-                                        if ($existingOption->getData('ls_modifier_recipe_id') ==
-                                            $ls_modifier_recipe_id) {
-                                            $isOptionExist = true;
-                                            $productOption = $existingOption;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!$isOptionExist) {
-                                    /** @var ProductCustomOptionInterface $productOption */
-                                    $productOption = $this->customOptionFactory->create();
-                                }
-                                $optionNeedsToBeUpdated = false;
-                                if (!empty($optionValuesArray)) {
-                                    $optionData = [];
-                                    /** @var ReplItemModifier $optionValueData */
-                                    foreach ($optionValuesArray as $subcode => $optionValueData) {
-                                        $existingOptionValues = $productOption->getValues();
-                                        /** @var ProductCustomOptionValuesInterface $optionValue */
-                                        if ($optionValueData->getExplanatoryHeaderText() != '') {
-                                            $title = $optionValueData->getExplanatoryHeaderText();
-                                        } else {
-                                            $title = $optionValueData->getCode();
-                                        }
-                                        /**
-                                         * Dev Notes:
-                                         * For the Option Values, we are only checking the duplication based on title.
-                                         */
-                                        $isOptionValueExist = false;
-                                        if (!empty($existingOptionValues)) {
-                                            foreach ($existingOptionValues as $existingOptionValue) {
-                                                if ($existingOptionValue->getTitle() ==
-                                                    $optionValueData->getDescription()) {
-                                                    $isOptionValueExist = true;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        if (!$isOptionValueExist) {
-                                            $optionNeedsToBeUpdated = true;
-                                            $optionValue            = $this->customOptionValueFactory->create();
-                                            $optionValue->setTitle($optionValueData->getDescription())
-                                                ->setPriceType('fixed')
-                                                ->setSortOrder($subcode)
-                                                ->setPrice($optionValueData->getAmountPercent());
-
-                                            if (!empty($optionValueData->getTriggerCode())) {
-                                                $replImage = $this->hospitalityHelper->getImageGivenItem(
-                                                    $optionValueData->getTriggerCode(),
-                                                    $this->store->getId()
-                                                );
-
-                                                if ($replImage) {
-                                                    $swatchPath = $this->hospitalityHelper->getImage(
-                                                        $replImage->getImageId()
-                                                    );
-
-                                                    if (!empty($swatchPath)) {
-                                                        $optionValue->setSwatch($swatchPath);
-                                                    }
-                                                }
-
-                                            }
-                                            $optionData['values'][] = $optionValue;
-                                            $optionData['title']    = $title;
-                                            $optionData ['code']    = $optionValueData->getCode();
-                                        }
-
-                                        $optionValueData->setProcessed(1)
-                                            ->setProcessedAt($this->replicationHelper->getDateTime())
-                                            ->setIsUpdated(0);
-
-                                        $this->replItemModifierRepositoryInterface->save($optionValueData);
-                                        //$this->logger->debug(var_export($optionValueData, true));
-                                    }
-
-                                    if ($optionNeedsToBeUpdated) {
-                                        try {
-                                            // check if Option
-                                            $productOption->setTitle($optionData['title'])
-                                                ->setPrice('')
-                                                ->setPriceType('fixed')
-                                                ->setValues($optionData['values'])
-                                                ->setIsRequire(0)
-                                                ->setType('drop_down')
-                                                ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
-                                                ->setProductSku($itemSKU)
-                                                ->setSwatch(
-                                                    $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
-                                                        $optionData['values']
-                                                    )
-                                                );
-                                            if (isset($dataToProcess[$optionData['code']])) {
-                                                if (isset($dataToProcess[$optionData['code']]['min_select']) &&
-                                                    $dataToProcess[$optionData['code']]['min_select'] >= 1) {
-                                                    $productOption->setIsRequire(true);
-                                                }
-
-                                                if (isset($dataToProcess[$optionData['code']]['max_select']) &&
-                                                    $dataToProcess[$optionData['code']]['max_select'] > 1) {
-                                                    $productOption->setType('multiple');
-                                                }
-                                            }
-                                            $savedProductOption = $this->optionRepository->save($productOption);
-                                            $product->addOption($savedProductOption);
-                                            if (!$product->getHasOptions()) {
-                                                $product->setHasOptions(1);
-                                                $product = $this->productRepository->save($product);
-                                            }
-                                        } catch (Exception $e) {
-                                            $this->logger->error($e->getMessage());
-                                            $this->logger->error(
-                                                'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (Exception $e) {
-                            $this->logger->error($e->getMessage());
-                            $this->logger->error(
-                                'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
-                            );
-                        }
-                    }
-                }
-            }
+            $dataToProcess = $this->formatModifier($collection);
+            $this->process($dataToProcess);
             $remainingItems = (int)$this->getRemainingRecords();
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
         } else {
             $this->cronStatus = true;
+        }
+    }
+
+    /**
+     * Arrange modifier data
+     *
+     * @param $itemModifier
+     * @param $sku
+     * @param bool $isNotDeal
+     * @return array
+     */
+    public function formatModifier($itemModifiers, $sku = null, $isNotDeal = true)
+    {
+        $dataToProcess = null;
+        /**
+         * There are types of Modifiers which we dont need to process
+         * i-e All modifiers whose TriggerFunction = Infocode
+         **/
+        foreach ($itemModifiers->getItems() as $itemModifier) {
+            if (empty($sku)) {
+                $sku = $itemModifier->getNavId();
+            }
+            if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
+                $dataToProcess['data'][$sku][$itemModifier->getCode()]
+                [$itemModifier->getSubCode()] = $itemModifier;
+                if ($itemModifier->getGroupMaxSelection()) {
+                    $dataToProcess[$itemModifier->getCode()] ['max_select'] = $itemModifier->getGroupMaxSelection();
+                }
+
+                if ($itemModifier->getGroupMinSelection()) {
+                    $dataToProcess[$itemModifier->getCode()] ['min_select'] = $itemModifier->getGroupMinSelection();
+                }
+            } else {
+                $dataToProcess[$itemModifier->getTriggerCode()] ['min_select'] = $itemModifier->getMinSelection();
+                $dataToProcess[$itemModifier->getTriggerCode()] ['max_select'] = $itemModifier->getMaxSelection();
+                if ($isNotDeal) {
+                    $itemModifier->setProcessed(1)
+                        ->setProcessedAt($this->replicationHelper->getDateTime())
+                        ->setIsUpdated(0);
+                    $this->replItemModifierRepositoryInterface->save($itemModifier);
+                }
+            }
+        }
+
+        return $dataToProcess;
+    }
+
+    /**
+     * Process formatted modifiers data
+     *
+     * @param $dataToProcess
+     * @return void
+     */
+    public function process($dataToProcess)
+    {
+        if (!empty($dataToProcess)) {
+            // loop against each Product.
+            foreach ($dataToProcess['data'] as $itemSKU => $optionArray) {
+                // generate options.
+                $productOptions = [];
+                if (!empty($optionArray)) {
+                    // get Product Repository;
+                    /** @var  $product */
+                    try {
+                        $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
+                            $itemSKU,
+                            '',
+                            '',
+                            $this->store->getId()
+                        );
+                        $existingOptions = $this->optionRepository->getProductOptions($product);
+
+                        foreach ($optionArray as $optionCode => $optionValuesArray) {
+                            $isOptionExist         = false;
+                            $ls_modifier_recipe_id = LSR::LSR_ITEM_MODIFIER_PREFIX . $optionCode;
+                            if (!empty($existingOptions)) {
+                                foreach ($existingOptions as $existingOption) {
+                                    if ($existingOption->getData('ls_modifier_recipe_id') ==
+                                        $ls_modifier_recipe_id) {
+                                        $isOptionExist = true;
+                                        $productOption = $existingOption;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!$isOptionExist) {
+                                /** @var ProductCustomOptionInterface $productOption */
+                                $productOption = $this->customOptionFactory->create();
+                            }
+                            $optionNeedsToBeUpdated = false;
+                            if (!empty($optionValuesArray)) {
+                                $optionData = [];
+                                /** @var ReplItemModifier $optionValueData */
+                                foreach ($optionValuesArray as $subcode => $optionValueData) {
+                                    $existingOptionValues = $productOption->getValues();
+                                    /** @var ProductCustomOptionValuesInterface $optionValue */
+                                    if ($optionValueData->getExplanatoryHeaderText() != '') {
+                                        $title = $optionValueData->getExplanatoryHeaderText();
+                                    } else {
+                                        $title = $optionValueData->getCode();
+                                    }
+                                    /**
+                                     * Dev Notes:
+                                     * For the Option Values, we are only checking the duplication based on title.
+                                     */
+                                    $isOptionValueExist = false;
+                                    if (!empty($existingOptionValues)) {
+                                        foreach ($existingOptionValues as $existingOptionValue) {
+                                            if ($existingOptionValue->getTitle() ==
+                                                $optionValueData->getDescription()) {
+                                                $isOptionValueExist = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (!$isOptionValueExist) {
+                                        $optionNeedsToBeUpdated = true;
+                                        $optionValue            = $this->customOptionValueFactory->create();
+                                        $optionValue->setTitle($optionValueData->getDescription())
+                                            ->setPriceType('fixed')
+                                            ->setSortOrder($subcode)
+                                            ->setPrice($optionValueData->getAmountPercent());
+
+                                        if (!empty($optionValueData->getTriggerCode())) {
+                                            $replImage = $this->hospitalityHelper->getImageGivenItem(
+                                                $optionValueData->getTriggerCode(),
+                                                $this->store->getId()
+                                            );
+
+                                            if ($replImage) {
+                                                $swatchPath = $this->hospitalityHelper->getImage(
+                                                    $replImage->getImageId()
+                                                );
+
+                                                if (!empty($swatchPath)) {
+                                                    $optionValue->setSwatch($swatchPath);
+                                                }
+                                            }
+                                        }
+                                        $optionData['values'][] = $optionValue;
+                                        $optionData['title']    = $title;
+                                        $optionData ['code']    = $optionValueData->getCode();
+                                    }
+
+                                    $optionValueData->setProcessed(1)
+                                        ->setProcessedAt($this->replicationHelper->getDateTime())
+                                        ->setIsUpdated(0);
+
+                                    $this->replItemModifierRepositoryInterface->save($optionValueData);
+                                    //$this->logger->debug(var_export($optionValueData, true));
+                                }
+
+                                if ($optionNeedsToBeUpdated) {
+                                    try {
+                                        // check if Option
+                                        $productOption->setTitle($optionData['title'])
+                                            ->setPrice('')
+                                            ->setPriceType('fixed')
+                                            ->setValues($optionData['values'])
+                                            ->setIsRequire(0)
+                                            ->setType('drop_down')
+                                            ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
+                                            ->setProductSku($itemSKU)
+                                            ->setSwatch(
+                                                $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
+                                                    $optionData['values']
+                                                )
+                                            );
+                                        if (isset($dataToProcess[$optionData['code']])) {
+                                            if (isset($dataToProcess[$optionData['code']]['min_select']) &&
+                                                $dataToProcess[$optionData['code']]['min_select'] >= 1) {
+                                                $productOption->setIsRequire(true);
+                                            }
+
+                                            if (isset($dataToProcess[$optionData['code']]['max_select']) &&
+                                                $dataToProcess[$optionData['code']]['max_select'] > 1) {
+                                                $productOption->setType('multiple');
+                                            }
+                                        }
+                                        $savedProductOption = $this->optionRepository->save($productOption);
+                                        $product->addOption($savedProductOption);
+                                        if (!$product->getHasOptions()) {
+                                            $product->setHasOptions(1);
+                                            $product = $this->productRepository->save($product);
+                                        }
+                                    } catch (Exception $e) {
+                                        $this->logger->error($e->getMessage());
+                                        $this->logger->error(
+                                            'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception $e) {
+                        $this->logger->error($e->getMessage());
+                        $this->logger->error(
+                            'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -412,5 +440,16 @@ class ProcessItemModifier
             $this->remainingRecords = $collection->getSize();
         }
         return $this->remainingRecords;
+    }
+
+    /**
+     * Setting up store
+     *
+     * @param $store
+     * @return void
+     */
+    public function setStore($store)
+    {
+        $this->store = $store;
     }
 }
