@@ -6,6 +6,7 @@ use Exception;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
+use Ls\Omni\Client\Ecommerce\Entity\HospOrderCancelResponse;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
@@ -235,7 +236,7 @@ class OrderHelperPlugin
      * @param callable $proceed
      * @param $documentId
      * @param $storeId
-     * @return Entity\OrderCancelResponse|ResponseInterface|null
+     * @return bool|HospOrderCancelResponse|ResponseInterface|null
      * @throws NoSuchEntityException
      */
     public function aroundOrderCancel(OrderHelper $subject, callable $proceed, $documentId, $storeId)
@@ -257,7 +258,7 @@ class OrderHelperPlugin
             $this->logger->error($e->getMessage());
         }
 
-        return $response;
+        return $response ? $response->getHospOrderCancelResult() : $response;
     }
 
     /**
