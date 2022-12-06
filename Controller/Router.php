@@ -48,7 +48,10 @@ class Router implements RouterInterface
         $identifier  = trim($request->getPathInfo(), '/');
         $paramsArray = explode('/', $identifier);
         if (count($paramsArray) == 3) {
-            if (strtolower($paramsArray[1]) == 'qrcode' && $this->qrCodeHelper->isQrCodeOrderingEnabled()) {
+            if ($paramsArray[1] &&
+                strtolower($paramsArray[1]) == 'qrcode' &&
+                $this->qrCodeHelper->isQrCodeOrderingEnabled()
+            ) {
                 $request->setPathInfo('/hospitality/qrcode/');
                 $params           = $this->qrCodeHelper->decrypt($paramsArray[2]);
                 $resultParamArray = explode('&', $params);
