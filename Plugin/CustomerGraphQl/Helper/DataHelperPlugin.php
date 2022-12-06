@@ -2,8 +2,8 @@
 
 namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
 
-use \Ls\Hospitality\Model\LSR;
 use \Ls\CustomerGraphQl\Helper\DataHelper;
+use \Ls\Hospitality\Model\LSR;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -32,15 +32,16 @@ class DataHelperPlugin
      * @param DataHelper $subject
      * @param callable $proceed
      * @param $items
+     * @param $magOrder
      * @return array
      * @throws NoSuchEntityException
      */
     public function aroundGetItems(
         DataHelper $subject,
         callable $proceed,
-        $items
+        $items,
+        $magOrder
     ) {
-
         if (!$this->lsr->isHospitalityStore()) {
             return $proceed($items);
         }
@@ -67,7 +68,8 @@ class DataHelperPlugin
                 'tax_amount'             => $item->getTaxAmount(),
                 'uom_id'                 => $item->getUomId(),
                 'variant_description'    => $item->getVariantDescription(),
-                'variant_id'             => $item->getVariantId()
+                'variant_id'             => $item->getVariantId(),
+                'custom_options'         => $this->getCustomOptions($magOrder, $item->getItemId(), $subject)
             ];
             if (empty($item->getParentLine())) {
                 $itemsArray [$item->getLineNumber()] = $data;
@@ -83,5 +85,39 @@ class DataHelperPlugin
         }
 
         return $itemsArray;
+    }
+
+    /**
+     * Get custom options from magento
+     *
+     * @param $magOrder
+     * @param $id
+     * @param $subject
+     * @return array
+     */
+    public function getCustomOptions($magOrder, $id, $subject)
+    {
+        $outputOptions = [];
+        if (!empty($magOrder)) {
+            $items   = $magOrder->getAllVisibleItems();
+            $counter = 0;
+            foreach ($items as $item) {
+                list($itemId) = $subject->itemHelper->getComparisonValues(
+                    $item->getSku()
+                );
+                if ($itemId == $id) {
+                    $options = $item->getProductOptions();
+                    if (isset($options['options']) && !empty($options['options'])) {
+                        foreach ($options['options'] as $option) {
+                            $outputOptions[$counter]['label'] = $option['label'];
+                            $outputOptions[$counter]['value'] = $option['value'];
+                            $counter++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $outputOptions;
     }
 }

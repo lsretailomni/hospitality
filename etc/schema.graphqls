@@ -94,7 +94,13 @@ type KitchenInformation {
 }
 
 type SalesEntryLine {
- modifiers: [Modifiers]
+    custom_options:[options]
+    modifiers: [Modifiers]
+}
+
+type options {
+    label: String @doc(description: "Label of custom option")
+    value: String @doc(description: "Value of custom option")
 }
 
 type Modifiers @doc(description: "Item Selection") {
