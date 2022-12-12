@@ -879,7 +879,7 @@ class HospitalityHelper extends AbstractHelper
             if (!is_dir($offerpath)) {
                 $this->file->mkdir($offerpath, 0775);
             }
-            $format      = strtolower($result['format']);
+            $format      = $result['format'] ? strtolower($result['format']) : 'jpg';
             $imageName   = $this->replicationHelper->oSlug($imageId);
             $output_file = "{$imageName}.$format";
             $file        = "{$offerpath}{$output_file}";
