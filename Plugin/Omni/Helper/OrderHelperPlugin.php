@@ -11,6 +11,9 @@ use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\OrderHelper;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
 use Magento\Framework\Stdlib\DateTime\DateTime;
@@ -259,6 +262,32 @@ class OrderHelperPlugin
         }
 
         return $response ? $response->getHospOrderCancelResult() : $response;
+    }
+
+    /**
+     * Around plugin to formulate exception for order cancellation in case of hospitality
+     *
+     * @param OrderHelper $subject
+     * @param callable $proceed
+     * @param $response
+     * @param $order
+     * @return void
+     * @throws NoSuchEntityException
+     * @throws AlreadyExistsException
+     * @throws InputException
+     * @throws LocalizedException
+     */
+    public function aroundFormulateOrderCancelResponse(OrderHelper $subject, callable $proceed, $response, $order)
+    {
+        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
+            return $proceed($response, $order);
+        }
+
+        if (!$response) {
+            $subject->formulateException($order);
+        }
     }
 
     /**
