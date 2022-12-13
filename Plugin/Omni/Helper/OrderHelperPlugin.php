@@ -325,6 +325,6 @@ class OrderHelperPlugin
             return $proceed($docId, $type);
         }
 
-        return  $subject->getOrderDetailsAgainstId($docId, $type);
+        return $subject->getOrderDetailsAgainstId($docId, $type);
     }
 }
