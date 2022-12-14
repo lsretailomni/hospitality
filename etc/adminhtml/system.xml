@@ -168,6 +168,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>If enabled, customer will be able to scan QR code and sync relevant information related to Store name, table number, sales type e.tc. on placing order with Central</comment>
                 </field>
+                <field id="qr_order_display_estimated_delivery_time"
+                       translate="label"
+                       sortOrder="105"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Display estimated delivery time</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If enabled, estimated delivery time will be displayed.</comment>
+                </field>
                 <field id="qr_order_content_block"
                        translate="label"
                        type="select"

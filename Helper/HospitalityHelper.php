@@ -804,7 +804,9 @@ class HospitalityHelper extends AbstractHelper
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
                 $status        = $response->getHospOrderStatusResult()->getStatus();
-                $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
+                if ($this->lsr->displayEstimatedDeliveryTime()) {
+                    $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
+                }
             } else {
                 $status = $response->getHospOrderKotStatusResult()->getStatus();
             }

@@ -22,6 +22,7 @@
                 <dateandtime_range_validation_active>0</dateandtime_range_validation_active>
                 <graphql_dateandtime_range_validation_active>1</graphql_dateandtime_range_validation_active>
                 <qr_order_enabled>1</qr_order_enabled>
+                <qr_order_display_estimated_delivery_time>1</qr_order_display_estimated_delivery_time>
                 <anonymous_order_enabled>0</anonymous_order_enabled>
             </hospitality>
         </ls_mag>

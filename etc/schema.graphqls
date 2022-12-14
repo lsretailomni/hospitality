@@ -88,6 +88,7 @@ type QrCodeParams {
 type KitchenInformation {
     status_code: String @doc(description: "Status Codes.")
     status_description: String @doc(description: "Status Description.")
+    display_estimated_time: Boolean @doc(description: "If enabled, estimated time will be displayed.")
     estimated_time: String @doc(description: "Estimated Time.")
     pickup_date: String @doc(description: "Order pickup date.")
     pickup_time: String @doc(description: "Order pickup time.")
