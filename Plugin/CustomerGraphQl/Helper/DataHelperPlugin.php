@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
 
 use \Ls\CustomerGraphQl\Helper\DataHelper;
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Omni\Helper\ItemHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -16,14 +17,21 @@ class DataHelperPlugin
      * @var LSR
      */
     public $lsr;
+    /**
+     * @var ItemHelper
+     */
+    private ItemHelper $itemHelper;
 
     /**
      * @param LSR $lsr
+     * @param ItemHelper $itemHelper
      */
     public function __construct(
-        LSR $lsr
+        LSR $lsr,
+        ItemHelper $itemHelper,
     ) {
-        $this->lsr = $lsr;
+        $this->lsr        = $lsr;
+        $this->itemHelper = $itemHelper;
     }
 
     /**
@@ -102,7 +110,7 @@ class DataHelperPlugin
             $items   = $magOrder->getAllVisibleItems();
             $counter = 0;
             foreach ($items as $item) {
-                list($itemId) = $subject->itemHelper->getComparisonValues(
+                list($itemId) = $this->itemHelper->getComparisonValues(
                     $item->getSku()
                 );
                 if ($itemId == $id) {
