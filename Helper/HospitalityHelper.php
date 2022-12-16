@@ -65,9 +65,9 @@ class HospitalityHelper extends AbstractHelper
 
     public const ADDRESS_ATTRIBUTE_MAPPER = [
         'firstname' => 'name',
-        'lastname' => 'name',
+        'lastname'  => 'name',
         'telephone' => 'phone',
-        'street' => ['street_line1', 'street_line2']
+        'street'    => ['street_line1', 'street_line2']
     ];
 
     /** @var ProductRepository $productRepository */
@@ -301,7 +301,7 @@ class HospitalityHelper extends AbstractHelper
 
         /** @var Interceptor $product */
         $product = $this->getProductFromRepositoryGivenSku($sku);
-        list($lsrId, , $uom)   = $this->itemHelper->getComparisonValues($sku);
+        list($lsrId, , $uom) = $this->itemHelper->getComparisonValues($sku);
 
         /**
          * Business Logic ***
@@ -336,13 +336,13 @@ class HospitalityHelper extends AbstractHelper
                 if (isset($option['ls_modifier_recipe_id'])) {
                     continue;
                 }
-                $dealLineId = $this->getCustomOptionSortOrder($product, $option['option_id']);
-                $dealModLineId = $this->getCustomOptionValueSortOrder(
+                $dealLineId                         = $this->getCustomOptionSortOrder($product, $option['option_id']);
+                $dealModLineId                      = $this->getCustomOptionValueSortOrder(
                     $product,
                     $option['option_id'],
                     trim($option['value'])
                 );
-                $uom = $this->getDealLineUomGivenData(
+                $uom                                = $this->getDealLineUomGivenData(
                     $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
                     $dealLineId,
                     $dealModLineId
@@ -350,7 +350,7 @@ class HospitalityHelper extends AbstractHelper
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId'    => $dealLineId,
                     'DealModLineId' => $dealModLineId,
-                    'uom'         => $uom
+                    'uom'           => $uom
                 ];
                 unset($selectedOptionsOfQuoteItem[$index]);
             }
@@ -380,6 +380,12 @@ class HospitalityHelper extends AbstractHelper
                         $selectedOrderHospSubLine['recipe'][] = $recipeData;
                     }
                 } else {
+                    $mainDealLineNo = null;
+                    if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
+                        $uom            = null;
+                        $lsrId          = $mainDealLine->getNo();
+                        $mainDealLineNo = $mainDealLine->getLineNo();
+                    }
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
                     $itemModifier             = $this->getItemModifier(
                         $lsrId,
@@ -391,7 +397,12 @@ class HospitalityHelper extends AbstractHelper
                     if (!empty($itemModifier)) {
                         $subCode                                = reset($itemModifier)->getSubCode();
                         $selectedOrderHospSubLine['modifier'][] =
-                            ['ModifierGroupCode' => $formattedItemSubLineCode, 'ModifierSubCode' => $subCode];
+                            [
+                                'ModifierGroupCode' => $formattedItemSubLineCode,
+                                'ModifierSubCode'   => $subCode,
+                                'DealLineId'        => $mainDealLineNo,
+                                'ParentSubLineId'   => $lineNumber
+                            ];
                     }
                 }
             }
@@ -795,8 +806,8 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status = $estimatedTime = $statusDescription = '';
-        $response      = $this->getKitchenOrderStatus(
+        $status   = $estimatedTime = $statusDescription = '';
+        $response = $this->getKitchenOrderStatus(
             $orderId,
             $storeId
         );
@@ -867,7 +878,7 @@ class HospitalityHelper extends AbstractHelper
         $image     = '';
         $imageSize = [
             'height' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_HEIGHT,
-            'width' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
+            'width'  => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
         ];
         /** @var ImageSize $imageSizeObject */
         $imageSizeObject = $this->loyaltyHelper->getImageSize($imageSize);
@@ -976,19 +987,19 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getDealLineUomGivenData($sku, $dealLineId, $dealModLineId)
     {
-        $uom = null;
-        $filterForDealLine  = [
+        $uom                        = null;
+        $filterForDealLine          = [
             ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
             ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
             ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
             ['field' => 'scope_id', 'value' => $this->lsr->getCurrentStoreId(), 'condition_type' => 'eq']
         ];
-        $criteria = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
+        $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
         $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
 
         if ($replHierarchyHospDealLines->getTotalCount() > 0) {
             $dealLine = current($replHierarchyHospDealLines->getItems());
-            $uom =  $dealLine->getUnitOfMeasure();
+            $uom      = $dealLine->getUnitOfMeasure();
         }
 
         return $uom;
@@ -1016,7 +1027,7 @@ class HospitalityHelper extends AbstractHelper
     public function getProductFromRepositoryGivenSku($sku)
     {
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku)->create();
-        $productList = $this->productRepository->getList($searchCriteria)->getItems();
+        $productList    = $this->productRepository->getList($searchCriteria)->getItems();
 
         return array_pop($productList);
     }
@@ -1055,7 +1066,7 @@ class HospitalityHelper extends AbstractHelper
     public function getAnonymousAddress($anonymousOrderRequiredAttributes)
     {
         $storeInformation = $this->getStoreInformation();
-        $address = $this->addressFactory->create();
+        $address          = $this->addressFactory->create();
 
         foreach ($anonymousOrderRequiredAttributes as $addressAttribute) {
             if ($addressAttribute == 'email') {
@@ -1168,7 +1179,7 @@ class HospitalityHelper extends AbstractHelper
         $formattedConfig = [];
 
         foreach ($config as $value) {
-            $formattedConfig [$value['address_attribute_code']] =  $value['is_required'] ?? '0';
+            $formattedConfig [$value['address_attribute_code']] = $value['is_required'] ?? '0';
         }
 
         return $formattedConfig;
@@ -1210,7 +1221,7 @@ class HospitalityHelper extends AbstractHelper
     {
         $dateTime = $this->getOrderPickupDateTimeSlotGivenDocumentId($documentId);
 
-        return $dateTime ? explode(' ', $dateTime)[1]. ' '. explode(' ', $dateTime)[2] : '';
+        return $dateTime ? explode(' ', $dateTime)[1] . ' ' . explode(' ', $dateTime)[2] : '';
     }
 
     /**
@@ -1322,15 +1333,15 @@ class HospitalityHelper extends AbstractHelper
     public function getLine($amount, $itemId, $uom, $variantId, $status, $qty, $prevStatus, $extLineStatus, $lineNo)
     {
         return [
-            'Amount' => $amount,
-            'ItemId' => $itemId,
+            'Amount'          => $amount,
+            'ItemId'          => $itemId,
             'UnitOfMeasureId' => $uom,
-            'VariantId' => $variantId,
-            'NewStatus' => $status,
-            'Quantity' => $qty,
-            'PrevStatus' => $prevStatus,
-            'ExtLineStatus' => $extLineStatus,
-            'LineNo' => $lineNo
+            'VariantId'       => $variantId,
+            'NewStatus'       => $status,
+            'Quantity'        => $qty,
+            'PrevStatus'      => $prevStatus,
+            'ExtLineStatus'   => $extLineStatus,
+            'LineNo'          => $lineNo
         ];
     }
 }
