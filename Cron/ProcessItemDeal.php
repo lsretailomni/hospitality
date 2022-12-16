@@ -509,7 +509,13 @@ class ProcessItemDeal
                         $sku
                     );
                     $this->processItemModifier->setStore($this->store);
-                    $this->processItemModifier->process($itemModifiersData);
+                    $this->processItemModifier->process($itemModifiersData, false);
+                    $product     = $this->replicationHelper->getProductDataByIdentificationAttributes(
+                        $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                        '',
+                        '',
+                        $this->store->getId()
+                    );
                 }
 
                 $filters  = null;

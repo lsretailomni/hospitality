@@ -210,8 +210,8 @@ class ProcessItemModifier
     /**
      * Arrange modifier data
      *
-     * @param $itemModifier
-     * @param $sku
+     * @param $itemModifiers
+     * @param null $sku
      * @param bool $isNotDeal
      * @return array
      */
@@ -255,9 +255,10 @@ class ProcessItemModifier
      * Process formatted modifiers data
      *
      * @param $dataToProcess
+     * @param bool $isNotDeal
      * @return void
      */
-    public function process($dataToProcess)
+    public function process($dataToProcess, $isNotDeal = true)
     {
         if (!empty($dataToProcess)) {
             // loop against each Product.
@@ -348,12 +349,13 @@ class ProcessItemModifier
                                         $optionData ['code']    = $optionValueData->getCode();
                                     }
 
-                                    $optionValueData->setProcessed(1)
-                                        ->setProcessedAt($this->replicationHelper->getDateTime())
-                                        ->setIsUpdated(0);
+                                    if ($isNotDeal) {
+                                        $optionValueData->setProcessed(1)
+                                            ->setProcessedAt($this->replicationHelper->getDateTime())
+                                            ->setIsUpdated(0);
 
-                                    $this->replItemModifierRepositoryInterface->save($optionValueData);
-                                    //$this->logger->debug(var_export($optionValueData, true));
+                                        $this->replItemModifierRepositoryInterface->save($optionValueData);
+                                    }
                                 }
 
                                 if ($optionNeedsToBeUpdated) {
@@ -392,7 +394,12 @@ class ProcessItemModifier
                                     } catch (Exception $e) {
                                         $this->logger->error($e->getMessage());
                                         $this->logger->error(
-                                            'Error while creating options for' . $optionCode . ' for product ' . $itemSKU . ' for store ' . $this->store->getName()
+                                            sprintf(
+                                                'Error while creating options for %s for product %s for store %s',
+                                                $optionCode,
+                                                $itemSKU,
+                                                $this->store->getName()
+                                            )
                                         );
                                     }
                                 }
