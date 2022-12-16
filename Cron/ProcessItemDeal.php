@@ -8,6 +8,7 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyLeafRepositoryInterface;
+use \Ls\Replication\Api\ReplItemModifierRepositoryInterface;
 use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
 use \Ls\Replication\Cron\ReplEcommHierarchyHospDealLineTask;
 use \Ls\Replication\Cron\ReplEcommHierarchyHospDealTask;
@@ -91,10 +92,18 @@ class ProcessItemDeal
     /** @var ReplItemRecipeRepositoryInterface */
     public $replItemRecipeRepository;
 
+    /** @var ReplItemModifierRepositoryInterface */
+    public $replItemModifierRepository;
+
     /**
      * @var HospitalityHelper
      */
     public $hospitalityHelper;
+
+    /**
+     * @var ProcessItemModifier
+     */
+    public $processItemModifier;
 
     /**
      * @param ReplicationHelper $replicationHelper
@@ -109,7 +118,9 @@ class ProcessItemDeal
      * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
      * @param ProductCustomOptionInterfaceFactory $customOptionFactory
      * @param ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface
+     * @param ReplItemModifierRepositoryInterface $replItemModifierRepository
      * @param HospitalityHelper $hospitalityHelper
+     * @param ProcessItemModifier $processItemModifier
      */
     public function __construct(
         ReplicationHelper $replicationHelper,
@@ -124,7 +135,9 @@ class ProcessItemDeal
         ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
         ProductCustomOptionInterfaceFactory $customOptionFactory,
         ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface,
-        HospitalityHelper $hospitalityHelper
+        ReplItemModifierRepositoryInterface $replItemModifierRepository,
+        HospitalityHelper $hospitalityHelper,
+        ProcessItemModifier $processItemModifier
     ) {
         $this->logger                              = $logger;
         $this->replicationHelper                   = $replicationHelper;
@@ -138,7 +151,9 @@ class ProcessItemDeal
         $this->customOptionValueFactory            = $customOptionValueFactory;
         $this->optionRepository                    = $optionRepository;
         $this->replItemRecipeRepository            = $replItemRecipeRepositoryInterface;
+        $this->replItemModifierRepository          = $replItemModifierRepository;
         $this->hospitalityHelper                   = $hospitalityHelper;
+        $this->processItemModifier                 = $processItemModifier;
     }
 
     /**
@@ -457,8 +472,8 @@ class ProcessItemDeal
                 $filters  = [
                     ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
                     [
-                        'field' => 'DealNo',
-                        'value' => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                        'field'          => 'DealNo',
+                        'value'          => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
                         'condition_type' => 'eq'
                     ],
                     ['field' => 'DealLineCode', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']
@@ -477,6 +492,33 @@ class ProcessItemDeal
                     );
                 }
             } elseif ($replHierarchyHospDeal->getType() == 'Item') {
+                $filters  = [
+                    ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
+                    ['field' => 'nav_id', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']
+                ];
+                $criteria = $this->replicationHelper->buildCriteriaForDirect($filters, -1);
+                $criteria->setSortOrders(
+                    [$this->replicationHelper->getSortOrderObject('SubCode')]
+                );
+                $repItemModifiers  = $this->replItemModifierRepository->getList($criteria);
+                $sku               = $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                $itemModifiersData = null;
+                if ($repItemModifiers->getTotalCount() > 0) {
+                    $itemModifiersData = $this->createCustomOptionsForItemModifiers(
+                        $repItemModifiers,
+                        $sku
+                    );
+                    $this->processItemModifier->setStore($this->store);
+                    $this->processItemModifier->process($itemModifiersData, false);
+                    $product     = $this->replicationHelper->getProductDataByIdentificationAttributes(
+                        $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
+                        '',
+                        '',
+                        $this->store->getId()
+                    );
+                }
+
+                $filters  = null;
                 $filters  = [
                     ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
                     ['field' => 'RecipeNo', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']
@@ -526,6 +568,18 @@ class ProcessItemDeal
             $this->logger->debug('Problem with sku: ' . $product->getSku() . ' in ' . __METHOD__);
             $replHierarchyHospDeal->setData('is_failed', 1);
         }
+    }
+
+    /**
+     * Process item modifiers
+     *
+     * @param $replItemModifiers
+     * @param $sku
+     * @return array
+     */
+    public function createCustomOptionsForItemModifiers($replItemModifiers, $sku)
+    {
+        return $this->processItemModifier->formatModifier($replItemModifiers, $sku, false);
     }
 
     /**
@@ -654,8 +708,9 @@ class ProcessItemDeal
      * @param mixed $productBatchSize
      * @return mixed
      */
-    public function getDealsToProcess($productBatchSize = -1)
-    {
+    public function getDealsToProcess(
+        $productBatchSize = -1
+    ) {
         $filters  = [
             ['field' => 'HierarchyCode', 'value' => true, 'condition_type' => 'notnull'],
             ['field' => 'nav_id', 'value' => true, 'condition_type' => 'notnull'],
