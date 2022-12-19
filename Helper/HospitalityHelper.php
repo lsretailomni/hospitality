@@ -1185,8 +1185,7 @@ class HospitalityHelper extends AbstractHelper
     public function getOrderPickupDateTimeSlotGivenDocumentId($documentId)
     {
         $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
-
-        return $magentoOrder->getData('pickup_date_timeslot');
+        return ($magentoOrder) ? $magentoOrder->getData('pickup_date_timeslot') : '';
     }
 
     /**
