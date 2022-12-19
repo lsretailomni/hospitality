@@ -173,6 +173,7 @@
                        sortOrder="105"
                        showInWebsite="1"
                        showInDefault="0"
+                       type="select"
                        showInStore="1">
                     <label>Display estimated delivery time</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
