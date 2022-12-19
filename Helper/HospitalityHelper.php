@@ -815,7 +815,9 @@ class HospitalityHelper extends AbstractHelper
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
                 $status        = $response->getHospOrderStatusResult()->getStatus();
-                $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
+                if ($this->lsr->displayEstimatedDeliveryTime()) {
+                    $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
+                }
             } else {
                 $status = $response->getHospOrderKotStatusResult()->getStatus();
             }
@@ -1194,8 +1196,7 @@ class HospitalityHelper extends AbstractHelper
     public function getOrderPickupDateTimeSlotGivenDocumentId($documentId)
     {
         $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
-
-        return $magentoOrder->getData('pickup_date_timeslot');
+        return ($magentoOrder) ? $magentoOrder->getData('pickup_date_timeslot') : '';
     }
 
     /**

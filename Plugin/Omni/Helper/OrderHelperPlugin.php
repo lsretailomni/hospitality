@@ -6,7 +6,7 @@ use Exception;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
-use Ls\Omni\Client\Ecommerce\Entity\HospOrderCancelResponse;
+use \Ls\Omni\Client\Ecommerce\Entity\HospOrderCancelResponse;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
