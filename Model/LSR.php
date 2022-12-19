@@ -27,9 +27,9 @@ class LSR extends \Ls\Core\Model\LSR
     const COMMENT_COLLAPSE_STATE = 'ls_mag/hospitality/collapse_state';
     const COMMENT_SHOW_IN_CHECKOUT = 'ls_mag/hospitality/show_in_checkout';
     const QRCODE_ORDER_ENABLED = 'ls_mag/hospitality/qr_order_enabled';
-    const QRCODE_DISPLAY_ESTIMATED_DELIVERY_TIME = 'ls_mag/hospitality/qr_order_display_estimated_delivery_time';
     const QRCODE_ORDER_CONTENT_BLOCK = 'ls_mag/hospitality/qr_order_content_block';
     const QRCODE_ORDER_CONTENT_BLOCK_PWA = 'ls_mag/hospitality/qr_order_content_block_pwa';
+    const ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME = 'ls_mag/hospitality/order_display_estimated_delivery_time';
     const ANONYMOUS_ORDER_ENABLED = 'ls_mag/hospitality/anonymous_order_enabled';
     const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/anonymous_order_address_attributes_required';
 
@@ -235,6 +235,6 @@ class LSR extends \Ls\Core\Model\LSR
      */
     public function displayEstimatedDeliveryTime()
     {
-        return $this->getStoreConfig(self::QRCODE_DISPLAY_ESTIMATED_DELIVERY_TIME, $this->getCurrentStoreId());
+        return $this->getStoreConfig(self::ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME, $this->getCurrentStoreId());
     }
 }
