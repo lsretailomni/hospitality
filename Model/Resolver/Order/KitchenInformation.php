@@ -55,6 +55,7 @@ class KitchenInformation implements ResolverInterface
         return [
             'status_code' => $status,
             'status_description' => $statusDescription,
+            'display_estimated_time' => $this->hospitalityLsr->displayEstimatedDeliveryTime(),
             'estimated_time' => $estimatedTime . ' Minutes',
             'pickup_date' => $this->hospitalityHelper->getOrderPickupDate($orderId),
             'pickup_time' => $this->hospitalityHelper->getOrderPickupTime($orderId)

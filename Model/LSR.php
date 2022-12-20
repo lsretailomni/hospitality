@@ -29,6 +29,7 @@ class LSR extends \Ls\Core\Model\LSR
     const QRCODE_ORDER_ENABLED = 'ls_mag/hospitality/qr_order_enabled';
     const QRCODE_ORDER_CONTENT_BLOCK = 'ls_mag/hospitality/qr_order_content_block';
     const QRCODE_ORDER_CONTENT_BLOCK_PWA = 'ls_mag/hospitality/qr_order_content_block_pwa';
+    const ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME = 'ls_mag/hospitality/order_display_estimated_delivery_time';
     const ANONYMOUS_ORDER_ENABLED = 'ls_mag/hospitality/anonymous_order_enabled';
     const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/anonymous_order_address_attributes_required';
 
@@ -224,5 +225,16 @@ class LSR extends \Ls\Core\Model\LSR
     public function isQrCodeOrderingEnabled()
     {
         return $this->getStoreConfig(LSR::QRCODE_ORDER_ENABLED, $this->getCurrentStoreId());
+    }
+
+    /**
+     * Display Estimated delivery time for QR ordering
+     *
+     * @return array|string
+     * @throws NoSuchEntityException
+     */
+    public function displayEstimatedDeliveryTime()
+    {
+        return $this->getStoreConfig(self::ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME, $this->getCurrentStoreId());
     }
 }
