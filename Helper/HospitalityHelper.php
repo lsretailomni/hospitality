@@ -385,6 +385,8 @@ class HospitalityHelper extends AbstractHelper
                         $uom            = null;
                         $lsrId          = $mainDealLine->getNo();
                         $mainDealLineNo = $mainDealLine->getLineNo();
+                    } else {
+                        $lineNumber = null;
                     }
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
                     $itemModifier             = $this->getItemModifier(
