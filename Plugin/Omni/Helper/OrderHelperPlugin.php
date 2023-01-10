@@ -104,26 +104,13 @@ class OrderHelperPlugin
             }
             $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
 
-            $comment      = '';
-            $qrCodeParams = $subject->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+            $qrCodeQueryString = '';
+            $qrCodeParams      = $subject->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
             if (!empty($qrCodeParams)) {
-                foreach ($qrCodeParams as $key => $value) {
-                    $key     = ucfirst(str_replace('_', ' ', $key));
-                    $comment .= $key . ': ' . $value . PHP_EOL;
-                }
-                $orderSource = __('QR Code Ordering');
-                if (!empty($comment)) {
-                    $comment .= __('Order Source:') . ' ' . $orderSource . PHP_EOL;
-                }
-            }
-            $orderComment = $order->getData(LSR::LS_ORDER_COMMENT);
-            if (!empty($orderComment)) {
-                $comment .= $orderComment;
+                $qrCodeQueryString = http_build_query($qrCodeParams);
             }
 
-            if (!empty($comment)) {
-                $comment = nl2br($comment);
-            }
+            $comment = $order->getData(LSR::LS_ORDER_COMMENT);
 
             $oneListCalculateResponse
                 ->setCardId($cardId)
@@ -131,6 +118,7 @@ class OrderHelperPlugin
                 ->setRestaurantNo($storeId)
                 ->setPickUpTime($pickupDateTime)
                 ->setComment($comment)
+                ->setQRData($qrCodeQueryString)
                 ->setEmail($customerEmail)
                 ->setName($customerName)
                 ->setBillToName($billToName);

@@ -224,10 +224,12 @@ class ProcessItemModifier
          **/
         foreach ($itemModifiers->getItems() as $itemModifier) {
             if (empty($sku)) {
-                $sku = $itemModifier->getNavId();
+                $itemId = $itemModifier->getNavId();
+            } else {
+                $itemId = $sku;
             }
             if (!in_array($itemModifier->getTriggerFunction(), self::$triggerFunctionToSkip)) {
-                $dataToProcess['data'][$sku][$itemModifier->getCode()]
+                $dataToProcess['data'][$itemId][$itemModifier->getCode()]
                 [$itemModifier->getSubCode()] = $itemModifier;
                 if ($itemModifier->getGroupMaxSelection()) {
                     $dataToProcess[$itemModifier->getCode()] ['max_select'] = $itemModifier->getGroupMaxSelection();

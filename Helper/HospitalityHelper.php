@@ -385,16 +385,18 @@ class HospitalityHelper extends AbstractHelper
                         $uom            = null;
                         $lsrId          = $mainDealLine->getNo();
                         $mainDealLineNo = $mainDealLine->getLineNo();
+                    } else {
+                        $lineNumber = null;
                     }
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
                     $itemModifier             = $this->getItemModifier(
                         $lsrId,
                         $formattedItemSubLineCode,
-                        $optionValue,
-                        $uom
+                        $optionValue
                     );
 
                     if (!empty($itemModifier)) {
+
                         $subCode                                = reset($itemModifier)->getSubCode();
                         $selectedOrderHospSubLine['modifier'][] =
                             [
@@ -532,16 +534,13 @@ class HospitalityHelper extends AbstractHelper
      * @param $uom
      * @return mixed
      */
-    public function getItemModifier($navId, $code, $value, $uom)
+    public function getItemModifier($navId, $code, $value)
     {
         // removing this for now.
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
             ->addFilter('Description', $value)
             ->addFilter('Code', $code);
 
-        if ($uom) {
-            $searchCriteria->addFilter('UnitOfMeasure', $uom);
-        }
         $itemModifier = $this->itemModifierRepository->getList(
             $searchCriteria->setPageSize(1)
                 ->setCurrentPage(1)
@@ -814,7 +813,7 @@ class HospitalityHelper extends AbstractHelper
 
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $status        = $response->getHospOrderStatusResult()->getStatus();
+                $status = $response->getHospOrderStatusResult()->getStatus();
                 if ($this->lsr->displayEstimatedDeliveryTime()) {
                     $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
                 }

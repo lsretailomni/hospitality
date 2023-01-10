@@ -104,7 +104,7 @@ class BasketHelperPlugin
 
             if (!empty($selectedSubLines['deal'])) {
                 foreach ($selectedSubLines['deal'] as $subLine) {
-                    $oneListSubLine = (new Entity\OneListItemSubLine())
+                    $oneListSubLine         = (new Entity\OneListItemSubLine())
                         ->setDealLineId($subLine['DealLineId'] ?? null)
                         ->setDealModLineId($subLine['DealModLineId'] ?? null)
                         ->setLineNumber($subLine['LineNumber'] ?? null)
@@ -284,7 +284,7 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
-        $rowTotal = "";
+        $rowTotal          = "";
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
             $item->getSku()
