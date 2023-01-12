@@ -71,7 +71,7 @@ class DataHelperPlugin
                 'variant_id'             => $item->getVariantId(),
                 'custom_options'         => $this->getCustomOptions($magOrder, $item->getItemId(), $subject)
             ];
-            if (empty($item->getParentLine())) {
+            if (empty($item->getParentLine()) || $item->getLineNumber() == $item->getParentLine()) {
                 $itemsArray [$item->getLineNumber()] = $data;
                 $parent                              = $item->getLineNumber();
             } else {
