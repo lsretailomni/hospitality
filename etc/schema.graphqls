@@ -96,7 +96,7 @@ type KitchenInformation {
 
 type SalesEntryLine {
     custom_options:[options]
-    modifiers: [Modifiers]
+    subitems: [subitems]
 }
 
 type options {
@@ -104,7 +104,7 @@ type options {
     value: String @doc(description: "Value of custom option")
 }
 
-type Modifiers @doc(description: "Item Selection") {
+type subitems @doc(description: "Item Selection") {
     amount: Float @doc(description: "Amount")
     click_and_collect_line: String @doc(description: "Click and Collect Line")
     discount_amount: Float @doc(description: "Discount Amount")
@@ -124,7 +124,7 @@ type Modifiers @doc(description: "Item Selection") {
     uom_id: String @doc(description: "Unit of Measure Id")
     variant_description: String @doc(description: "Variant Description")
     variant_id: String @doc(description: "Variant Id")
-    ingredients: [item]
+    subitems: [item]
 }
 
 type item @doc(description: "Item Information") {
