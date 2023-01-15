@@ -71,15 +71,25 @@ class DataHelperPlugin
                 'variant_id'             => $item->getVariantId(),
                 'custom_options'         => $this->getCustomOptions($magOrder, $item->getItemId(), $subject)
             ];
-            if (empty($item->getParentLine())) {
-                $itemsArray [$item->getLineNumber()] = $data;
-                $parent                              = $item->getLineNumber();
+            if (empty($item->getParentLine()) || $item->getLineNumber() == $item->getParentLine()) {
+                $parent = $item->getLineNumber();
+                if (!empty($itemsArray)) {
+                    $tempArray[$item->getLineNumber()]              = $data;
+                    $tempArray [$item->getLineNumber()]['subitems'] = $itemsArray[$item->getLineNumber()]['subitems'];
+                    $itemsArray                                     = $tempArray;
+                    $tempArray                                      = null;
+                } else {
+                    $itemsArray [$item->getLineNumber()] = $data;
+                }
             } else {
+                if ($parent == 0) {
+                    $parent = $item->getParentLine();
+                }
                 if ($parent != $item->getParentLine()) {
-                    $itemsArray[$parent]['modifiers'][$item->getParentLine()]['ingredients']
+                    $itemsArray[$parent]['subitems'] [$item->getParentLine()]['subitems']
                     [$item->getLineNumber()] = $data;
                 } else {
-                    $itemsArray[$parent]['modifiers'][$item->getLineNumber()] = $data;
+                    $itemsArray[$parent]['subitems'][$item->getLineNumber()] = $data;
                 }
             }
         }
