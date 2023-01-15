@@ -598,7 +598,7 @@ class ProcessItemDeal
             $this->createCustomOptionAgainstGivenData(
                 'Exclude Ingredients',
                 'multiple',
-                $replHierarchyHospDeal->getMinSelection() > 0 ? 1 : 0,
+                0,
                 $replHierarchyHospDeal->getLineNo(),
                 $replHierarchyHospDeal->getDealNo(),
                 $optionValues,
