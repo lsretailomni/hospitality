@@ -73,7 +73,7 @@ class DataHelperPlugin
             ];
             if (empty($item->getParentLine()) || $item->getLineNumber() == $item->getParentLine()) {
                 $parent = $item->getLineNumber();
-                if (!empty($itemsArray)) {
+                if (!empty($itemsArray) && array_key_exists($item->getLineNumber(), $itemsArray)) {
                     $tempArray[$item->getLineNumber()]              = $data;
                     $tempArray [$item->getLineNumber()]['subitems'] = $itemsArray[$item->getLineNumber()]['subitems'];
                     $itemsArray                                     = $tempArray;
