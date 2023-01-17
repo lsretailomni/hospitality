@@ -121,7 +121,8 @@ class OrderHelperPlugin
                 ->setQRData($qrCodeQueryString)
                 ->setEmail($customerEmail)
                 ->setName($customerName)
-                ->setBillToName($billToName);
+                ->setBillToName($billToName)
+                ->setExternalId($order->getIncrementId());
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
