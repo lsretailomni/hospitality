@@ -18,12 +18,9 @@
                 pickupTimeslot = $('[name="pickup-timeslot"]') ? $('[name="pickup-timeslot"]').val() : '';
 
             _.extend(payload.addressInformation, {
-                extension_attributes: {
+                extension_attributes: _.extend(payload.addressInformation.extension_attributes ,{
                     'service_mode': serviceMode,
-                    'pickup_date': pickupDate,
-                    'pickup_timeslot': pickupTimeslot,
-                    'pickup_store': $('#pickup-store').val()
-                }
+                })
             });
 
             return payload;
