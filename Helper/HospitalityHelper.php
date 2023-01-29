@@ -385,8 +385,6 @@ class HospitalityHelper extends AbstractHelper
                         $uom            = null;
                         $lsrId          = $mainDealLine->getNo();
                         $mainDealLineNo = $mainDealLine->getLineNo();
-                    } else {
-                        $lineNumber = null;
                     }
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
                     $itemModifier             = $this->getItemModifier(
@@ -403,7 +401,8 @@ class HospitalityHelper extends AbstractHelper
                                 'ModifierGroupCode' => $formattedItemSubLineCode,
                                 'ModifierSubCode'   => $subCode,
                                 'DealLineId'        => $mainDealLineNo,
-                                'ParentSubLineId'   => $lineNumber
+                                'ParentSubLineId'   => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
+                                    $lineNumber : ''
                             ];
                     }
                 }
@@ -641,7 +640,8 @@ class HospitalityHelper extends AbstractHelper
         $select = $this->resourceConnection->getConnection()->select()->union(
             [$collection1->getSelect(), $collection2->getSelect()]
         );
-//        $query       = $select->__toString();
+
+        $query = $select->__toString();
 
         return $this->resourceConnection->getConnection()->fetchAll($select);
     }
