@@ -686,10 +686,10 @@ class ProcessItemDeal
             }
             if ($type == 'modifier') {
                 $optionValue->setPrice($dealLine->getAddedAmount());
-                $this->replHierarchyHospDealLineRepository->save($dealLine);
                 $dealLine->setProcessed(1)
                     ->setProcessedAt($this->replicationHelper->getDateTime())
                     ->setIsUpdated(0);
+                $this->replHierarchyHospDealLineRepository->save($dealLine);
             } else {
                 $optionValue->setPrice(-$dealLine->getExclusionPrice());
                 $this->replItemRecipeRepository->save($dealLine);

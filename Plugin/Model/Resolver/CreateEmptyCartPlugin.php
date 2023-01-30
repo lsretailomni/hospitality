@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Ls\Hospitality\Plugin\Model\Resolver;
 
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Hospitality\Model\Lsr;
+use \Ls\Hospitality\Model\LSR;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -23,7 +23,7 @@ class CreateEmptyCartPlugin
     private $getCartForUser;
 
     /**
-     * @var Lsr
+     * @var LSR
      */
     private $hospitalityLsr;
 
@@ -39,13 +39,13 @@ class CreateEmptyCartPlugin
 
     /**
      * @param GetCartForUser $getCartForUser
-     * @param Lsr $hospitalityLsr
+     * @param LSR $hospitalityLsr
      * @param HospitalityHelper $hospitalityHelper
      * @param CartRepositoryInterface $quoteRepository
      */
     public function __construct(
         GetCartForUser $getCartForUser,
-        Lsr $hospitalityLsr,
+        LSR $hospitalityLsr,
         HospitalityHelper $hospitalityHelper,
         CartRepositoryInterface $quoteRepository
     ) {

@@ -68,7 +68,7 @@
                        sortOrder="30"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Show Order Tracking and Status on Success Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -107,7 +107,7 @@
                        type="select"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Show in checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Show order comments section in the checkout</comment>
@@ -118,7 +118,7 @@
                        sortOrder="70"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Enable Store Pick Up Date and Time Validation Before Order Creation</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -128,7 +128,7 @@
                        sortOrder="80"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Enable Store Pick Up Date and Time Validation Before Order Creation via GraphQl</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -138,7 +138,7 @@
                        sortOrder="90"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Maximum length in characters</label>
                     <comment>Leave empty for no limit</comment>
                     <depends>
@@ -151,7 +151,7 @@
                        sortOrder="100"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Initial collapse state on checkout page</label>
                     <source_model>Ls\Hospitality\Model\Order\Config\Source\Collapse</source_model>
                     <depends>
@@ -185,7 +185,7 @@
                        sortOrder="110"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <depends>
                         <field id="ls_mag/hospitality/qr_order_enabled">1</field>
                     </depends>
@@ -198,7 +198,7 @@
                        sortOrder="120"
                        showInWebsite="1"
                        showInDefault="0"
-                       showInStore="0">
+                       showInStore="1">
                     <depends>
                         <field id="ls_mag/hospitality/qr_order_enabled">1</field>
                     </depends>
