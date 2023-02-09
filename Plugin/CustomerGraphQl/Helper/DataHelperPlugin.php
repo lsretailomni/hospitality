@@ -47,8 +47,6 @@ class DataHelperPlugin
         }
 
         $itemsArray  = [];
-        $parent      = 0;
-        $parentItem  = 0;
         $childrenKey = 'subitems';
         foreach ($items->getSalesEntryLine() as $item) {
             $data       = [
@@ -81,18 +79,22 @@ class DataHelperPlugin
                     $tempArray [$lineNumber][$childrenKey] = $itemsArray[$lineNumber][$childrenKey];
                     $itemsArray[$lineNumber]               = $tempArray[$lineNumber];
                     $tempArray                             = null;
-                    foreach ($itemsArray[$lineNumber][$childrenKey] as $key => $value) {
-                        if (array_key_exists($key, $itemsArray)) {
-                            $itemsArray[$lineNumber] [$childrenKey][$key][$childrenKey] =
-                                $itemsArray[$key] [$childrenKey];
-                            unset($itemsArray[$key]);
-                        }
-                    }
                 } else {
                     $itemsArray [$lineNumber] = $data;
                 }
             } else {
                 $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
+            }
+        }
+
+        foreach ($itemsArray as $mainKey => $arrayData) {
+            if (array_key_exists($childrenKey, $arrayData)) {
+                foreach ($arrayData[$childrenKey] as $key => $value) {
+                    if (array_key_exists($key, $itemsArray)) {
+                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
+                        unset($itemsArray[$key]);
+                    }
+                }
             }
         }
 
