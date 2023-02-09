@@ -290,17 +290,19 @@ class BasketHelperPlugin
             $item->getSku()
         );
         $basketData = $subject->getOneListCalculation();
-        $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+        if (!empty($basketData)) {
+            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
 
-        foreach ($orderLines as $index => $line) {
-            ++$index;
+            foreach ($orderLines as $index => $line) {
+                ++$index;
 
-            if (
-                $subject->itemHelper->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
-                $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
-            ) {
-                $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
-                break;
+                if (
+                    $subject->itemHelper->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
+                    $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
+                ) {
+                    $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
+                    break;
+                }
             }
         }
 
