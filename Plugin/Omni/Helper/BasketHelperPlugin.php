@@ -176,15 +176,16 @@ class BasketHelperPlugin
      */
     public function aroundCalculate(BasketHelper $subject, callable $proceed, Entity\OneList $oneList)
     {
-        if (empty($subject->getCouponCode()) && $subject->calculateBasket) {
-            return null;
-        }
-
         if ($subject->lsr->getCurrentIndustry(
                 $subject->getCorrectStoreIdFromCheckoutSession() ?? null
             ) != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($oneList);
+        }
+
+        if (empty($subject->getCouponCode()) && $subject->calculateBasket == 1
+            && empty($subject->getOneListCalculationFromCheckoutSession())) {
+            return null;
         }
 
         // @codingStandardsIgnoreLine
