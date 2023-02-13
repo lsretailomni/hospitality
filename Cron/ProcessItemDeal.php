@@ -361,8 +361,8 @@ class ProcessItemDeal
                     );
                     $productData->setStockData([
                         'use_config_manage_stock' => 1,
-                        'is_in_stock'             => ($itemStock > 0) ? 1 : 0,
-                        'qty'                     => $itemStock
+                        'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
+                        'qty'                     => $itemStock->getQuantity()
                     ]);
                 }
 
@@ -416,8 +416,8 @@ class ProcessItemDeal
                     );
                     $product->setStockData([
                         'use_config_manage_stock' => 1,
-                        'is_in_stock'             => ($itemStock > 0) ? 1 : 0,
-                        'qty'                     => $itemStock
+                        'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
+                        'qty'                     => $itemStock->getQuantity()
                     ]);
                 }
                 try {
@@ -510,7 +510,7 @@ class ProcessItemDeal
                     );
                     $this->processItemModifier->setStore($this->store);
                     $this->processItemModifier->process($itemModifiersData, false);
-                    $product     = $this->replicationHelper->getProductDataByIdentificationAttributes(
+                    $product = $this->replicationHelper->getProductDataByIdentificationAttributes(
                         $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
                         '',
                         '',
