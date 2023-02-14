@@ -176,15 +176,16 @@ class BasketHelperPlugin
      */
     public function aroundCalculate(BasketHelper $subject, callable $proceed, Entity\OneList $oneList)
     {
-        if (empty($subject->getCouponCode()) && $subject->calculateBasket) {
-            return null;
-        }
-
         if ($subject->lsr->getCurrentIndustry(
                 $subject->getCorrectStoreIdFromCheckoutSession() ?? null
             ) != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($oneList);
+        }
+
+        if (empty($subject->getCouponCode()) && $subject->calculateBasket == 1
+            && empty($subject->getOneListCalculationFromCheckoutSession())) {
+            return null;
         }
 
         // @codingStandardsIgnoreLine
@@ -290,17 +291,19 @@ class BasketHelperPlugin
             $item->getSku()
         );
         $basketData = $subject->getOneListCalculation();
-        $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+        if (!empty($basketData)) {
+            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
 
-        foreach ($orderLines as $index => $line) {
-            ++$index;
+            foreach ($orderLines as $index => $line) {
+                ++$index;
 
-            if (
-                $subject->itemHelper->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
-                $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
-            ) {
-                $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
-                break;
+                if (
+                    $subject->itemHelper->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
+                    $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
+                ) {
+                    $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
+                    break;
+                }
             }
         }
 

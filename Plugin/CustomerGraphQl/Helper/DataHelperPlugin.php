@@ -46,10 +46,10 @@ class DataHelperPlugin
             return $proceed($items);
         }
 
-        $itemsArray = [];
-        $parent     = 0;
+        $itemsArray  = [];
+        $childrenKey = 'subitems';
         foreach ($items->getSalesEntryLine() as $item) {
-            $data = [
+            $data       = [
                 'amount'                 => $item->getAmount(),
                 'click_and_collect_line' => $item->getClickAndCollectLine(),
                 'discount_amount'        => $item->getDiscountAmount(),
@@ -71,25 +71,29 @@ class DataHelperPlugin
                 'variant_id'             => $item->getVariantId(),
                 'custom_options'         => $this->getCustomOptions($magOrder, $item->getItemId(), $subject)
             ];
-            if (empty($item->getParentLine()) || $item->getLineNumber() == $item->getParentLine()) {
-                $parent = $item->getLineNumber();
-                if (!empty($itemsArray) && array_key_exists($item->getLineNumber(), $itemsArray)) {
-                    $tempArray[$item->getLineNumber()]              = $data;
-                    $tempArray [$item->getLineNumber()]['subitems'] = $itemsArray[$item->getLineNumber()]['subitems'];
-                    $itemsArray                                     = $tempArray;
-                    $tempArray                                      = null;
+            $lineNumber = $item->getLineNumber();
+            $parentLine = $item->getParentLine();
+            if (empty($parentLine) || $lineNumber == $parentLine) {
+                if (!empty($itemsArray) && array_key_exists($lineNumber, $itemsArray)) {
+                    $tempArray[$lineNumber]                = $data;
+                    $tempArray [$lineNumber][$childrenKey] = $itemsArray[$lineNumber][$childrenKey];
+                    $itemsArray[$lineNumber]               = $tempArray[$lineNumber];
+                    $tempArray                             = null;
                 } else {
-                    $itemsArray [$item->getLineNumber()] = $data;
+                    $itemsArray [$lineNumber] = $data;
                 }
             } else {
-                if ($parent == 0) {
-                    $parent = $item->getParentLine();
-                }
-                if ($parent != $item->getParentLine()) {
-                    $itemsArray[$parent]['subitems'] [$item->getParentLine()]['subitems']
-                    [$item->getLineNumber()] = $data;
-                } else {
-                    $itemsArray[$parent]['subitems'][$item->getLineNumber()] = $data;
+                $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
+            }
+        }
+
+        foreach ($itemsArray as $mainKey => $arrayData) {
+            if (array_key_exists($childrenKey, $arrayData)) {
+                foreach ($arrayData[$childrenKey] as $key => $value) {
+                    if (array_key_exists($key, $itemsArray)) {
+                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
+                        unset($itemsArray[$key]);
+                    }
                 }
             }
         }
