@@ -1242,8 +1242,8 @@ class HospitalityHelper extends AbstractHelper
 
             foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
                 list($itemId, $variantId, $uom) = $this->itemHelper->getComparisonValues(
-                    $orderItem->getProductId(),
-                    $orderItem->getSku()
+                    $orderItem->getSku(),
+                    $orderItem->getProductId()
                 );
 
                 $qtyOrdered += $orderItem->getQtyOrdered();
