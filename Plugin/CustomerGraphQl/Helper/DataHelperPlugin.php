@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
 
 use \Ls\CustomerGraphQl\Helper\DataHelper;
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -87,18 +88,9 @@ class DataHelperPlugin
             }
         }
 
-        foreach ($itemsArray as $mainKey => $arrayData) {
-            if (array_key_exists($childrenKey, $arrayData)) {
-                foreach ($arrayData[$childrenKey] as $key => $value) {
-                    if (array_key_exists($key, $itemsArray)) {
-                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
-                        unset($itemsArray[$key]);
-                    }
-                }
-            }
-        }
+        $itemsArray = $this->sortItemsAsParentChild($itemsArray, $childrenKey);
 
-        return $itemsArray;
+        return $this->sumTotalItemsAmount($itemsArray, $childrenKey);
     }
 
     /**
@@ -133,5 +125,59 @@ class DataHelperPlugin
         }
 
         return $outputOptions;
+    }
+
+    /**
+     * Adding up prices for subitems
+     *
+     * @param $itemsArray
+     * @param $childrenKey
+     * @return array
+     */
+    public function sumTotalItemsAmount($itemsArray, $childrenKey)
+    {
+        foreach ($itemsArray as $mainKey => $arrayData) {
+            $lineType = $arrayData['line_type'];
+            $amount   = $arrayData['amount'];
+            if (array_key_exists($childrenKey, $arrayData)) {
+                foreach ($arrayData[$childrenKey] as $key => $value) {
+                    if ($lineType == LineType::DEAL) {
+                        if (array_key_exists($childrenKey, $value)) {
+                            foreach ($value[$childrenKey] as $subitems) {
+                                $amount += $subitems['amount'];
+                            }
+                        }
+                    } else {
+                        $amount += $value['amount'];
+                    }
+                }
+            }
+            $itemsArray[$mainKey]['amount'] = $amount;
+        }
+
+        return $itemsArray;
+    }
+
+    /**
+     * Sorting items
+     *
+     * @param $itemsArray
+     * @param $childrenKey
+     * @return array
+     */
+    public function sortItemsAsParentChild($itemsArray, $childrenKey)
+    {
+        foreach ($itemsArray as $mainKey => $arrayData) {
+            if (array_key_exists($childrenKey, $arrayData)) {
+                foreach ($arrayData[$childrenKey] as $key => $value) {
+                    if (array_key_exists($key, $itemsArray)) {
+                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
+                        unset($itemsArray[$key]);
+                    }
+                }
+            }
+        }
+
+        return $itemsArray;
     }
 }
