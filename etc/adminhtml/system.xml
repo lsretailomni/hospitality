@@ -229,6 +229,16 @@
                     <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
                     <comment>These address attributes are shown to the customer during placing an anonymous order. Attributes marked as required are mandatory on the checkout whereas others are optional.</comment>
                 </field>
+                <field id="remove_checkout_steps"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Remove checkout steps from QR code ordering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>This configuration will remove checkout steps for QR code ordering</comment>
+                </field>
             </group>
         </section>
     </system>
