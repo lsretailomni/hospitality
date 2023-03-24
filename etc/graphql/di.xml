@@ -23,7 +23,7 @@
                 <item name="ls_mag_hospitality_qr_order_content_block_pwa" xsi:type="string">ls_mag/hospitality/qr_order_content_block_pwa</item>
                 <item name="ls_mag_hospitality_anonymous_order_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_enabled</item>
                 <item name="ls_mag_hospitality_anonymous_order_address_attributes_required" xsi:type="string">ls_mag/hospitality/anonymous_order_address_attributes_required</item>
-                <item name="ls_mag_hospitality_remove_checkout_steps" xsi:type="string">remove_checkout_steps</item>
+                <item name="ls_mag_hospitality_remove_checkout_steps" xsi:type="string">ls_mag/hospitality/remove_checkout_steps</item>
             </argument>
         </arguments>
     </type>
