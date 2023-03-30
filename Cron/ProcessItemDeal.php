@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Cron;
 
-use Exception;
+use \Exception;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
@@ -359,11 +359,13 @@ class ProcessItemDeal
                         $storeId,
                         $this->store->getId()
                     );
-                    $productData->setStockData([
-                        'use_config_manage_stock' => 1,
-                        'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
-                        'qty'                     => $itemStock->getQuantity()
-                    ]);
+                    if ($itemStock) {
+                        $productData->setStockData([
+                            'use_config_manage_stock' => 1,
+                            'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
+                            'qty'                     => $itemStock->getQuantity()
+                        ]);
+                    }
                 }
 
                 try {
@@ -414,11 +416,13 @@ class ProcessItemDeal
                         $storeId,
                         $this->store->getId()
                     );
-                    $product->setStockData([
-                        'use_config_manage_stock' => 1,
-                        'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
-                        'qty'                     => $itemStock->getQuantity()
-                    ]);
+                    if ($itemStock) {
+                        $product->setStockData([
+                            'use_config_manage_stock' => 1,
+                            'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
+                            'qty'                     => $itemStock->getQuantity()
+                        ]);
+                    }
                 }
                 try {
                     // @codingStandardsIgnoreLine
