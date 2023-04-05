@@ -32,6 +32,7 @@ class LSR extends \Ls\Core\Model\LSR
     const ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME = 'ls_mag/hospitality/order_display_estimated_delivery_time';
     const ANONYMOUS_ORDER_ENABLED = 'ls_mag/hospitality/anonymous_order_enabled';
     const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/anonymous_order_address_attributes_required';
+    const ANONYMOUS_REMOVE_CHECKOUT_STEPS = 'ls_mag/hospitality/remove_checkout_steps';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';

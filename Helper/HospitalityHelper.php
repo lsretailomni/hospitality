@@ -1158,12 +1158,17 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getAnonymousOrderPrefillAttributes($anonymousOrderRequiredAttributes)
     {
-        $prefillAttributes = [];
-        $addressAttributes = $this->getAllAddressAttributes();
-        $qrCodeSessionData = $this->qrCodeHelper->getQrCodeOrderingInSession();
+        $prefillAttributes   = [];
+        $addressAttributes   = $this->getAllAddressAttributes();
+        $qrCodeSessionData   = $this->qrCodeHelper->getQrCodeOrderingInSession();
+        $removeCheckoutSteps = $this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $this->lsr->getStoreId()
+        );
         foreach ($addressAttributes as $addressAttribute) {
             if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()]) &&
-                $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
+                $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1' &&
+                (empty($qrCodeSessionData) && $removeCheckoutSteps)
             ) {
                 continue;
             }
