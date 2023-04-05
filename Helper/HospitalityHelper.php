@@ -14,6 +14,7 @@ use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
+use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
@@ -194,6 +195,11 @@ class HospitalityHelper extends AbstractHelper
     public $orderRepository;
 
     /**
+     * @var QrCodeHelper
+     */
+    public $qrCodeHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -223,6 +229,7 @@ class HospitalityHelper extends AbstractHelper
      * @param OrderHelper $orderHelper
      * @param ItemHelper $itemHelper
      * @param OrderRepositoryInterface $orderRepository
+     * @param QrCodeHelper $qrCodeHelper
      */
     public function __construct(
         Context $context,
@@ -253,7 +260,8 @@ class HospitalityHelper extends AbstractHelper
         SerializerJson $serializerJson,
         OrderHelper $orderHelper,
         ItemHelper $itemHelper,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        QrCodeHelper $qrCodeHelper
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -284,6 +292,7 @@ class HospitalityHelper extends AbstractHelper
         $this->orderHelper                                = $orderHelper;
         $this->itemHelper                                 = $itemHelper;
         $this->orderRepository                            = $orderRepository;
+        $this->qrCodeHelper                               = $qrCodeHelper;
     }
 
     /**
@@ -1151,7 +1160,7 @@ class HospitalityHelper extends AbstractHelper
     {
         $prefillAttributes = [];
         $addressAttributes = $this->getAllAddressAttributes();
-
+        $qrCodeSessionData = $this->qrCodeHelper->getQrCodeOrderingInSession();
         foreach ($addressAttributes as $addressAttribute) {
             if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()]) &&
                 $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
