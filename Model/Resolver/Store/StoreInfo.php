@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace hospitality\Model\Resolver\Store;
+namespace Ls\Hospitality\Model\Resolver\Store;
 
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -45,7 +45,7 @@ class StoreInfo implements ResolverInterface
         $storeInformation       = $this->hospitalityHelper->getStoreInformation();
         $storeInfo['firstname'] = $storeInformation->getData(HospitalityHelper::ADDRESS_ATTRIBUTE_MAPPER['firstname']);
         $storeInfo['lastname']  = $storeInformation->getData(HospitalityHelper::ADDRESS_ATTRIBUTE_MAPPER['lastname']);
-        $storeInfo['phone']     = $storeInformation->getData(HospitalityHelper::ADDRESS_ATTRIBUTE_MAPPER['phone']);
+        $storeInfo['phone']     = $storeInformation->getData(HospitalityHelper::ADDRESS_ATTRIBUTE_MAPPER['telephone']);
         $storeInfo['email']     = $this->hospitalityHelper->getAnonymousOrderCustomerEmail();
         return $this->serializerJson->serialize($storeInfo);
     }
