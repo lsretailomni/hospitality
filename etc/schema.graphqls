@@ -25,6 +25,7 @@ type StoreConfig {
     ls_mag_hospitality_qr_order_content_block_pwa: String @doc(description: "To fetch block identifier for QR Code Ordering Page on pwa frontend.")
     ls_mag_hospitality_anonymous_order_enabled: Boolean @doc(description: "Indicates whether anonymous order is enabled (true) or disabled (false).")
     ls_mag_hospitality_anonymous_order_address_attributes_required: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\Attributes") @doc(description: "To fetch anonymous order address attributes with information like required or optional.")
+     ls_mag_hospitality_remove_checkout_steps: Boolean @doc(description: "Indicates whether to remove checkout steps from QR code ordering")
 }
 
 type Order {
