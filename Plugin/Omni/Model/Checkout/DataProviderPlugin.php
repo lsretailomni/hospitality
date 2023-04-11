@@ -37,10 +37,11 @@ class DataProviderPlugin
      * @param CheckoutSessionProxy $checkoutSession
      */
     public function __construct(
-        StoreHelper $storeHelper,
-        LSR $lsr,
+        StoreHelper          $storeHelper,
+        LSR                  $lsr,
         CheckoutSessionProxy $checkoutSession
-    ) {
+    )
+    {
         $this->storeHelper     = $storeHelper;
         $this->lsr             = $lsr;
         $this->checkoutSession = $checkoutSession;
@@ -56,8 +57,9 @@ class DataProviderPlugin
      */
     public function aroundGetStores(
         DataProvider $subject,
-        callable $proceed
-    ) {
+        callable     $proceed
+    )
+    {
         $salesTypeStoreIdArray = [];
         $storeHoursArray       = [];
 
@@ -70,8 +72,8 @@ class DataProviderPlugin
         foreach ($allStores as $store) {
             if ($this->checkSalesType($store->getHospSalesTypes()->getSalesType(), $takeAwaySalesType) &&
                 $store->getIsClickAndCollect()) {
-                $webStoreId                   = $store->getId();
-                $salesTypeStoreIdArray[]      = $webStoreId;
+                $webStoreId              = $store->getId();
+                $salesTypeStoreIdArray[] = $webStoreId;
                 if ($this->lsr->isPickupTimeslotsEnabled()) {
                     $storeHoursArray[$webStoreId] = $this->storeHelper->formatDateTimeSlotsValues(
                         $store->getStoreHours()
@@ -116,6 +118,24 @@ class DataProviderPlugin
     }
 
     /**
+     * Before intercept to set the store
+     *
+     * @param DataProvider $subject
+     * @param $responseItems
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function beforeGetSelectedClickAndCollectStoresData(DataProvider $subject, $responseItems)
+    {
+        if ($subject->lsr->getCurrentIndustry($subject->getStoreId()) == LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY
+            && empty($responseItems)) {
+            $responseItems [] = $this->lsr->getActiveWebStore();
+        }
+
+        return [$responseItems];
+    }
+
+    /**
      * After getting the configuration
      *
      * @param DataProvider $subject
@@ -134,7 +154,7 @@ class DataProviderPlugin
             'enabled'           => $enabled,
             'current_web_store' => $this->lsr->getActiveWebStore(),
             'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
-            ];
+        ];
 
         return $result;
     }
@@ -149,7 +169,8 @@ class DataProviderPlugin
     public function checkSalesType(
         $hospSalesType,
         $takeAwaySalesType
-    ) {
+    )
+    {
         if (!empty($hospSalesType)) {
             foreach ($hospSalesType as $salesType) {
                 if ($salesType->getCode() == $takeAwaySalesType) {

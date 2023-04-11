@@ -5,6 +5,7 @@ namespace Ls\Hospitality\Plugin\Omni\Helper;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Helper\StockHelper;
+use Magento\CatalogInventory\Model\Stock\StockItemRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -18,11 +19,18 @@ class StockHelperPlugin
     public $hospitalityHelper;
 
     /**
-     * @param HospitalityHelper $hospitalityHelper
+     * @var StockItemRepository
      */
-    public function __construct(HospitalityHelper $hospitalityHelper)
+    public $stockItemRepository;
+
+    /**
+     * @param HospitalityHelper $hospitalityHelper
+     * @param StockItemRepository $stockItemRepository
+     */
+    public function __construct(HospitalityHelper $hospitalityHelper, StockItemRepository $stockItemRepository)
     {
-        $this->hospitalityHelper = $hospitalityHelper;
+        $this->hospitalityHelper   = $hospitalityHelper;
+        $this->stockItemRepository = $stockItemRepository;
     }
 
     /**
@@ -47,7 +55,7 @@ class StockHelperPlugin
         }
 
         $stockCollection = [];
-
+        $counter         = 0;
         foreach ($items as &$item) {
             $itemQty = $item->getQty();
             list($parentProductSku, $childProductSku, , , $uomQty) = $subject->itemHelper->getComparisonValues(
@@ -59,7 +67,12 @@ class StockHelperPlugin
             }
             $sku     = $item->getSku();
             $product = $this->hospitalityHelper->getProductFromRepositoryGivenSku($sku);
-
+            try {
+                $stockItem     = $this->stockItemRepository->get($product->getId());
+                $useMangeStock = $stockItem->getUseConfigManageStock();
+            } catch (\Exception $e) {
+                $useMangeStock = false;
+            }
             if ($product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
                 $lineNo = $this->hospitalityHelper->getMealMainItemSku(
                     $product->getData(\Ls\Hospitality\Model\LSR::LS_ITEM_ID_ATTRIBUTE_CODE)
@@ -67,22 +80,27 @@ class StockHelperPlugin
 
                 if ($lineNo) {
                     $stockCollection[] = [
-                        'item_id' => $lineNo,
+                        'item_id'    => $lineNo,
                         'variant_id' => $childProductSku,
-                        'name' => $item->getName(),
-                        'qty' => $itemQty
+                        'name'       => $item->getName(),
+                        'qty'        => $itemQty
                     ];
                 }
             } else {
                 $stockCollection[] = [
-                    'item_id' => $parentProductSku,
+                    'item_id'    => $parentProductSku,
                     'variant_id' => $childProductSku,
-                    'name' => $item->getName(),
-                    'qty' => $itemQty
+                    'name'       => $item->getName(),
+                    'qty'        => $itemQty
                 ];
             }
+            if ($useMangeStock) {
+                $item = ['parent' => $parentProductSku, 'child' => $childProductSku];
+            } else {
+                unset($items[$counter]);
+            }
 
-            $item = ['parent' => $parentProductSku, 'child' => $childProductSku];
+            $counter++;
         }
 
         return [$subject->getAllItemsStockInSingleStore(

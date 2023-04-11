@@ -26,5 +26,10 @@
                 <anonymous_order_enabled>0</anonymous_order_enabled>
             </hospitality>
         </ls_mag>
+        <omni_clickandcollect>
+            <checkout>
+                <items_availability>1</items_availability>
+            </checkout>
+        </omni_clickandcollect>
     </default>
 </config>
