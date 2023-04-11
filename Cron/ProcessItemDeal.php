@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Cron;
 
-use Exception;
+use \Exception;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
