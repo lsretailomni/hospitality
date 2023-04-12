@@ -123,23 +123,22 @@ class ProcessItemDeal
      * @param ProcessItemModifier $processItemModifier
      */
     public function __construct(
-        ReplicationHelper                            $replicationHelper,
-        Logger                                       $logger,
-        LSR                                          $LSR,
-        ReplHierarchyHospDealRepositoryInterface     $replHierarchyHospDealRepository,
+        ReplicationHelper $replicationHelper,
+        Logger $logger,
+        LSR $LSR,
+        ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
         ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
-        ReplHierarchyLeafRepositoryInterface         $replHierarchyLeafRepository,
-        ProductRepositoryInterface                   $productRepository,
-        ProductInterfaceFactory                      $productInterfaceFactory,
-        ProductCustomOptionRepositoryInterface       $optionRepository,
-        ProductCustomOptionValuesInterfaceFactory    $customOptionValueFactory,
-        ProductCustomOptionInterfaceFactory          $customOptionFactory,
-        ReplItemRecipeRepositoryInterface            $replItemRecipeRepositoryInterface,
-        ReplItemModifierRepositoryInterface          $replItemModifierRepository,
-        HospitalityHelper                            $hospitalityHelper,
-        ProcessItemModifier                          $processItemModifier
-    )
-    {
+        ReplHierarchyLeafRepositoryInterface $replHierarchyLeafRepository,
+        ProductRepositoryInterface $productRepository,
+        ProductInterfaceFactory $productInterfaceFactory,
+        ProductCustomOptionRepositoryInterface $optionRepository,
+        ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
+        ProductCustomOptionInterfaceFactory $customOptionFactory,
+        ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface,
+        ReplItemModifierRepositoryInterface $replItemModifierRepository,
+        HospitalityHelper $hospitalityHelper,
+        ProcessItemModifier $processItemModifier
+    ) {
         $this->logger                              = $logger;
         $this->replicationHelper                   = $replicationHelper;
         $this->lsr                                 = $LSR;
@@ -265,8 +264,7 @@ class ProcessItemDeal
      */
     public function getRemainingRecords(
         $forceReload = false
-    )
-    {
+    ) {
         if ($this->remainingRecords === null || $forceReload) {
             $records                = $this->getDealsToProcess();
             $this->remainingRecords = $records->getTotalCount();
@@ -640,8 +638,7 @@ class ProcessItemDeal
         $values,
         $product,
         $lsModifierRecipeId = null
-    )
-    {
+    ) {
         $productOption = $this->customOptionFactory->create();
         $productOption->setTitle($description)
             ->setValues($values)
@@ -713,8 +710,7 @@ class ProcessItemDeal
      */
     public function getDealsToProcess(
         $productBatchSize = -1
-    )
-    {
+    ) {
         $filters  = [
             ['field' => 'HierarchyCode', 'value' => true, 'condition_type' => 'notnull'],
             ['field' => 'nav_id', 'value' => true, 'condition_type' => 'notnull'],

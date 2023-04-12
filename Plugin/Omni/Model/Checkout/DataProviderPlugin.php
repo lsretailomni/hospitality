@@ -37,11 +37,10 @@ class DataProviderPlugin
      * @param CheckoutSessionProxy $checkoutSession
      */
     public function __construct(
-        StoreHelper          $storeHelper,
-        LSR                  $lsr,
+        StoreHelper $storeHelper,
+        LSR $lsr,
         CheckoutSessionProxy $checkoutSession
-    )
-    {
+    ) {
         $this->storeHelper     = $storeHelper;
         $this->lsr             = $lsr;
         $this->checkoutSession = $checkoutSession;
@@ -57,9 +56,8 @@ class DataProviderPlugin
      */
     public function aroundGetStores(
         DataProvider $subject,
-        callable     $proceed
-    )
-    {
+        callable $proceed
+    ) {
         $salesTypeStoreIdArray = [];
         $storeHoursArray       = [];
 
@@ -169,8 +167,7 @@ class DataProviderPlugin
     public function checkSalesType(
         $hospSalesType,
         $takeAwaySalesType
-    )
-    {
+    ) {
         if (!empty($hospSalesType)) {
             foreach ($hospSalesType as $salesType) {
                 if ($salesType->getCode() == $takeAwaySalesType) {

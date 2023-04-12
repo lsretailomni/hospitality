@@ -103,10 +103,12 @@ class StockHelperPlugin
             $counter++;
         }
 
-        return [$subject->getAllItemsStockInSingleStore(
-            $storeId,
-            $items
-        ), $stockCollection];
+        return [
+            $subject->getAllItemsStockInSingleStore(
+                $storeId,
+                $items
+            ), $stockCollection
+        ];
     }
 
     /**
