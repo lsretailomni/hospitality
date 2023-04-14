@@ -607,7 +607,7 @@ class HospitalityHelper extends AbstractHelper
     {
         $batchSize = $this->getItemModifiersBatchSize();
         $filters2  = [
-            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq']
+            ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq']
         ];
 
         $criteria2   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -627,7 +627,7 @@ class HospitalityHelper extends AbstractHelper
             ->columns(['main_table.DealNo']);
 
         $filters1 = [
-            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq'],
+            ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq'],
             ['field' => 'main_table.Type', 'value' => ['Item', 'Modifier'], 'condition_type' => 'in']
         ];
 

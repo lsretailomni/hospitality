@@ -31,7 +31,7 @@ class SyncImagesPlugin
             /** Get Images for only those items which are already processed */
             $filters  = [
                 ['field' => 'main_table.TableName', 'value' => '%Offer', 'condition_type' => 'like'],
-                ['field' => 'main_table.scope_id', 'value' => $subject->store->getId(), 'condition_type' => 'eq']
+                ['field' => 'main_table.scope_id', 'value' => $subject->getScopeId(), 'condition_type' => 'eq']
             ];
             $criteria = $subject->replicationHelper->buildCriteriaForArrayWithAlias(
                 $filters,
