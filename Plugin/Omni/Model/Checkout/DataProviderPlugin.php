@@ -84,6 +84,9 @@ class DataProviderPlugin
             if (!empty($storeHoursArray)) {
                 $this->checkoutSession->setStorePickupHours($storeHoursArray);
             }
+            $this->checkoutSession->setNoManageStock(0);
+            $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
+            list($response) = $subject->stockHelper->getGivenItemsStockInGivenStore($items);
             if (!$subject->availableStoresOnlyEnabled()) {
                 return $subject->storeCollectionFactory
                     ->create()
@@ -93,9 +96,6 @@ class DataProviderPlugin
                     ->addFieldToFilter('scope_id', $subject->getStoreId())
                     ->addFieldToFilter('ClickAndCollect', 1);
             } else {
-                $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
-                list($response) = $subject->stockHelper->getGivenItemsStockInGivenStore($items);
-
                 if ($response) {
                     if (is_object($response)) {
                         if (!is_array($response->getInventoryResponse())) {
@@ -153,6 +153,24 @@ class DataProviderPlugin
             'current_web_store' => $this->lsr->getActiveWebStore(),
             'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
         ];
+
+        return $result;
+    }
+
+
+    /**
+     * After getting the configuration
+     *
+     * @param DataProvider $subject
+     * @param $result
+     * @return array[]
+     * @throws NoSuchEntityException
+     */
+    public function afterAvailableStoresOnlyEnabled(DataProvider $subject, $result)
+    {
+        if ($subject->checkoutSession->getNoManageStock()) {
+            $result = [true];
+        }
 
         return $result;
     }

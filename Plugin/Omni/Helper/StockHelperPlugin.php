@@ -5,8 +5,10 @@ namespace Ls\Hospitality\Plugin\Omni\Helper;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Helper\StockHelper;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\CatalogInventory\Model\Stock\StockItemRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\CatalogInventory\Model\Configuration;
 
 /**
  * StockHelper plugin responsible for intercepting required methods
@@ -24,13 +26,31 @@ class StockHelperPlugin
     public $stockItemRepository;
 
     /**
+     * @var CheckoutSession
+     */
+    public $checkoutSession;
+
+    /**
+     * @var Configuration
+     */
+    public $configuration;
+
+    /**
      * @param HospitalityHelper $hospitalityHelper
      * @param StockItemRepository $stockItemRepository
+     * @param CheckoutSession $checkoutSession
+     * @param Configuration $configuration
      */
-    public function __construct(HospitalityHelper $hospitalityHelper, StockItemRepository $stockItemRepository)
-    {
+    public function __construct(
+        HospitalityHelper $hospitalityHelper,
+        StockItemRepository $stockItemRepository,
+        CheckoutSession $checkoutSession,
+        Configuration $configuration
+    ) {
         $this->hospitalityHelper   = $hospitalityHelper;
         $this->stockItemRepository = $stockItemRepository;
+        $this->checkoutSession     = $checkoutSession;
+        $this->configuration       = $configuration;
     }
 
     /**
@@ -53,10 +73,12 @@ class StockHelperPlugin
                 $storeId
             );
         }
-
-        $stockCollection = [];
-        $counter         = 0;
+        $useManageStockConfiguration = $this->configuration->getManageStock();
+        $stockCollection             = [];
+        $useManageStockItemArray     = [];
+        $counter                     = 0;
         foreach ($items as &$item) {
+
             $itemQty = $item->getQty();
             list($parentProductSku, $childProductSku, , , $uomQty) = $subject->itemHelper->getComparisonValues(
                 $item->getSku()
@@ -94,13 +116,28 @@ class StockHelperPlugin
                     'qty'        => $itemQty
                 ];
             }
-            if ($useMangeStock) {
-                $item = ['parent' => $parentProductSku, 'child' => $childProductSku];
-            } else {
-                unset($items[$counter]);
+
+            if (!$useManageStockConfiguration) {
+                $useMangeStock = false;
             }
 
+            if ($useMangeStock) {
+                $item = [
+                    'parent' => $parentProductSku,
+                    'child'  => $childProductSku
+                ];
+            } else {
+                unset($items[$counter]);
+                unset($stockCollection[$counter]);
+            }
+
+            $useManageStockItemArray[] = $useMangeStock;
+
             $counter++;
+        }
+
+        if (!in_array(true, $useManageStockItemArray)) {
+            $this->checkoutSession->setNoManageStock(1);
         }
 
         return [
