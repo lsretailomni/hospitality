@@ -39,10 +39,9 @@ class QrCodeParams implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        $cartId         = $args['cart_id'];
         $lsQrCodeParams = null;
-        if (isset($cartId)) {
-            $maskedCartId  = $args['cart_id'];
+        if (isset($args['cart_id']) || isset($value['cart_id'])) {
+            $maskedCartId  = (isset($args['cart_id'])) ? $args['cart_id'] : $value['cart_id'];
             $storeId       = (int)$context->getExtensionAttributes()->getStore()->getId();
             $currentUserId = $context->getUserId();
             $cart          = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);

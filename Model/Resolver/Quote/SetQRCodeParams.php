@@ -70,7 +70,13 @@ class SetQRCodeParams implements ResolverInterface
         }
 
         if (!empty($storeId) && $this->qrCodeHelper->validateStoreId($storeId)) {
-            $this->qrCodeHelper->saveQrCodeParams($cart, $params);
+            $this->saveQrCode($cart, $params);
+        }
+
+        if ($cart) {
+            return [
+                'cart_id' => $args['input']['cart_id']
+            ];
         }
 
         return [];

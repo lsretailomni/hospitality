@@ -147,7 +147,7 @@ class QrCodeHelper extends AbstractHelper
             $qrCodeParams = $this->serializerJson->serialize($qrCodeParams);
             $quote->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
             $this->quoteRepository->save($quote);
-        } catch (\Exception $e) {
+        } catch (GraphQlNoSuchEntityException $e) {
             throw new GraphQlNoSuchEntityException(
                 __('Could not find a cart with ID "%cart_id"', ['cart_id' => $cartId])
             );
@@ -167,7 +167,7 @@ class QrCodeHelper extends AbstractHelper
         $qrCodeParams = null;
         try {
             $quote        = $this->quoteRepository->getActive($cartId);
-            $qrCodeParams = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+            $qrCodeParams = $this->serializerJson->unserialize($quote->getData(LSR::LS_QR_CODE_ORDERING));
         } catch (\Exception $e) {
             throw new \Exception(__($e->getMessage()));
         }
