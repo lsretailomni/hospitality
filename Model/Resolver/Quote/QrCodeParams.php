@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace hospitality\Model\Resolver\Quote;
+namespace Ls\Hospitality\Model\Resolver\Quote;
 
 use \Ls\Hospitality\Helper\QrCodeHelper;
 use Magento\Framework\GraphQl\Config\Element\Field;

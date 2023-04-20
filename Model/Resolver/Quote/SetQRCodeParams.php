@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace hospitality\Model\Resolver\Quote;
+namespace Ls\Hospitality\Model\Resolver\Quote;
 
 use \Ls\Hospitality\Helper\QrCodeHelper;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
@@ -40,15 +40,15 @@ class SetQRCodeParams implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        if (empty($args['qr_code_id'])) {
+        if (empty($args['input']['qr_code_id'])) {
             throw new GraphQlInputException(__('Required parameter "qr_code_id" is missing'));
         }
 
-        $qrCodeId = $args['qr_code_id'];
+        $qrCodeId = $args['input']['qr_code_id'];
         $params   = explode('&', $this->qrCodeHelper->decrypt($qrCodeId));
         $cart     = null;
-        if (isset($args['cart_id'])) {
-            $maskedCartId  = $args['cart_id'];
+        if (isset($args['input']['cart_id'])) {
+            $maskedCartId  = $args['input']['cart_id'];
             $storeId       = (int)$context->getExtensionAttributes()->getStore()->getId();
             $currentUserId = $context->getUserId();
             $cart          = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
