@@ -96,6 +96,7 @@ class DataProviderPlugin
                     ->addFieldToFilter('scope_id', $subject->getStoreId())
                     ->addFieldToFilter('ClickAndCollect', 1);
             } else {
+                $this->checkoutSession->setNoManageStock(0);
                 if ($response) {
                     if (is_object($response)) {
                         if (!is_array($response->getInventoryResponse())) {
