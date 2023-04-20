@@ -43,12 +43,17 @@ input SetShippingMethodsOnCartInput {
 type Mutation {
     setGivenFieldsOnAddress(input: SetGivenFieldsOnAddressInput): SetGivenFieldsOnAddressOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\SetGivenFieldsOnAddress") @doc(description: "Set Given fields on both shipping and billing address.")
     setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
-    setQRCodeParamsInSession(qr_code_id: String!): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Session\\SetQRCodeParamsInSession") @doc(description: "Set QR code params in session to sync on placing order with Central.")
+    setQRCodeParams(QRCodeInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetQRCodeParams") @doc(description: "Set QR code params to sync on placing order with Central.")
 }
 
 type Query {
-    current_qr_code_params: QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Session\\QrCodeParams") @doc(description: "Fetch current QR Code Params in the session.")
+    current_qr_code_params(cart_id: String @doc(description: "Cart ID.")): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\QrCodeParams") @doc(description: "Fetch current QR Code Params.")
     fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): KitchenInformation @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
+}
+
+nput QRCodeInput @doc(description: "Contain required input for setting qrcode") {
+    cart_id: String @doc(description: "The unique ID of a `Cart` object.")
+    qr_code_id: String! @doc(description: "QR code encrypted information")
 }
 
 input SetGivenFieldsOnAddressInput @doc(description: "Contain required input for setting given fields on address.") {
@@ -79,7 +84,7 @@ type Cart {
 }
 
 type QrCodeParamsOutput {
-    qr_code_params: [QrCodeParams] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Session\\QrCodeParams") @doc(description: "Array of all QR Code Params.")
+    qr_code_params: [QrCodeParams] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\QrCodeParams") @doc(description: "Array of all QR Code Params.")
 }
 
 type QrCodeParams {

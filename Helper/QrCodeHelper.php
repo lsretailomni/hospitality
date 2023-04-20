@@ -4,10 +4,14 @@ namespace Ls\Hospitality\Helper;
 
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
+use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session\Proxy;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 
 /**
  * QR code operation helper
@@ -30,21 +34,39 @@ class QrCodeHelper extends AbstractHelper
     public $lsr;
 
     /**
+     *
+     * @var CartRepositoryInterface
+     */
+    public $quoteRepository;
+
+    /**
+     * @var SerializerJson
+     */
+    public $serializerJson;
+
+
+    /**
      * @param Proxy $customerSession
      * @param CollectionFactory $storeCollection
      * @param LSR $lsr
+     * @param CartRepositoryInterface $quoteRepository
+     * @param SerializerJson $serializerJson
      * @param Context $context
      */
     public function __construct(
         Proxy $customerSession,
         CollectionFactory $storeCollection,
         LSR $lsr,
+        CartRepositoryInterface $quoteRepository,
+        SerializerJson $serializerJson,
         Context $context
     ) {
         parent::__construct($context);
         $this->customerSession = $customerSession;
         $this->lsr             = $lsr;
         $this->storeCollection = $storeCollection;
+        $this->quoteRepository = $quoteRepository;
+        $this->serializerJson  = $serializerJson;
     }
 
     /**
@@ -109,13 +131,57 @@ class QrCodeHelper extends AbstractHelper
     }
 
     /**
-     * Get formatted Qr Code Params in customer session
+     * Save QR code in quote
+     *
+     * @param $cartId
+     * @param $qrCodeParams
+     * @return mixed
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     */
+    public function saveQrCodeParams($cartId, $qrCodeParams)
+    {
+        $quote = $this->quoteRepository->getActive($cartId);
+
+        try {
+            $qrCodeParams = $this->serializerJson->serialize($qrCodeParams);
+            $quote->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
+            $this->quoteRepository->save($quote);
+        } catch (\Exception $e) {
+            throw new GraphQlNoSuchEntityException(
+                __('Could not find a cart with ID "%cart_id"', ['cart_id' => $cartId])
+            );
+        }
+
+        return $qrCodeParams;
+    }
+
+    /**
+     * Get QR Code Params from Quote
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function getQrCode($cartId)
+    {
+        $qrCodeParams = null;
+        try {
+            $quote        = $this->quoteRepository->getActive($cartId);
+            $qrCodeParams = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+        } catch (\Exception $e) {
+            throw new \Exception(__($e->getMessage()));
+        }
+
+        return $qrCodeParams;
+    }
+
+    /**
+     * Get formatted Qr Code Params
      *
      * @return array
      */
-    public function getFormattedQrCodeParamsInCustomerSession()
+    public function getFormattedQrCodeParams($qrCodeParams)
     {
-        $qrCodeParams = $this->getQrCodeOrderingInSession();
         $formattedValues = [];
 
         foreach ($qrCodeParams ?? [] as $index => $param) {

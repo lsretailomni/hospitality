@@ -105,7 +105,14 @@ class OrderHelperPlugin
             $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
 
             $qrCodeQueryString = '';
-            $qrCodeParams      = $subject->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+            $qrCodeParams      = $order->getData(LSR::LS_QR_CODE_ORDERING);
+
+            if (!empty($qrCodeParams)) {
+                $qrCodeParams = $subject->json->unserialize($qrCodeParams);
+            } else {
+                $qrCodeParams = $subject->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+            }
+
             if (!empty($qrCodeParams)) {
                 $qrCodeQueryString = http_build_query($qrCodeParams);
             }
