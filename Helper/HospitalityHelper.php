@@ -1002,7 +1002,7 @@ class HospitalityHelper extends AbstractHelper
             ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
             ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
             ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
-            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentStoreId(), 'condition_type' => 'eq']
+            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentWebsiteId(), 'condition_type' => 'eq']
         ];
         $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
         $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
