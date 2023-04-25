@@ -39,6 +39,9 @@ class QrCodeParams implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
+        if (!empty($value) && !isset($value['cart_id'])) {
+            return $value;
+        }
         $lsQrCodeParams = null;
         if (isset($args['cart_id']) || isset($value['cart_id'])) {
             $maskedCartId  = (isset($args['cart_id'])) ? $args['cart_id'] : $value['cart_id'];
