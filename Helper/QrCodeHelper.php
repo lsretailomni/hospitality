@@ -166,8 +166,11 @@ class QrCodeHelper extends AbstractHelper
     {
         $qrCodeParams = null;
         try {
-            $quote        = $this->quoteRepository->getActive($cartId);
-            $qrCodeParams = $this->serializerJson->unserialize($quote->getData(LSR::LS_QR_CODE_ORDERING));
+            $quote              = $this->quoteRepository->getActive($cartId);
+            $qrCodeOrderingData = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+            if ($qrCodeOrderingData) {
+                $qrCodeParams = $this->serializerJson->unserialize($qrCodeOrderingData);
+            }
         } catch (\Exception $e) {
             throw new \Exception(__($e->getMessage()));
         }
