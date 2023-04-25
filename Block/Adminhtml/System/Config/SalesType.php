@@ -7,6 +7,7 @@ use \Ls\Omni\Helper\StoreHelper;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * For getting salestype
@@ -51,7 +52,7 @@ class SalesType implements OptionSourceInterface
         ];
         // Get current Website Id.
         $websiteId = (int)$this->request->getParam('website');
-        if ($this->lsr->isLSR($websiteId, 'website')) {
+        if ($this->lsr->isLSR($websiteId, ScopeInterface::SCOPE_WEBSITE)) {
             $salesType = $this->storeHelper->getSalesType($websiteId);
             if ($salesType) {
                 $data = $salesType->getHospSalesTypes();
