@@ -480,8 +480,8 @@ class HospitalityHelper extends AbstractHelper
                 if ((int)$omniSubLine->getQuantity()) {
                     if (!empty($selectedOrderHospSubLine['modifier'])) {
                         foreach ($selectedOrderHospSubLine['modifier'] as $quoteSubLine) {
-                            if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode'] &&
-                                $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
+                            if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode']
+                                && $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
                                 $found = true;
                                 break;
                             }
@@ -502,8 +502,8 @@ class HospitalityHelper extends AbstractHelper
                     foreach ($selectedOrderHospSubLine['deal'] as $quoteSubLine) {
                         if ($omniSubLine->getDealLineId() == $quoteSubLine['DealLineId']) {
                             if ($omniSubLine->getDealModifierLineId()) {
-                                if (isset($quoteSubLine['DealModLineId']) &&
-                                    $omniSubLine->getDealModifierLineId() == $quoteSubLine['DealModLineId']) {
+                                if (isset($quoteSubLine['DealModLineId'])
+                                    && $omniSubLine->getDealModifierLineId() == $quoteSubLine['DealModLineId']) {
                                     $found = true;
                                     break;
                                 }
@@ -772,8 +772,8 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedSubLinesCount($selectedOrderHospSubLine)
     {
         return $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'modifier') +
-            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
-            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
+               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
+               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
     }
 
     /**
@@ -1160,15 +1160,14 @@ class HospitalityHelper extends AbstractHelper
     {
         $prefillAttributes   = [];
         $addressAttributes   = $this->getAllAddressAttributes();
-        $qrCodeSessionData   = $this->qrCodeHelper->getQrCodeOrderingInSession();
         $removeCheckoutSteps = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $this->lsr->getStoreId()
         );
         foreach ($addressAttributes as $addressAttribute) {
-            if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()]) &&
-                $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1' &&
-                (empty($qrCodeSessionData) && $removeCheckoutSteps)
+            if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()])
+                && $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
+                && $removeCheckoutSteps
             ) {
                 continue;
             }
