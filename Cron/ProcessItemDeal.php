@@ -354,18 +354,17 @@ class ProcessItemDeal
                 $productData->setPrice($item->getDealPrice());
 
                 if ($lineNo) {
-                    $itemStock = $this->replicationHelper->getInventoryStatus(
+                    $itemStock   = $this->replicationHelper->getInventoryStatus(
                         $lineNo,
                         $storeId,
                         $this->store->getId()
                     );
-                    if ($itemStock) {
-                        $productData->setStockData([
-                            'use_config_manage_stock' => 1,
-                            'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
-                            'qty'                     => $itemStock->getQuantity()
-                        ]);
-                    }
+                    $type        = $this->replicationHelper->getInventoryType(
+                        $lineNo,
+                        $storeId,
+                        $this->store->getId()
+                    );
+                    $productData = $this->replicationHelper->manageStock($productData, $itemStock, $type);
                 }
 
                 try {
@@ -411,18 +410,17 @@ class ProcessItemDeal
                 $product->setTypeId(Type::TYPE_SIMPLE);
 
                 if ($lineNo) {
-                    $itemStock = $this->replicationHelper->getInventoryStatus(
+                    $itemStock   = $this->replicationHelper->getInventoryStatus(
                         $lineNo,
                         $storeId,
                         $this->store->getId()
                     );
-                    if ($itemStock) {
-                        $product->setStockData([
-                            'use_config_manage_stock' => 1,
-                            'is_in_stock'             => ($itemStock->getQuantity() > 0) ? 1 : 0,
-                            'qty'                     => $itemStock->getQuantity()
-                        ]);
-                    }
+                    $type        = $this->replicationHelper->getInventoryType(
+                        $lineNo,
+                        $storeId,
+                        $this->store->getId()
+                    );
+                    $productData = $this->replicationHelper->manageStock($productData, $itemStock, $type);
                 }
                 try {
                     // @codingStandardsIgnoreLine
