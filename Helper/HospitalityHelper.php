@@ -607,7 +607,7 @@ class HospitalityHelper extends AbstractHelper
     {
         $batchSize = $this->getItemModifiersBatchSize();
         $filters2  = [
-            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq']
+            ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq']
         ];
 
         $criteria2   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -627,7 +627,7 @@ class HospitalityHelper extends AbstractHelper
             ->columns(['main_table.DealNo']);
 
         $filters1 = [
-            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq'],
+            ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq'],
             ['field' => 'main_table.Type', 'value' => ['Item', 'Modifier'], 'condition_type' => 'in']
         ];
 
@@ -1002,7 +1002,7 @@ class HospitalityHelper extends AbstractHelper
             ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
             ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
             ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
-            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentStoreId(), 'condition_type' => 'eq']
+            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentWebsiteId(), 'condition_type' => 'eq']
         ];
         $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
         $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);

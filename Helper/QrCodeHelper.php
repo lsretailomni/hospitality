@@ -110,7 +110,7 @@ class QrCodeHelper extends AbstractHelper
         $check      = false;
         $collection = $this->storeCollection
             ->create()
-            ->addFieldToFilter('scope_id', $this->lsr->getCurrentStoreId())
+            ->addFieldToFilter('scope_id', $this->lsr->getCurrentWebsiteId())
             ->addFieldToFilter('nav_id', $storeId);
         if ($collection->getSize() > 0) {
             $check = true;
