@@ -43,7 +43,7 @@ class ReplicationHelperPlugin
     ) {
         $result = $proceed($sku, $replInvStatus);
 
-        if ($this->hospitalityHelper->lsr->isHospitalityStore($replInvStatus->getScopeId())) {
+        if ($this->hospitalityHelper->lsr->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
             $deals = $this->hospitalityHelper->getAllDealsGivenMainItemSku($sku, $replInvStatus->getScopeId());
 
             foreach ($deals as $deal) {

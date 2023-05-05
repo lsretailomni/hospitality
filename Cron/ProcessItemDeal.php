@@ -32,6 +32,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\ScopeInterface;
 use Zend_Db_Select_Exception;
 
 /**
@@ -204,27 +205,32 @@ class ProcessItemDeal
                     $this->replicationHelper->updateConfigValue(
                         $this->replicationHelper->getDateTime(),
                         LSR::SC_ITEM_DEAL_CONFIG_PATH_LAST_EXECUTE,
-                        $this->store->getId()
+                        $this->store->getId(),
+                        ScopeInterface::SCOPE_STORES
                     );
-
-                    $fullReplicationImageLinkStatus = $this->lsr->getStoreConfig(
+                    $fullReplicationImageLinkStatus = $this->lsr->getConfigValueFromDb(
                         ReplEcommImageLinksTask::CONFIG_PATH_STATUS,
-                        $store->getId()
+                        ScopeInterface::SCOPE_WEBSITES,
+                        $this->getScopeId()
                     );
-                    $fullReplicationDealStatus      = $this->lsr->getStoreConfig(
+                    $fullReplicationDealStatus      = $this->lsr->getConfigValueFromDb(
                         ReplEcommHierarchyHospDealTask::CONFIG_PATH_STATUS,
-                        $store->getId()
+                        ScopeInterface::SCOPE_WEBSITES,
+                        $this->getScopeId()
                     );
-                    $fullReplicationDealLineStatus  = $this->lsr->getStoreConfig(
+                    $fullReplicationDealLineStatus  = $this->lsr->getConfigValueFromDb(
                         ReplEcommHierarchyHospDealLineTask::CONFIG_PATH_STATUS,
-                        $store->getId()
+                        ScopeInterface::SCOPE_WEBSITES,
+                        $this->getScopeId()
                     );
-                    $fullReplicationLeafStatus      = $this->lsr->getStoreConfig(
+                    $fullReplicationLeafStatus      = $this->lsr->getConfigValueFromDb(
                         ReplEcommHierarchyLeafTask::CONFIG_PATH_STATUS,
-                        $store->getId()
+                        ScopeInterface::SCOPE_WEBSITES,
+                        $this->getScopeId()
                     );
-                    $cronCategoryCheck              = $this->lsr->getStoreConfig(
-                        LSR::SC_SUCCESS_CRON_CATEGORY,
+                    $cronCategoryCheck              = $this->lsr->getConfigValueFromDb(
+                        \Ls\Core\Model\LSR::SC_SUCCESS_CRON_CATEGORY,
+                        ScopeInterface::SCOPE_STORES,
                         $store->getId()
                     );
 
@@ -245,7 +251,9 @@ class ProcessItemDeal
                     $this->replicationHelper->updateCronStatus(
                         $this->cronStatus,
                         LSR::SC_SUCCESS_CRON_ITEM_DEAL,
-                        $this->store->getId()
+                        $this->store->getId(),
+                        false,
+                        ScopeInterface::SCOPE_STORES
                     );
                     $this->logger->debug(
                         'End ProcessItemDeal Task with remaining : ' . $this->getRemainingRecords()
@@ -357,7 +365,7 @@ class ProcessItemDeal
                     $itemStock   = $this->replicationHelper->getInventoryStatus(
                         $lineNo,
                         $storeId,
-                        $this->store->getId()
+                        $this->getScopeId()
                     );
                     $type        = $this->replicationHelper->getInventoryType(
                         $lineNo,
@@ -374,7 +382,7 @@ class ProcessItemDeal
                     $productSaved = $this->productRepository->save($productData);
                     $this->replicationHelper->getProductAttributes(
                         $item->getNavId(),
-                        $this->store->getId(),
+                        $this->getScopeId(),
                         $this->productRepository
                     );
                     $this->replicationHelper->assignProductToCategories($productSaved, $this->store);
@@ -413,7 +421,7 @@ class ProcessItemDeal
                     $itemStock   = $this->replicationHelper->getInventoryStatus(
                         $lineNo,
                         $storeId,
-                        $this->store->getId()
+                        $this->getScopeId()
                     );
                     $type        = $this->replicationHelper->getInventoryType(
                         $lineNo,
@@ -429,7 +437,7 @@ class ProcessItemDeal
                     $productSaved = $this->productRepository->save($product);
                     $this->replicationHelper->getProductAttributes(
                         $item->getNavId(),
-                        $this->store->getId(),
+                        $this->getScopeId(),
                         $this->productRepository
                     );
                     $this->replicationHelper->assignProductToCategories($productSaved, $this->store);
@@ -456,7 +464,7 @@ class ProcessItemDeal
     public function processItemDealLine($product)
     {
         $filters  = [
-            ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
+            ['field' => 'scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq'],
             [
                 'field' => 'DealNo',
                 'value' => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE), 'condition_type' => 'eq'
@@ -472,7 +480,7 @@ class ProcessItemDeal
         foreach ($replHierarchyHospDeals->getItems() as $replHierarchyHospDeal) {
             if ($replHierarchyHospDeal->getType() == 'Modifier') {
                 $filters  = [
-                    ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
+                    ['field' => 'scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq'],
                     [
                         'field'          => 'DealNo',
                         'value'          => $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
@@ -495,7 +503,7 @@ class ProcessItemDeal
                 }
             } elseif ($replHierarchyHospDeal->getType() == 'Item') {
                 $filters  = [
-                    ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
+                    ['field' => 'scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq'],
                     ['field' => 'nav_id', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']
                 ];
                 $criteria = $this->replicationHelper->buildCriteriaForDirect($filters, -1);
@@ -522,7 +530,7 @@ class ProcessItemDeal
 
                 $filters  = null;
                 $filters  = [
-                    ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
+                    ['field' => 'scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq'],
                     ['field' => 'RecipeNo', 'value' => $replHierarchyHospDeal->getNo(), 'condition_type' => 'eq']
                 ];
                 $criteria = $this->replicationHelper->buildCriteriaForDirect($filters, -1);
@@ -715,11 +723,21 @@ class ProcessItemDeal
             ['field' => 'HierarchyCode', 'value' => true, 'condition_type' => 'notnull'],
             ['field' => 'nav_id', 'value' => true, 'condition_type' => 'notnull'],
             ['field' => 'Description', 'value' => true, 'condition_type' => 'notnull'],
-            ['field' => 'scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq'],
+            ['field' => 'scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq'],
             ['field' => 'Type', 'value' => 'Deal', 'condition_type' => 'eq']
         ];
         $criteria = $this->replicationHelper->buildCriteriaForArray($filters, $productBatchSize);
 
         return $this->replHierarchyLeafRepository->getList($criteria);
+    }
+
+    /**
+     * Get current scope id
+     *
+     * @return int
+     */
+    public function getScopeId()
+    {
+        return $this->store->getWebsiteId();
     }
 }
