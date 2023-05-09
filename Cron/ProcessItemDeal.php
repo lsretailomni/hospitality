@@ -369,8 +369,7 @@ class ProcessItemDeal
                     );
                     $type        = $this->replicationHelper->getInventoryType(
                         $lineNo,
-                        $storeId,
-                        $this->store->getId()
+                        $this->getScopeId()
                     );
                     $productData = $this->replicationHelper->manageStock($productData, $itemStock, $type);
                 }
@@ -425,10 +424,9 @@ class ProcessItemDeal
                     );
                     $type        = $this->replicationHelper->getInventoryType(
                         $lineNo,
-                        $storeId,
-                        $this->store->getId()
+                        $this->getScopeId()
                     );
-                    $productData = $this->replicationHelper->manageStock($productData, $itemStock, $type);
+                    $product = $this->replicationHelper->manageStock($product, $itemStock, $type);
                 }
                 try {
                     // @codingStandardsIgnoreLine
