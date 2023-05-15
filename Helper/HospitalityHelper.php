@@ -14,6 +14,7 @@ use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
+use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
@@ -194,6 +195,11 @@ class HospitalityHelper extends AbstractHelper
     public $orderRepository;
 
     /**
+     * @var QrCodeHelper
+     */
+    public $qrCodeHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -223,6 +229,7 @@ class HospitalityHelper extends AbstractHelper
      * @param OrderHelper $orderHelper
      * @param ItemHelper $itemHelper
      * @param OrderRepositoryInterface $orderRepository
+     * @param QrCodeHelper $qrCodeHelper
      */
     public function __construct(
         Context $context,
@@ -253,7 +260,8 @@ class HospitalityHelper extends AbstractHelper
         SerializerJson $serializerJson,
         OrderHelper $orderHelper,
         ItemHelper $itemHelper,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        QrCodeHelper $qrCodeHelper
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -284,6 +292,7 @@ class HospitalityHelper extends AbstractHelper
         $this->orderHelper                                = $orderHelper;
         $this->itemHelper                                 = $itemHelper;
         $this->orderRepository                            = $orderRepository;
+        $this->qrCodeHelper                               = $qrCodeHelper;
     }
 
     /**
@@ -471,8 +480,8 @@ class HospitalityHelper extends AbstractHelper
                 if ((int)$omniSubLine->getQuantity()) {
                     if (!empty($selectedOrderHospSubLine['modifier'])) {
                         foreach ($selectedOrderHospSubLine['modifier'] as $quoteSubLine) {
-                            if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode'] &&
-                                $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
+                            if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode']
+                                && $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
                                 $found = true;
                                 break;
                             }
@@ -493,8 +502,8 @@ class HospitalityHelper extends AbstractHelper
                     foreach ($selectedOrderHospSubLine['deal'] as $quoteSubLine) {
                         if ($omniSubLine->getDealLineId() == $quoteSubLine['DealLineId']) {
                             if ($omniSubLine->getDealModifierLineId()) {
-                                if (isset($quoteSubLine['DealModLineId']) &&
-                                    $omniSubLine->getDealModifierLineId() == $quoteSubLine['DealModLineId']) {
+                                if (isset($quoteSubLine['DealModLineId'])
+                                    && $omniSubLine->getDealModifierLineId() == $quoteSubLine['DealModLineId']) {
                                     $found = true;
                                     break;
                                 }
@@ -598,7 +607,7 @@ class HospitalityHelper extends AbstractHelper
     {
         $batchSize = $this->getItemModifiersBatchSize();
         $filters2  = [
-            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq']
+            ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq']
         ];
 
         $criteria2   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -618,7 +627,7 @@ class HospitalityHelper extends AbstractHelper
             ->columns(['main_table.DealNo']);
 
         $filters1 = [
-            ['field' => 'main_table.scope_id', 'value' => $store->getId(), 'condition_type' => 'eq'],
+            ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq'],
             ['field' => 'main_table.Type', 'value' => ['Item', 'Modifier'], 'condition_type' => 'in']
         ];
 
@@ -763,8 +772,8 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedSubLinesCount($selectedOrderHospSubLine)
     {
         return $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'modifier') +
-            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
-            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
+               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
+               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
     }
 
     /**
@@ -993,7 +1002,7 @@ class HospitalityHelper extends AbstractHelper
             ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
             ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
             ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
-            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentStoreId(), 'condition_type' => 'eq']
+            ['field' => 'scope_id', 'value' => $this->lsr->getCurrentWebsiteId(), 'condition_type' => 'eq']
         ];
         $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
         $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
@@ -1149,12 +1158,16 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getAnonymousOrderPrefillAttributes($anonymousOrderRequiredAttributes)
     {
-        $prefillAttributes = [];
-        $addressAttributes = $this->getAllAddressAttributes();
-
+        $prefillAttributes   = [];
+        $addressAttributes   = $this->getAllAddressAttributes();
+        $removeCheckoutSteps = $this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $this->lsr->getStoreId()
+        );
         foreach ($addressAttributes as $addressAttribute) {
-            if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()]) &&
-                $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
+            if (isset($anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()])
+                && $anonymousOrderRequiredAttributes[$addressAttribute->getAttributeCode()] == '1'
+                && $removeCheckoutSteps
             ) {
                 continue;
             }

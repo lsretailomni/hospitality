@@ -64,6 +64,10 @@ class DataAssignObserver implements ObserverInterface
             $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
         }
 
+        if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
+            $order->setData(LSR::LS_QR_CODE_ORDERING, $quote->getData(LSR::LS_QR_CODE_ORDERING));
+        }
+
         if ($this->lsr->isHospitalityStore()
             && $quote->getShippingAddress()->getShippingMethod() == "clickandcollect_clickandcollect"
         ) {

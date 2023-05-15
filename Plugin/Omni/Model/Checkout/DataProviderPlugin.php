@@ -70,8 +70,8 @@ class DataProviderPlugin
         foreach ($allStores as $store) {
             if ($this->checkSalesType($store->getHospSalesTypes()->getSalesType(), $takeAwaySalesType) &&
                 $store->getIsClickAndCollect()) {
-                $webStoreId                   = $store->getId();
-                $salesTypeStoreIdArray[]      = $webStoreId;
+                $webStoreId              = $store->getId();
+                $salesTypeStoreIdArray[] = $webStoreId;
                 if ($this->lsr->isPickupTimeslotsEnabled()) {
                     $storeHoursArray[$webStoreId] = $this->storeHelper->formatDateTimeSlotsValues(
                         $store->getStoreHours()
@@ -84,6 +84,9 @@ class DataProviderPlugin
             if (!empty($storeHoursArray)) {
                 $this->checkoutSession->setStorePickupHours($storeHoursArray);
             }
+            $this->checkoutSession->setNoManageStock(0);
+            $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
+            list($response) = $subject->stockHelper->getGivenItemsStockInGivenStore($items);
             if (!$subject->availableStoresOnlyEnabled()) {
                 return $subject->storeCollectionFactory
                     ->create()
@@ -93,9 +96,6 @@ class DataProviderPlugin
                     ->addFieldToFilter('scope_id', $subject->getStoreId())
                     ->addFieldToFilter('ClickAndCollect', 1);
             } else {
-                $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
-                list($response) = $subject->stockHelper->getGivenItemsStockInGivenStore($items);
-
                 if ($response) {
                     if (is_object($response)) {
                         if (!is_array($response->getInventoryResponse())) {
@@ -113,6 +113,24 @@ class DataProviderPlugin
         }
 
         return $proceed();
+    }
+
+    /**
+     * Before intercept to set the store
+     *
+     * @param DataProvider $subject
+     * @param $responseItems
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function beforeGetSelectedClickAndCollectStoresData(DataProvider $subject, $responseItems)
+    {
+        if ($subject->lsr->getCurrentIndustry($subject->getStoreId()) == LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY
+            && empty($responseItems)) {
+            $responseItems [] = $this->lsr->getActiveWebStore();
+        }
+
+        return [$responseItems];
     }
 
     /**
@@ -134,7 +152,25 @@ class DataProviderPlugin
             'enabled'           => $enabled,
             'current_web_store' => $this->lsr->getActiveWebStore(),
             'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
-            ];
+        ];
+
+        return $result;
+    }
+
+
+    /**
+     * After getting the configuration
+     *
+     * @param DataProvider $subject
+     * @param $result
+     * @return array[]
+     * @throws NoSuchEntityException
+     */
+    public function afterAvailableStoresOnlyEnabled(DataProvider $subject, $result)
+    {
+        if ($subject->checkoutSession->getNoManageStock()) {
+            $result = [true];
+        }
 
         return $result;
     }

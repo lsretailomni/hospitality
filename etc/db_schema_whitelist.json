@@ -3,14 +3,16 @@
         "column": {
             "service_mode": true,
             "pickup_date_timeslot": true,
-            "ls_order_comment": true
+            "ls_order_comment": true,
+            "ls_qr_code_ordering": true
         }
     },
     "sales_order": {
         "column": {
             "service_mode": true,
             "pickup_date_timeslot": true,
-            "ls_order_comment": true
+            "ls_order_comment": true,
+            "ls_qr_code_ordering": true
         }
     },
     "catalog_product_option": {

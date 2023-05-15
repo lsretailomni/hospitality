@@ -20,6 +20,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * To Process Item Modifiers into the Magento data structure.
@@ -132,14 +133,17 @@ class ProcessItemModifier
                     $this->replicationHelper->updateConfigValue(
                         $this->replicationHelper->getDateTime(),
                         LSR::SC_ITEM_MODIFIER_CONFIG_PATH_LAST_EXECUTE,
-                        $this->store->getId()
+                        $this->store->getId(),
+                        ScopeInterface::SCOPE_STORES
                     );
                     $this->logger->debug('Running ProcessItemModifier Task for store ' . $this->store->getName());
                     $this->processItemModifiers();
                     $this->replicationHelper->updateCronStatus(
                         $this->cronStatus,
                         LSR::SC_SUCCESS_CRON_ITEM_MODIFIER,
-                        $this->store->getId()
+                        $this->store->getId(),
+                        false,
+                        ScopeInterface::SCOPE_STORES
                     );
                     $this->logger->debug(
                         'End ProcessItemModifier Task with remaining : ' . $this->getRemainingRecords()
@@ -176,7 +180,7 @@ class ProcessItemModifier
         //TODO cover the delete scenario.
         $batchSize = $this->hospitalityHelper->getItemModifiersBatchSize();
         $filters   = [
-            ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
+            ['field' => 'main_table.scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq']
         ];
 
         $criteria = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -333,7 +337,7 @@ class ProcessItemModifier
                                         if (!empty($optionValueData->getTriggerCode())) {
                                             $replImage = $this->hospitalityHelper->getImageGivenItem(
                                                 $optionValueData->getTriggerCode(),
-                                                $this->store->getId()
+                                                $this->getScopeId()
                                             );
 
                                             if ($replImage) {
@@ -430,7 +434,7 @@ class ProcessItemModifier
     ) {
         if (!$this->remainingRecords || $forceReload) {
             $filters = [
-                ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
+                ['field' => 'main_table.scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq']
             ];
 
             $criteria   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -460,5 +464,15 @@ class ProcessItemModifier
     public function setStore($store)
     {
         $this->store = $store;
+    }
+
+    /**
+     * Get current scope id
+     *
+     * @return int
+     */
+    public function getScopeId()
+    {
+        return $this->store->getWebsiteId();
     }
 }

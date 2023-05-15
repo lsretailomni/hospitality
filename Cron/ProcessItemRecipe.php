@@ -19,6 +19,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * To Process Item Recipe into the Magento data structure.
@@ -128,14 +129,17 @@ class ProcessItemRecipe
                     $this->replicationHelper->updateConfigValue(
                         $this->replicationHelper->getDateTime(),
                         LSR::SC_ITEM_RECIPE_CONFIG_PATH_LAST_EXECUTE,
-                        $this->store->getId()
+                        $this->store->getId(),
+                        ScopeInterface::SCOPE_STORES
                     );
                     $this->logger->debug('Running ProcessItemRecipe Task for store ' . $this->store->getName());
                     $this->processItemRecipies();
                     $this->replicationHelper->updateCronStatus(
                         $this->cronStatus,
                         LSR::SC_SUCCESS_CRON_ITEM_RECIPE,
-                        $this->store->getId()
+                        $this->store->getId(),
+                        false,
+                        ScopeInterface::SCOPE_STORES
                     );
                     $this->logger->debug(
                         'End ProcessItemRecipe Task with remaining : ' . $this->getRemainingRecords()
@@ -172,7 +176,7 @@ class ProcessItemRecipe
         //TODO cover the delete scenario.
         $batchSize = $this->hospitalityHelper->getItemRecipeBatchSize();
         $filters   = [
-            ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
+            ['field' => 'main_table.scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq']
         ];
 
         $criteria = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -340,7 +344,7 @@ class ProcessItemRecipe
     ) {
         if (!$this->remainingRecords || $forceReload) {
             $filters = [
-                ['field' => 'main_table.scope_id', 'value' => $this->store->getId(), 'condition_type' => 'eq']
+                ['field' => 'main_table.scope_id', 'value' => $this->getScopeId(), 'condition_type' => 'eq']
             ];
 
             $criteria   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
@@ -359,5 +363,15 @@ class ProcessItemRecipe
             $this->remainingRecords = $collection->getSize();
         }
         return $this->remainingRecords;
+    }
+
+    /**
+     * Get current scope id
+     *
+     * @return int
+     */
+    public function getScopeId()
+    {
+        return $this->store->getWebsiteId();
     }
 }
