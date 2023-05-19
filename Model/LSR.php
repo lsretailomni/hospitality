@@ -51,6 +51,9 @@ class LSR extends \Ls\Core\Model\LSR
 
     const SC_CLICKCOLLECT_PAYMENT_OPTION = 'carriers/clickandcollect/payment_option';
 
+    const SC_SHIPMENT_KOTSTATUS = 'ls_mag/hospitality/shipment_kotstatus';
+    const SC_INVOICE_KOTSTATUS = 'ls_mag/hospitality/invoice_kotstatus';
+
     /**
      * Check service mode is enabled
      *
