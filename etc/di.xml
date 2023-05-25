@@ -117,4 +117,10 @@
     <type name="Ls\Webhooks\Model\Order\Status">
         <plugin name="fake_lines" type="Ls\Hospitality\Plugin\Webhooks\Model\Order\StatusPlugin"/>
     </type>
+    <!-- setting qrcode in customer cart when merging guest cart to customer cart -->
+    <type name="Magento\Quote\Model\Quote">
+        <plugin name="ls_hospitality_merge_cart_qr_code"
+                type="Ls\Hospitality\Plugin\Model\QuotePlugin"
+                sortOrder="1"/>
+    </type>
 </config>
