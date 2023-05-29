@@ -16,7 +16,7 @@ class QuotePlugin
      *
      * @param Quote $subject
      * @param Quote $quote
-     * @return void
+     * @return Quote[]
      */
     public function beforeMerge(Quote $subject, Quote $quote)
     {
@@ -24,5 +24,7 @@ class QuotePlugin
         if ($qrcode) {
             $subject->setData(LSR::LS_QR_CODE_ORDERING, $qrcode);
         }
+
+        return [$quote];
     }
 }
