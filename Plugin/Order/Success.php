@@ -48,8 +48,7 @@ class Success
         $storeId = $this->lsr->getCurrentStoreId();
         if ($this->lsr->getCurrentIndustry($storeId) == LSR::LS_INDUSTRY_VALUE_HOSPITALITY &&
             $this->lsr->isLSR($storeId) && $this->lsr->showOrderTrackingInfoOnSuccessPage()) {
-            $resultPage = $this->resultPageFactory->create();
-            return $resultPage;
+            return $this->resultPageFactory->create();
         }
         return $result;
     }

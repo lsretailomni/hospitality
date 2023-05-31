@@ -270,7 +270,6 @@ class ProcessItemModifier
             // loop against each Product.
             foreach ($dataToProcess['data'] as $itemSKU => $optionArray) {
                 // generate options.
-                $productOptions = [];
                 if (!empty($optionArray)) {
                     // get Product Repository;
                     /** @var  $product */

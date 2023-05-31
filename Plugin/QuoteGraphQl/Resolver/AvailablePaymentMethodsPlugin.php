@@ -18,9 +18,14 @@ class AvailablePaymentMethodsPlugin
      * @var PaymentInformationManagementInterface
      */
     private $informationManagement;
+    /**
+     * @var LSR
+     */
+    private LSR $lsr;
 
     /**
      * @param PaymentInformationManagementInterface $informationManagement
+     * @param LSR $lsr
      */
     public function __construct(
         PaymentInformationManagementInterface $informationManagement,
