@@ -162,7 +162,10 @@ class OrderHelperPlugin
         }
         $oneListCalculateResponse->setOrderLines($orderLinesArray);
         $request->setRequest($oneListCalculateResponse);
-        $request->setReturnOrderIdOnly(true);
+
+        if (version_compare($this->lsr->getOmniVersion(), '2023.05.1', '>=')) {
+            $request->setReturnOrderIdOnly(true);
+        }
 
         return $request;
     }
