@@ -162,6 +162,7 @@ class OrderHelperPlugin
         }
         $oneListCalculateResponse->setOrderLines($orderLinesArray);
         $request->setRequest($oneListCalculateResponse);
+        $request->setReturnOrderIdOnly(true);
 
         return $request;
     }
