@@ -319,13 +319,7 @@ class HospitalityHelper extends AbstractHelper
          * So in order to have a proper filter, we need to check if UoM is not empty then get the Code for specific item
          * based on description.
          */
-        $uoMCode = $mainDealLine = null;
-
-        if ($uom) {
-            // only try if UoM is not null
-            // get UoM code based on Description
-            $uoMCode = $this->getUoMCodeByDescription($lsrId, $uom);
-        }
+        $mainDealLine = null;
 
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
         $selectedOrderHospSubLine   = [];
