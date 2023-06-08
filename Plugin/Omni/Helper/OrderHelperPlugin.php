@@ -87,26 +87,12 @@ class OrderHelperPlugin
         $request         = new Entity\OrderHospCreate();
         $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
         try {
-            $storeId                          = $oneListCalculateResponse->getStoreId();
-            $cardId                           = $oneListCalculateResponse->getCardId();
-            $customerEmail                    = $order->getCustomerEmail();
-            $anonymousOrderEnabled            = $subject->lsr->getStoreConfig(
-                Lsr::ANONYMOUS_ORDER_ENABLED,
-                $order->getStoreId()
-            );
-            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
-                $order->getStoreId()
-            );
-            $prefillAttributes                = $this->hospitalityHelper->getAnonymousOrderPrefillAttributes(
-                $anonymousOrderRequiredAttributes
-            );
-            if ($anonymousOrderEnabled && !empty($prefillAttributes)) {
-                $customerName = $order->getBillingAddress()->getFirstname();
-            } else {
-                $customerName = $order->getBillingAddress()->getFirstname() . ' ' .
-                                $order->getBillingAddress()->getLastname();
-            }
-            $billToName = $customerName;
+            $storeId       = $oneListCalculateResponse->getStoreId();
+            $cardId        = $oneListCalculateResponse->getCardId();
+            $customerEmail = $order->getCustomerEmail();
+            $billToName    = substr($order->getBillingAddress()->getFirstname() . ' ' .
+                                    $order->getBillingAddress()->getLastname(), 0, 20);
+
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
             $shippingMethod          = $order->getShippingMethod(true);
@@ -150,7 +136,7 @@ class OrderHelperPlugin
                 ->setComment($comment)
                 ->setQRData($qrCodeQueryString)
                 ->setEmail($customerEmail)
-                ->setName($customerName)
+                ->setName($billToName)
                 ->setBillToName($billToName)
                 ->setExternalId($order->getIncrementId());
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
@@ -247,7 +233,7 @@ class OrderHelperPlugin
     {
         if ($type == DocumentIdType::ORDER
             && $subject->lsr->getCurrentIndustry() ==
-               LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return [$docId, DocumentIdType::HOSP_ORDER];
         }
         return [$docId, $type];
