@@ -73,6 +73,7 @@ class ProcessTranslation
      * @param Logger $logger
      * @param Product $productResourceModel
      * @param ProductRepositoryInterface $productRepository
+     * @param ReplDataTranslationCollectionFactory $replDataTranslationCollectionFactory
      */
     public function __construct(
         ReplicationHelper $replicationHelper,
