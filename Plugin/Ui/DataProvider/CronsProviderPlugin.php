@@ -13,6 +13,11 @@ use Magento\Store\Model\ScopeInterface;
 class CronsProviderPlugin
 {
 
+    public $translationList = [
+        'repl_deal_html_translation'
+    ];
+
+
     /**
      * After plugin to intercept readCronFile
      *
@@ -33,6 +38,20 @@ class CronsProviderPlugin
             // just return base data.
             return $result;
         }
+    }
+
+    /**
+     * Before plugin to intercept translation cron job
+     *
+     * @param CronsProvider $subject
+     * @param $cronName
+     * @return array|mixed
+     */
+    public function beforeShowTranslationRelatedCronJobsAtStoreLevel(CronsProvider $subject, $cronName)
+    {
+        $subject->setTranslationList(array_merge($subject->getTranslationList(), $this->translationList));
+
+        return [$cronName];
     }
 
     /**
@@ -71,6 +90,15 @@ class CronsProviderPlugin
         if ($cronName == 'process_item_deal') {
             $fullReplicationStatus = $subject->lsr->getConfigValueFromDb(
                 LSR::SC_SUCCESS_CRON_ITEM_DEAL,
+                ScopeInterface::SCOPE_STORES,
+                $storeId
+            );
+            $result                = $fullReplicationStatus;
+        }
+
+        if ($cronName == 'process_translation') {
+            $fullReplicationStatus = $subject->lsr->getConfigValueFromDb(
+                LSR::SC_SUCCESS_PROCESS_TRANSLATION,
                 ScopeInterface::SCOPE_STORES,
                 $storeId
             );
