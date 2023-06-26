@@ -1,10 +1,10 @@
-# LS Ecommerce - Hospitality (2.3.0)
+# LS Ecommerce - Hospitality (2.4.0)
 
 ## Compatibility:
 1. Magento Commerce/Enterprise 2.3.5 - current version
 2. LS Central 16.x - current version
 3. LS Omni 4.14.x - current version
-4. [ LS eCommerce - Base package](https://github.com/lsretailomni/lsmag-two) - v2.3.0 or onwards 
+4. [ LS eCommerce - Base package](https://github.com/lsretailomni/lsmag-two) - v2.4.0 or onwards 
 
 ## Installation:
 
@@ -20,6 +20,13 @@
 10. To Trigger the cron manually from admin panel, navigate to LS Retail -> Cron Listing from the left menu and click on the cron which needs to be run.
 11. To check the status of data replicated from LS Central, navigate to any Replication job from `LS Retail -> Replication Status` and there we can see the list of all data along with status with `Processed` or `Not Processed` in the grid.
 
+## Configuration:
+
+Please visit [ General Configuration ](https://help.lscentral.lsretail.com/Content/LS-Hospitality/LS-eCommerce/LS-eCommerce-Magento/Technical-Manual/General-Configuration-Hospitality.htm "LS eCommerce - Magento Configuration") section on our Online Help for instructions on how to configure the extension.
+
+## Supported Features:
+
+Please visit [ Features ](https://help.lscentral.lsretail.com/Content/LS-Hospitality/LS-eCommerce/LS-eCommerce-Magento/Features/Introduction.htm "LS eCommerce - Magento - Supported Features") section on our Online Help for list of supported features.
 ## Support
 All LS Retail active partners can use [ LS Partner & Customer Portal](https://portal.lsretail.com/ "LS Retail Partner & Customer Portal") to submit the technical support request.
 
