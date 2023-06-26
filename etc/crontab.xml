@@ -21,6 +21,11 @@
              method="execute">
             <schedule>*/3 * * * *</schedule>
         </job>
+
+        <job name="repl_deal_html_translation" instance="Ls\Replication\Cron\ReplEcommDealHtmlTranslationTask"
+             method="execute">
+            <schedule>*/3 * * * *</schedule>
+        </job>
     </group>
 
     <group id="replication">
@@ -31,6 +36,9 @@
             <schedule>*/4 * * * *</schedule>
         </job>
         <job name="process_item_deal" instance="Ls\Hospitality\Cron\ProcessItemDeal" method="execute">
+            <schedule>*/4 * * * *</schedule>
+        </job>
+        <job name="process_translation" instance="Ls\Hospitality\Cron\ProcessTranslation" method="execute">
             <schedule>*/4 * * * *</schedule>
         </job>
     </group>
