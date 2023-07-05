@@ -197,7 +197,6 @@ class ProcessItemModifier
             null,
             ['repl_item_modifier_id']
         );
-        $dataToProcess = [];
 
         if ($collection->getSize() > 0) {
             $dataToProcess = $this->formatModifier($collection);
@@ -319,6 +318,7 @@ class ProcessItemModifier
                                     $isOptionValueExist = false;
                                     if (!empty($existingOptionValues)) {
                                         foreach ($existingOptionValues as $existingOptionValue) {
+                                            $optionData['values'][] = $existingOptionValue;
                                             if ($existingOptionValue->getTitle() ==
                                                 $optionValueData->getDescription()) {
                                                 $isOptionValueExist = true;
