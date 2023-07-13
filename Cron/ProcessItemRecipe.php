@@ -193,8 +193,8 @@ class ProcessItemRecipe
             null,
             ['repl_item_recipe_id']
         );
-        $dataToProcess = [];
-
+        $dataToProcess      = [];
+        $deleteSubCodeArr   = [];
         if ($collection->getSize() > 0) {
             /** @var ReplItemRecipe $itemRecipe */
             foreach ($collection->getItems() as $itemRecipe) {
@@ -206,7 +206,6 @@ class ProcessItemRecipe
                 // loop against each Product.
                 foreach ($dataToProcess as $itemSKU => $optionArray) {
                     // generate options.
-                    $productOptions = [];
                     if (!empty($optionArray)) {
                         try {
                             $product         = $this->replicationHelper->getProductDataByIdentificationAttributes(
@@ -245,18 +244,25 @@ class ProcessItemRecipe
                                 $isOptionValueExist = false;
                                 if (!empty($existingOptionValues)) {
                                     foreach ($existingOptionValues as $existingOptionValue) {
-                                        if(($existingOptionValue->getTitle() == $optionValueData->getDescription())
+                                        if(($existingOptionValue->getSortOrder() == $optionValueData->getSubCode())
                                             && $optionValueData->getIsDeleted()
                                         ) {
                                             $isOptionValueDeleted = true;
                                             $isOptionValueExist = true;
-                                            $optionData['title']    = "Exclude Ingredients";
-                                            $optionData ['code']    = $optionValueData->getCode();
-                                            continue;
-                                        } elseif(!$optionValueData->getIsDeleted()) {
-                                            $optionData['values'][] = $existingOptionValue;
+                                            $deleteSubCodeArr[]     = $optionValueData->getCode()."-".$optionValueData->getSubCode();
+                                            break;
                                         }
-                                        if ($existingOptionValue->getTitle() == $optionValueData->getDescription()) {
+                                    }
+
+                                    foreach ($existingOptionValues as $existingOptionValue) {
+                                        //unset the data if deleted item already in optionData
+                                        if(in_array($optionValueData->getCode()."-".$existingOptionValue->getSortOrder(),$deleteSubCodeArr)) {
+                                            unset($optionData['values'][$optionValueData->getCode()."-".$existingOptionValue->getSortOrder()]);
+                                            continue;
+                                        }
+                                        $optionData['values'][$optionValueData->getCode()."-".$existingOptionValue->getSortOrder()] = $existingOptionValue;
+                                        if ($existingOptionValue->getTitle() ==
+                                            $optionValueData->getDescription()) {
                                             $isOptionValueExist = true;
                                             break;
                                         }
@@ -297,7 +303,12 @@ class ProcessItemRecipe
                              */
                             if ($optionNeedsToBeUpdated || $isOptionValueDeleted) {
                                 try {
-                                    if($productOption && !array_key_exists('values',$optionData)){
+                                    if($productOption &&
+                                        (!array_key_exists('values',$optionData) ||
+                                            (array_key_exists('values',$optionData)
+                                                && count($optionData['values']) == 0)
+                                        )
+                                    ){
                                         //Remove custom option if all option values are deleted
                                         $this->optionRepository->delete($productOption);
                                     } else {

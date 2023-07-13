@@ -269,9 +269,11 @@ class ProcessItemModifier
     {
         if (!empty($dataToProcess)) {
             // loop against each Product.
+            $deleteSubCodeArr   = [];
             foreach ($dataToProcess['data'] as $itemSKU => $optionArray) {
                 // generate options.
-                $productOptions = [];
+                $productOptions     = [];
+
                 if (!empty($optionArray)) {
                     // get Product Repository;
                     /** @var  $product */
@@ -322,17 +324,26 @@ class ProcessItemModifier
 
                                     if (!empty($existingOptionValues)) {
                                         foreach ($existingOptionValues as $existingOptionValue) {
-                                            if(($existingOptionValue->getTitle() == $optionValueData->getDescription())
+                                            //Collect the deleted item modifiers
+                                            if(($existingOptionValue->getSortOrder() == $optionValueData->getSubCode())
                                                 && $optionValueData->getIsDeleted()
                                             ) {
-                                                $isOptionValueDeleted = true;
-                                                $isOptionValueExist = true;
+                                                $isOptionValueDeleted   = true;
+                                                $isOptionValueExist     = true;
                                                 $optionData['title']    = $title;
                                                 $optionData ['code']    = $optionValueData->getCode();
-                                                continue;
-                                            } elseif(!$optionValueData->getIsDeleted()) {
-                                                $optionData['values'][] = $existingOptionValue;
+                                                $deleteSubCodeArr[]     = $optionValueData->getCode()."-".$optionValueData->getSubCode();
+                                                break;
                                             }
+                                        }
+
+                                        foreach ($existingOptionValues as $existingOptionValue) {
+                                            //unset the data if deleted item already in optionData
+                                            if(in_array($optionValueData->getCode()."-".$existingOptionValue->getSortOrder(),$deleteSubCodeArr)) {
+                                               unset($optionData['values'][$optionValueData->getCode()."-".$existingOptionValue->getSortOrder()]);
+                                               continue;
+                                            }
+                                            $optionData['values'][$optionValueData->getCode()."-".$existingOptionValue->getSortOrder()] = $existingOptionValue;
                                             if ($existingOptionValue->getTitle() ==
                                                 $optionValueData->getDescription()) {
                                                 $isOptionValueExist = true;
@@ -380,7 +391,12 @@ class ProcessItemModifier
 
                                 if ($optionNeedsToBeUpdated || $isOptionValueDeleted) {
                                     try {
-                                        if($productOption && !array_key_exists('values',$optionData)){
+                                        if($productOption &&
+                                            (!array_key_exists('values',$optionData) ||
+                                                (array_key_exists('values',$optionData)
+                                                    && count($optionData['values']) == 0)
+                                            )
+                                        ){
                                             //Remove custom option if all option values are deleted
                                             $this->optionRepository->delete($productOption);
                                         } else {
