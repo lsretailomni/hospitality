@@ -274,6 +274,7 @@ class ProcessItemRecipe
                                     $optionValue->setTitle($optionValueData->getDescription())
                                         ->setPriceType('fixed')
                                         ->setSortOrder($optionValueData->getLineNo())
+                                        ->setSku($optionValueData->getSubCode())
                                         ->setPrice(-$optionValueData->getExclusionPrice());
 
                                     if (!empty($optionValueData->getImageId())) {

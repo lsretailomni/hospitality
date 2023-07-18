@@ -357,6 +357,7 @@ class ProcessItemModifier
                                         $optionValue->setTitle($optionValueData->getDescription())
                                             ->setPriceType('fixed')
                                             ->setSortOrder($subcode)
+                                            ->setSku($subcode)
                                             ->setPrice($optionValueData->getAmountPercent());
 
                                         if (!empty($optionValueData->getTriggerCode())) {
