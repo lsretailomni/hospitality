@@ -14,6 +14,9 @@ var config = {
             },
             'Magento_Checkout/js/model/shipping-save-processor/payload-extender': {
                 'Ls_Hospitality/js/model/shipping-save-processor/default': true
+            },
+            'Magento_Ui/js/view/messages': {
+                'Ls_Hospitality/js/view/messages-mixin': true
             }
         }
     }

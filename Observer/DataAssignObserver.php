@@ -5,6 +5,7 @@ namespace Ls\Hospitality\Observer;
 use Carbon\Carbon;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Helper\StoreHelper;
+use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -30,18 +31,25 @@ class DataAssignObserver implements ObserverInterface
     private StoreHelper $storeHelper;
 
     /**
+     * @var CheckAvailability
+     */
+    private $checkAvailability;
+
+    /**
      * @param StoreHelper $storeHelper
      * @param Http $request
      * @param LSR $lsr
      */
     public function __construct(
         StoreHelper $storeHelper,
+        CheckAvailability $checkAvailability,
         Http $request,
         LSR $lsr
     ) {
-        $this->storeHelper          = $storeHelper;
-        $this->request              = $request;
-        $this->lsr                  = $lsr;
+        $this->storeHelper       = $storeHelper;
+        $this->checkAvailability = $checkAvailability;
+        $this->request           = $request;
+        $this->lsr               = $lsr;
     }
 
     /**
@@ -66,6 +74,10 @@ class DataAssignObserver implements ObserverInterface
 
         if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
             $order->setData(LSR::LS_QR_CODE_ORDERING, $quote->getData(LSR::LS_QR_CODE_ORDERING));
+        }
+
+        if ($this->lsr->isHospitalityStore()) {
+            $this->checkAvailability->validateQty();
         }
 
         if ($this->lsr->isHospitalityStore()
@@ -102,7 +114,7 @@ class DataAssignObserver implements ObserverInterface
      */
     public function validatePickupDateRange($quote, $storeId)
     {
-        $message = null;
+        $message       = null;
         $validDateTime = false;
         if ($storeId && !empty($quote->getPickupDateTimeslot())) {
             $pickupDateTimeArr = explode(" ", $quote->getPickupDateTimeslot());
@@ -111,8 +123,8 @@ class DataAssignObserver implements ObserverInterface
             /**
              * @var \Magento\Quote\Model\Quote $quote
              */
-            $websiteId = $quote->getStore()->getWebsiteId();
-            $store = $this->storeHelper->getStore($websiteId, $storeId);
+            $websiteId       = $quote->getStore()->getWebsiteId();
+            $store           = $this->storeHelper->getStore($websiteId, $storeId);
             $storeHoursArray = $this->storeHelper->formatDateTimeSlotsValues(
                 $store->getStoreHours()
             );
@@ -124,8 +136,8 @@ class DataAssignObserver implements ObserverInterface
                 }
 
                 if ($openHoursCnt > 0 && $date == $pickupDateTimeArr[0]) {
-                    $storeOpeningTimeStamp = Carbon::parse($date." ".$hoursArr[0]);
-                    $storeClosingTimeStamp = Carbon::parse($date." ".$hoursArr[$openHoursCnt-1]);
+                    $storeOpeningTimeStamp = Carbon::parse($date . " " . $hoursArr[0]);
+                    $storeClosingTimeStamp = Carbon::parse($date . " " . $hoursArr[$openHoursCnt - 1]);
 
                     //Validate time range for orders with date and time pick up
                     if ((count($pickupDateTimeArr) > 1)

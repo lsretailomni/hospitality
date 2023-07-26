@@ -25,6 +25,7 @@
                 <order_display_estimated_delivery_time>0</order_display_estimated_delivery_time>
                 <anonymous_order_enabled>1</anonymous_order_enabled>
                 <remove_checkout_steps>1</remove_checkout_steps>
+                <enable_check_availability>1</enable_check_availability>
             </hospitality>
         </ls_mag>
         <omni_clickandcollect>

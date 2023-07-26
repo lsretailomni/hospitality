@@ -599,6 +599,53 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get modifier by description
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function getModifierByDescription($value)
+    {
+        $modifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
+
+    /**
+     * Get custom options from quote item
+     *
+     * @param $quoteItem
+     * @return array
+     */
+    public function getCustomOptionsFromQuoteItem($quoteItem)
+    {
+        return $this->configurationHelper->getCustomOptions($quoteItem);
+    }
+
+
+    /**
+     * @param $recipeNo
+     * @param $value
+     * @return mixed
+     */
+    public function getCustomOptions($value)
+    {
+        $modifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
+
+    /**
      * @param $store
      * @return array
      * @throws Zend_Db_Select_Exception
@@ -772,8 +819,8 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedSubLinesCount($selectedOrderHospSubLine)
     {
         return $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'modifier') +
-               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
-               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
+            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
+            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
     }
 
     /**

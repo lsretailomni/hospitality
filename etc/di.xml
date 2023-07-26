@@ -123,4 +123,10 @@
                 type="Ls\Hospitality\Plugin\Model\QuotePlugin"
                 sortOrder="1"/>
     </type>
+    <!-- Plugin to stop redirecting to shipping steps in case of error on placing order-->
+    <type name="Magento\Webapi\Controller\Rest">
+        <plugin name="ls_hospitality_webapi_rest_controller"
+                type="Ls\Hospitality\Plugin\Controller\WebApi\RestPlugin"
+                sortOrder="1"/>
+    </type>
 </config>

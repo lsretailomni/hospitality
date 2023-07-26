@@ -239,6 +239,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>This configuration will remove checkout steps for QR code ordering</comment>
                 </field>
+                <field id="enable_check_availability"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Check Availability</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Check availability of items before order placement.</comment>
+                </field>
             </group>
         </section>
     </system>
