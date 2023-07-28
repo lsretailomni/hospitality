@@ -58,7 +58,6 @@ class AbstractReplicationTaskPlugin
                 }
                 $entity->setIsUpdated(1);
                 $entity->setIsFailed(0);
-                $entity->setIsDeleted(0);
                 $entity->setUpdatedAt($subject->rep_helper->getDateTime());
             } else {
                 $entity = $subject->getFactory()->create();
@@ -82,6 +81,7 @@ class AbstractReplicationTaskPlugin
                 }
                 try {
                     if($source->getId()) {
+                        $entity->setIsDeleted(0);
                         $subject->getRepository()->save($entity);
                     }
                 } catch (\Exception $e) {

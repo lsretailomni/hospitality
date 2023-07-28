@@ -6,6 +6,7 @@ use Exception;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
+use \Ls\Replication\Controller\Adminhtml\Deletion\LsTables;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Logger\Logger;
 use \Ls\Replication\Model\ReplItemRecipe;
@@ -68,6 +69,11 @@ class ProcessItemRecipe
     public $hospitalityHelper;
 
     /**
+     * @var LsTables
+     */
+    public  LsTables $lsTables;
+
+    /**
      * ProcessItemRecipe constructor.
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
@@ -79,6 +85,7 @@ class ProcessItemRecipe
      * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
      * @param ProductCustomOptionInterfaceFactory $customOptionFactory
      * @param HospitalityHelper $hospitalityHelper
+     * @param LsTables $lsTables
      */
     public function __construct(
         ReplicationHelper $replicationHelper,
@@ -90,7 +97,8 @@ class ProcessItemRecipe
         ProductCustomOptionRepositoryInterface $optionRepository,
         ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
         ProductCustomOptionInterfaceFactory $customOptionFactory,
-        HospitalityHelper $hospitalityHelper
+        HospitalityHelper $hospitalityHelper,
+        LsTables $lsTables
     ) {
         $this->logger                            = $logger;
         $this->replicationHelper                 = $replicationHelper;
@@ -102,6 +110,7 @@ class ProcessItemRecipe
         $this->customOptionValueFactory          = $customOptionValueFactory;
         $this->optionRepository                  = $optionRepository;
         $this->hospitalityHelper                 = $hospitalityHelper;
+        $this->lsTables                          = $lsTables;
     }
 
     /**
@@ -355,6 +364,7 @@ class ProcessItemRecipe
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
+            $this->lsTables->resetSpecificCronData("repl_hierarchy_hosp_deal",$this->getScopeId(),$coreConfigTableName);
         } else {
             $this->cronStatus = true;
         }
