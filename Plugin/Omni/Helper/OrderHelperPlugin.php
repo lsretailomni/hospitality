@@ -214,7 +214,6 @@ class OrderHelperPlugin
             return $proceed($request);
         }
 
-        $response = null;
         // @codingStandardsIgnoreLine
         $operation = new Operation\OrderHospCreate();
         $response  = $operation->execute($request);
