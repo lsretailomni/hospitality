@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2023-06-26
+
+### Added
+
+- Please click [here](https://github.com/lsretailomni/lsmag-two/blob/master/CHANGELOG.md#240---2023-06-26)  to see all the changelog
+
 ## [2.3.0] - 2023-04-14
 
 ### Added
