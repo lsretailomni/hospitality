@@ -6,7 +6,7 @@ resources:
   repositories:
     - repository: lsmag
       type: git
-      name: LS%20Ecommerce/lsmag-two
+      name: 'LS Ecommerce/lsmag-two'
   containers:
     - container: db
       image: mariadb:10.2
