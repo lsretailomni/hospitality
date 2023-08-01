@@ -40,8 +40,8 @@ strategy:
 
 steps:
 
-  - checkout: https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two@40132
-  - checkout: self
+  - checkout: 'git@ssh.dev.azure.com:v3/dev-lsretail/LS%20Ecommerce/lsmag-two@40132'
+  - checkout: 'self'
   - script: |
       sudo update-alternatives --set php /usr/bin/php$(phpVersion)
       sudo update-alternatives --set phar /usr/bin/phar$(phpVersion)
