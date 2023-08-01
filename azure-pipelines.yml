@@ -5,7 +5,6 @@ trigger:
 resources:
   repositories:
     - repository: lsmag
-      endpoint: https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two
       type: git
       name: LS%20Ecommerce/lsmag-two
   containers:
