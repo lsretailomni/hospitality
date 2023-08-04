@@ -3,7 +3,7 @@ trigger:
     exclude:
       - '*'
 variables:
-  BRANCH_NAME: $[replace(variables['System.PullRequest.SourceBranch'], '', '')]
+  BRANCH_NAME: System.PullRequest.SourceBranch
 resources:
   repositories:
     - repository: lsmag
