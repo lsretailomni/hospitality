@@ -3,13 +3,14 @@ trigger:
     exclude:
       - '*'
 variables:
-  BRANCH_NAME: System.PullRequest.SourceBranch
+  BRANCH_NAME: $[replace(variables['System.PullRequest.SourceBranch'], '', '')]
+  BRANCH_NAME2: $[replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '')]
 resources:
   repositories:
     - repository: lsmag
       type: git
       name: 'LS Ecommerce/lsmag-two'
-      ref: $(BRANCH_NAME)
+      ref: $(BRANCH_NAME2)
 
     - repository: lsmagFallback
       type: git
