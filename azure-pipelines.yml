@@ -53,11 +53,9 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        $branchSource = "$(Build.SourceBranch)"
-        echo $branchSource
-        $branchSourcePath = $branchSource -replace "refs/heads/", ""
-        echo $branchSourcePath
-        $url="https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_apis/git/repositories/RepoID/refs?api-version=7.0"
+        BRANCH_NAME=$(echo "$(System.PullRequest.SourceBranch)" | awk -F/ '{print $NF}')
+        echo "##vso[task.setvariable variable=PullRequest_Source_Branch;]$BRANCH_NAME"
+        $url="https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_apis/git/repositories/lsmag-two/refs?api-version=7.0"
 
         $token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$(system.accesstoken))"))
 
@@ -70,7 +68,7 @@ steps:
         {
            echo $Refname
 
-           if($Refname -eq "refs/heads/rc")
+           if($Refname -eq "refs/heads/$(BRANCH_NAME)")
            {
               $count = $count + 1
            }
@@ -85,6 +83,8 @@ steps:
         {
           echo "##vso[task.setvariable variable=branchexists]false"
         }
+
+        echo $(branchexists)
 
   - checkout: lsmag2
   - checkout: self
