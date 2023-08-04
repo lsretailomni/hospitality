@@ -4,15 +4,11 @@ trigger:
       - '*'
 resources:
   repositories:
-    - repository: lsmag1
+    - repository: lsmag
       type: git
       name: 'LS Ecommerce/lsmag-two'
       ref: 40132
 
-    - repository: lsmag2
-      type: git
-      name: 'LS Ecommerce/lsmag-two'
-      ref: 40132
   containers:
     - container: db
       image: $(MARIA_DB_IMAGE)
@@ -52,23 +48,23 @@ strategy:
 
 steps:
   - script:  echo $(BRANCH_NAME)
-  - checkout: lsmag2
+  - checkout: lsmag
   - checkout: self
   - script: |
       cd /home/vsts/work/1/s/lsmag-two/
-      rm -fr * .*
+      find . -mindepth 1 -exec rm -r -- {} +
       MY_PAT='xfasbe2jbppxweb5osk2tf3obn4xqtypcm572qsmhqs2khshd2nq'
       B64_PAT=$(printf ":%s" "$MY_PAT" | base64)
       git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two .
-      if [ `git branch --list $(BRANCH_NAME)` ]
+      if git show-branch $(BRANCH_NAME)
       then
-         echo "Branch name $branch_name already exists."
+         echo "Branch name $(BRANCH_NAME) already exists."
          git checkout $(BRANCH_NAME)
       else
-         echo "Branch name $branch_name doesn't exist."
+         echo "Branch name $(BRANCH_NAME) doesn't exist."
          git checkout master
       fi
-    displayName: 'Check if branch exists'
+    displayName: 'Checkout same branch in lsmag if exists'
   - script: |
       sudo update-alternatives --set php /usr/bin/php$(phpVersion)
       sudo update-alternatives --set phar /usr/bin/phar$(phpVersion)
