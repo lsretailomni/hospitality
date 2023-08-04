@@ -51,23 +51,15 @@ strategy:
       composerOverride: '{}'
 
 steps:
-  - powershell: |
-      $url = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/build/definitions/$($env:SYSTEM_DEFINITIONID)?api-version=4.1-preview"
-      Write-Host "URL: $url"
-      $pipeline = Invoke-RestMethod -Uri $url -Headers @{
-        Authorization = "Bearer $env:SYSTEM_ACCESSTOKEN"
-      }
-      Write-Host "Pipeline = $($pipeline | ConvertTo-Json -Depth 100)"
-  - script: echo $(SYSTEM_ACCESSTOKEN)
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
       script: |
         $url="https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_apis/git/repositories/lsmag-two/refs?api-version=7.0"
-        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$(SYSTEM_ACCESSTOKEN))"))
-
+        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":xfasbe2jbppxweb5osk2tf3obn4xqtypcm572qsmhqs2khshd2nq)"))
+        echo $token
         $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token"} -Method Get  -ContentType application/json
-
+        echo $response
         $count = 0
 
         Foreach($Refname in $response.value.name)
