@@ -86,7 +86,7 @@ steps:
           echo "##vso[task.setvariable variable=branchexists]false"
         }
 
-  - checkout: lsmag
+  - checkout: lsmag2
   - checkout: self
   - script: |
       sudo update-alternatives --set php /usr/bin/php$(phpVersion)
