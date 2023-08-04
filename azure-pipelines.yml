@@ -58,8 +58,6 @@ steps:
         Authorization = "Bearer $env:SYSTEM_ACCESSTOKEN"
       }
       Write-Host "Pipeline = $($pipeline | ConvertTo-Json -Depth 100)"
-      env:
-      SYSTEM_ACCESSTOKEN: $(system.accesstoken)
   - script: echo $(SYSTEM_ACCESSTOKEN)
   - task: PowerShell@2
     inputs:
