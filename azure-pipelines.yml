@@ -51,11 +51,13 @@ steps:
   - checkout: lsmag
   - checkout: self
   - script: |
-      cd /home/vsts/work/1/s/lsmag-two/
-      find . -mindepth 1 -exec rm -r -- {} +
+      cd /home/vsts/work/1/s/
+      mkdir /home/vsts/work/1/s/tmp
+      cd /home/vsts/work/1/s/tmp
       MY_PAT='xfasbe2jbppxweb5osk2tf3obn4xqtypcm572qsmhqs2khshd2nq'
       B64_PAT=$(printf ":%s" "$MY_PAT" | base64)
       git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two .
+      git branch -a
       if git show-branch $(BRANCH_NAME)
       then
          echo "Branch name $(BRANCH_NAME) already exists."
@@ -96,7 +98,7 @@ steps:
       cd ../magento_$(magentoVersion)_$(phpVersion)
       mkdir -p ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/lsmag-two
       mkdir -p ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/hospitality
-      cp -a /home/vsts/work/1/s/lsmag-two/. ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/lsmag-two/
+      cp -a /home/vsts/work/1/s/tmp/. ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/lsmag-two/
       cp -a /home/vsts/work/1/s/LS\ eCommerce\ -\ Hospitality/. ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/hospitality/
       composer init --name=lsretail/magento2 --type=project --require magento/product-community-edition:$(magentoVersion) --require $(composerName):$(composerVersion) --require-dev phpunit/phpunit:$(phpunitVersion) --repository '{"type": "composer", "url": "https://repo.magento.com/"}' --repository '{"type": "path", "url": "artifacts/*/*", "options": {"symlink": true}}' -s alpha -n
       composer config use-include-path true
