@@ -7,7 +7,7 @@ resources:
     - repository: lsmag1
       type: git
       name: 'LS Ecommerce/lsmag-two'
-      ref: 40132b
+      ref: 40132
 
     - repository: lsmag2
       type: git
