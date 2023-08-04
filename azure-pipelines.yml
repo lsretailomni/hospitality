@@ -4,13 +4,13 @@ trigger:
       - '*'
 variables:
   BRANCH_NAME: $[replace(variables['System.PullRequest.SourceBranch'], '', '')]
-  BRANCH_NAME2: $[replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '')]
+  DERIVED_NAME: $[replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '')]
 resources:
   repositories:
     - repository: lsmag
       type: git
       name: 'LS Ecommerce/lsmag-two'
-      ref: $(BRANCH_NAME2)
+      ref: $(DERIVED_NAME)
 
     - repository: lsmagFallback
       type: git
@@ -54,13 +54,11 @@ strategy:
 
 steps:
   - script: |
-      MY_PAT='xfasbe2jbppxweb5osk2tf3obn4xqtypcm572qsmhqs2khshd2nq'
-      B64_PAT=$(printf ":%s" "$MY_PAT" | base64)
-      echo $B64_PAT
+      PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
+      B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
       response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" "https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_apis/git/repositories/lsmag-two/refs?api-version=7.0")
       count=0
       for k in $(jq '.value[].name' <<< "$response"); do
-       echo ${k:1:-1}
        if [ ${k:1:-1} == $BRANCH_NAME ]; then
         ((count++));
        fi
@@ -69,10 +67,10 @@ steps:
        echo "Branch name $BRANCH_NAME already exists."
        echo "##vso[task.setvariable variable=BRANCH_EXISTS;]true"
       else
-       echo "Branch name $BRANCH_NAME doesn't exist."
+       echo "Branch name $BRANCH_NAME doesn't exist. Therefore falling back to master"
        echo "##vso[task.setvariable variable=BRANCH_EXISTS;]false"
       fi
-    displayName: 'Checkout if same branch exists in lsmag-two'
+    displayName: 'Check if same branch exists in lsmag-two'
   - script:  echo $(BRANCH_NAME)
   - script:  echo $(BRANCH_EXISTS)
   - checkout: lsmag
@@ -111,7 +109,7 @@ steps:
       cd ../magento_$(magentoVersion)_$(phpVersion)
       mkdir -p ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/lsmag-two
       mkdir -p ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/hospitality
-      cp -a /home/vsts/work/1/s/tmp/. ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/lsmag-two/
+      cp -a /home/vsts/work/1/s/lsmag-two/. ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/lsmag-two/
       cp -a /home/vsts/work/1/s/LS\ eCommerce\ -\ Hospitality/. ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/hospitality/
       composer init --name=lsretail/magento2 --type=project --require magento/product-community-edition:$(magentoVersion) --require $(composerName):$(composerVersion) --require-dev phpunit/phpunit:$(phpunitVersion) --repository '{"type": "composer", "url": "https://repo.magento.com/"}' --repository '{"type": "path", "url": "artifacts/*/*", "options": {"symlink": true}}' -s alpha -n
       composer config use-include-path true
