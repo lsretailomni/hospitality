@@ -51,6 +51,7 @@ strategy:
       composerOverride: '{}'
 
 steps:
+  - echo $(system.accesstoken)
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
