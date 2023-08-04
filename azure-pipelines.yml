@@ -84,8 +84,7 @@ steps:
           echo "##vso[task.setvariable variable=branchexists]false"
         }
 
-        echo $(branchexists)
-
+  - script:  echo $(branchexists)
   - checkout: lsmag2
   - checkout: self
   - script: |
