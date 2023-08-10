@@ -7,7 +7,7 @@ use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Customer\Model\Session\Proxy;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -19,7 +19,7 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 class QrCodeHelper extends AbstractHelper
 {
     /**
-     * @var Proxy
+     * @var CustomerSession
      */
     public $customerSession;
 
@@ -46,7 +46,7 @@ class QrCodeHelper extends AbstractHelper
 
 
     /**
-     * @param Proxy $customerSession
+     * @param CustomerSession $customerSession
      * @param CollectionFactory $storeCollection
      * @param LSR $lsr
      * @param CartRepositoryInterface $quoteRepository
@@ -54,7 +54,7 @@ class QrCodeHelper extends AbstractHelper
      * @param Context $context
      */
     public function __construct(
-        Proxy $customerSession,
+        CustomerSession $customerSession,
         CollectionFactory $storeCollection,
         LSR $lsr,
         CartRepositoryInterface $quoteRepository,

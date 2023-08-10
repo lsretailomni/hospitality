@@ -7,7 +7,7 @@ use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
-use Magento\Checkout\Model\Session\Proxy as CheckoutSessionProxy;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -27,19 +27,19 @@ class DataProviderPlugin
     public $lsr;
 
     /**
-     * @var CheckoutSessionProxy
+     * @var CheckoutSession
      */
     public $checkoutSession;
 
     /**
      * @param StoreHelper $storeHelper
      * @param LSR $lsr
-     * @param CheckoutSessionProxy $checkoutSession
+     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         StoreHelper $storeHelper,
         LSR $lsr,
-        CheckoutSessionProxy $checkoutSession
+        CheckoutSession $checkoutSession
     ) {
         $this->storeHelper     = $storeHelper;
         $this->lsr             = $lsr;
