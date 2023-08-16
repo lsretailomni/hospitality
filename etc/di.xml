@@ -143,4 +143,9 @@
             <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
         </arguments>
     </type>
+    <type name="Ls\Replication\Cron\AbstractReplicationTask">
+        <plugin name="replication_task_plugin_to_handle_modifiers_deletion"
+                type="Ls\Hospitality\Plugin\Cron\AbstractReplicationTaskPlugin"
+                sortOrder="1"/>
+    </type>
 </config>
