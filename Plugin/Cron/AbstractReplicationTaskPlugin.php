@@ -34,6 +34,7 @@ class AbstractReplicationTaskPlugin
         } else {
             $uniqueAttributes = AbstractReplicationTask::$jobCodeUniqueFieldArray[$subject->getConfigPath()];
         }
+        // phpcs:ignore Magento2.Security.InsecureFunction
         $checksum    = crc32(serialize($source));
         $entityArray = $this->checkEntityExistByAttributes($subject->getRepository(), $uniqueAttributes, $source);
 

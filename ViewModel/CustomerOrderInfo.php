@@ -3,8 +3,7 @@
 namespace Ls\Hospitality\ViewModel;
 
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Hospitality\Helper\HospitalityHelper;
-use Magento\Checkout\Model\Session\Proxy;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
@@ -19,27 +18,19 @@ class CustomerOrderInfo implements ArgumentInterface
     private $lsr;
 
     /**
-     * @var HospitalityHelper
-     */
-    private $hospitalityHelper;
-
-    /**
-     * @var Proxy
+     * @var CheckoutSession
      */
     private $checkoutSession;
 
     /**
      * CustomerOrderInfo constructor.
-     * @param HospitalityHelper $hospitalityHelper
      * @param LSR $lsr
-     * @param Proxy $checkoutSession
+     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper,
         LSR $lsr,
-        Proxy $checkoutSession
+        CheckoutSession $checkoutSession
     ) {
-        $this->hospitalityHelper = $hospitalityHelper;
         $this->lsr               = $lsr;
         $this->checkoutSession   = $checkoutSession;
     }

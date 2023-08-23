@@ -39,6 +39,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
+use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
@@ -53,7 +54,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Zend_Db_Select;
 use Zend_Db_Select_Exception;
 
 /**
@@ -616,7 +616,7 @@ class HospitalityHelper extends AbstractHelper
             null
         );
         $collection2->getSelect()->group('main_table.DealNo')
-            ->reset(Zend_Db_Select::COLUMNS)
+            ->reset(Select::COLUMNS)
             ->columns(['main_table.DealNo']);
 
         $filters1 = [
@@ -637,7 +637,7 @@ class HospitalityHelper extends AbstractHelper
             null
         );
         $collection1->getSelect()->group('main_table.DealNo')
-            ->reset(Zend_Db_Select::COLUMNS)
+            ->reset(Select::COLUMNS)
             ->columns(['main_table.DealNo']);
         $select = $this->resourceConnection->getConnection()->select()->union(
             [$collection1->getSelect(), $collection2->getSelect()]
