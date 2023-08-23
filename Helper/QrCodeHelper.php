@@ -6,8 +6,9 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
+use Magento\Framework\Url\DecoderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Customer\Model\Session\Proxy;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -19,7 +20,7 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 class QrCodeHelper extends AbstractHelper
 {
     /**
-     * @var Proxy
+     * @var CustomerSession
      */
     public $customerSession;
 
@@ -44,22 +45,28 @@ class QrCodeHelper extends AbstractHelper
      */
     public $serializerJson;
 
+    /**
+     * @var DecoderInterface
+     */
+    public $urlDecoder;
 
     /**
-     * @param Proxy $customerSession
+     * @param CustomerSession $customerSession
      * @param CollectionFactory $storeCollection
      * @param LSR $lsr
      * @param CartRepositoryInterface $quoteRepository
      * @param SerializerJson $serializerJson
      * @param Context $context
+     * @param DecoderInterface $urlDecoder
      */
     public function __construct(
-        Proxy $customerSession,
+        CustomerSession $customerSession,
         CollectionFactory $storeCollection,
         LSR $lsr,
         CartRepositoryInterface $quoteRepository,
         SerializerJson $serializerJson,
-        Context $context
+        Context $context,
+        DecoderInterface $urlDecoder
     ) {
         parent::__construct($context);
         $this->customerSession = $customerSession;
@@ -67,17 +74,18 @@ class QrCodeHelper extends AbstractHelper
         $this->storeCollection = $storeCollection;
         $this->quoteRepository = $quoteRepository;
         $this->serializerJson  = $serializerJson;
+        $this->urlDecoder      = $urlDecoder;
     }
 
     /**
      * Decrypt the parameters pass to QR ordering
      *
      * @param $params
-     * @return false|string
+     * @return string
      */
     public function decrypt($params)
     {
-        return base64_decode($params);
+        return $this->urlDecoder->decode($params);
     }
 
     /**

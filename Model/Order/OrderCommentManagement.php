@@ -60,7 +60,7 @@ class OrderCommentManagement implements OrderCommentManagementInterface
         $this->validateComment($comment);
 
         try {
-            $quote->setData(LSR::LS_ORDER_COMMENT,$comment);
+            $quote->setData(LSR::LS_ORDER_COMMENT, $comment);
             $this->quoteRepository->save($quote);
         } catch (\Exception $e) {
             throw new CouldNotSaveException(__('The order comment could not be saved'));

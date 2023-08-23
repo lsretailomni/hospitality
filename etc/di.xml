@@ -123,4 +123,29 @@
                 type="Ls\Hospitality\Plugin\Model\QuotePlugin"
                 sortOrder="1"/>
     </type>
+    <type name="Ls\Hospitality\ViewModel\CustomerOrderInfo">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Ls\Hospitality\ViewModel\QrCodeInfo">
+        <arguments>
+            <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Ls\Hospitality\Plugin\Omni\Model\Checkout\DataProviderPlugin">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Ls\Hospitality\Helper\QrCodeHelper">
+        <arguments>
+            <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Ls\Replication\Cron\AbstractReplicationTask">
+        <plugin name="replication_task_plugin_to_handle_modifiers_deletion"
+                type="Ls\Hospitality\Plugin\Cron\AbstractReplicationTaskPlugin"
+                sortOrder="1"/>
+    </type>
 </config>
