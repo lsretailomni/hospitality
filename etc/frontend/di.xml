@@ -36,5 +36,8 @@
             </argument>
         </arguments>
     </type>
-
+    <type name="Magento\Quote\Model\ResourceModel\Quote">
+        <plugin name="save_ls_one_list_id"
+                type="Ls\Hospitality\Plugin\Quote\Model\QuoteRepositoryPlugin"/>
+    </type>
 </config>
