@@ -3,7 +3,7 @@
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
 use \Ls\Core\Model\LSR as LSRAlias;
-use Ls\Hospitality\Helper\HospitalityHelper;
+use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
