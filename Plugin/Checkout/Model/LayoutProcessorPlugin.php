@@ -168,7 +168,8 @@ class LayoutProcessorPlugin
                 $anonymousOrderRequiredAttributes
             );
             $anonymousAddress = $this->hospitalityHelper->getAnonymousAddress($prefillAttributes);
-            $shippingAddressFieldSet = &$shippingStep['children']['shippingAddress']['children']['shipping-address-fieldset']['children'];
+            $shippingAddressFieldSet =
+            &$shippingStep['children']['shippingAddress']['children']['shipping-address-fieldset']['children'];
             $this->hideNotRequiredAddressAttributes(
                 $shippingAddressFieldSet,
                 $anonymousOrderRequiredAttributes,
@@ -202,9 +203,9 @@ class LayoutProcessorPlugin
         $address
     ) {
         foreach ($formFields as $index => &$field) {
-            if (!isset($anonymousOrderRequiredAttributes[$index])) {
-                $value = $address->getData($index);
+            $value = $address->getData($index);
 
+            if (!isset($anonymousOrderRequiredAttributes[$index])) {
                 if ($index == 'street') {
                     foreach ($field['children'] as $i => &$line) {
                         if (isset(explode(',', $value)[$i])) {
@@ -216,6 +217,12 @@ class LayoutProcessorPlugin
                 }
 
                 $field['visible'] = false;
+            } else {
+                if ($anonymousOrderRequiredAttributes[$index] == "0") {
+                    $field['value'] = $value;
+                    $field['notice'] =
+                        __('This is an autofilled field. Please leave it as it is if you don\'t want to change it.');
+                }
             }
         }
     }
