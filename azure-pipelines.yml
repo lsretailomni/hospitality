@@ -61,17 +61,19 @@ steps:
       fi
     displayName: 'Check if same branch name exists in lsmag-two repo'
   - checkout: self
-    path: hospitality
+    path: repos/hospitality
   - script: |
-      cd /home/vsts/work/1/s/
+      cd /home/vsts/work/1/
       ls
       git clone -b $(DERIVED_NAME) https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two lsmag-two
     condition: eq(variables['BRANCH_EXISTS'], 'true')
     displayName: 'Checkout from specifc branch'
   - script: |
-      cd /home/vsts/work/1/s/
+      cd /home/vsts/work/1/respos/
       ls
-      git clone -b master https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two lsmag-two
+      PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
+      B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
+      git -c https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two.extraheader="AUTHORIZATION: basic $B64_PAT" clone -b master https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two lsmag-two
     condition: eq(variables['BRANCH_EXISTS'], 'false')
     displayName: 'Checkout from master branch'
   - script: |
