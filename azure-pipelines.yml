@@ -71,7 +71,7 @@ steps:
        echo "##vso[task.setvariable variable=BRANCH_EXISTS;]false"
       fi
     displayName: 'Check if same branch name exists in lsmag-two repo'
-  - checkout: "git://LS Ecommerce/lsmag-two"
+  - checkout: "git://LS Ecommerce/lsmag-two@$BRANCH_NAME"
     condition: eq(variables['BRANCH_EXISTS'], 'true')
   - checkout: lsmagFallback
     condition: eq(variables['BRANCH_EXISTS'], 'false')
