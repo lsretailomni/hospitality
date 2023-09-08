@@ -6,12 +6,6 @@ variables:
   BRANCH_NAME: $[replace(variables['System.PullRequest.SourceBranch'], '', '')]
   DERIVED_NAME: $[replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '')]
 resources:
-  repositories:
-    - repository: lsmagFallback
-      type: git
-      name: 'LS Ecommerce/lsmag-two'
-      ref: master
-
   containers:
     - container: db
       image: $(MARIA_DB_IMAGE)
@@ -49,11 +43,6 @@ strategy:
 
 steps:
   - script: |
-      echo $BRANCH_NAME
-      echo $DERIVED_NAME
-      
-    displayName: 'abc'
-  - script: |
       PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
       B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
       response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" "https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_apis/git/repositories/lsmag-two/refs?api-version=7.0")
@@ -71,11 +60,20 @@ steps:
        echo "##vso[task.setvariable variable=BRANCH_EXISTS;]false"
       fi
     displayName: 'Check if same branch name exists in lsmag-two repo'
-  - checkout: "git://LS Ecommerce/lsmag-two@$(BRANCH_NAME)"
-    condition: eq(variables['BRANCH_EXISTS'], 'true')
-  - checkout: lsmagFallback
-    condition: eq(variables['BRANCH_EXISTS'], 'false')
   - checkout: self
+    path: /home/vsts/work/1/s/LS\ eCommerce\ -\ Hospitality
+  - script: |
+      cd /home/vsts/work/1/s/
+      ls
+      git clone -b $(DERIVED_NAME) https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two lsmag-two
+    condition: eq(variables['BRANCH_EXISTS'], 'true')
+    displayName: 'Checkout from specifc branch'
+  - script: |
+      cd /home/vsts/work/1/s/
+      ls
+      git clone -b master https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two lsmag-two
+    condition: eq(variables['BRANCH_EXISTS'], 'false')
+    displayName: 'Checkout from master branch'
   - script: |
       sudo update-alternatives --set php /usr/bin/php$(phpVersion)
       sudo update-alternatives --set phar /usr/bin/phar$(phpVersion)
