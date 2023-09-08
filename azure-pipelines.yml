@@ -61,7 +61,7 @@ steps:
       fi
     displayName: 'Check if same branch name exists in lsmag-two repo'
   - checkout: self
-    path: /home/vsts/work/1/s/LS\ eCommerce\ -\ Hospitality
+    path: hospitality
   - script: |
       cd /home/vsts/work/1/s/
       ls
