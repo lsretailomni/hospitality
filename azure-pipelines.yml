@@ -54,6 +54,11 @@ strategy:
 
 steps:
   - script: |
+      echo $BRANCH_NAME
+      echo $DERIVED_NAME
+      
+    displayName: 'abc'
+  - script: |
       PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
       B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
       response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" "https://dev.azure.com/dev-lsretail/LS%20Ecommerce/_apis/git/repositories/lsmag-two/refs?api-version=7.0")
