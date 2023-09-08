@@ -10,7 +10,7 @@ resources:
     - repository: lsmag
       type: git
       name: 'LS Ecommerce/lsmag-two'
-      ref: $(DERIVED_NAME)
+      ref: $DERIVED_NAME
 
     - repository: lsmagFallback
       type: git
