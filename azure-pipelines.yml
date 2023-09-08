@@ -72,9 +72,9 @@ steps:
     displayName: 'Checkout core module feature branch'
   - script: |
       cd /home/vsts/work/1/repos/
-      REPO_URL="https://dev-lsretail@dev.azure.com/dev-lsretail/LS%20Ecommerce/_git/lsmag-two"
+      CORE_MODULE_REPO_URL=$(CORE_MODULE_REPO_URL)
       AUTH=$(echo -n ":$(PERSONAL_ACCESS_TOKEN)" | openssl base64 | tr -d '\n')
-      git -c http.$REPO_URL.extraheader="AUTHORIZATION: basic $AUTH" clone $REPO_URL --branch master lsmag-two
+      git -c http.$CORE_MODULE_REPO_URL.extraheader="AUTHORIZATION: basic $AUTH" clone $CORE_MODULE_REPO_URL --branch master lsmag-two
     condition: eq(variables['BRANCH_EXISTS'], 'false')
     displayName: 'Checkout core module master branch'
   - script: |
