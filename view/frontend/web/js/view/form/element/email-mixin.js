@@ -4,7 +4,7 @@ define([], function () {
     return function (Component) {
         return Component.extend({
             defaults: {
-                template: !window.checkoutConfig.anonymous_order.is_enabled ? 'Magento_Checkout/view/form/element/email' : 'Ls_Hospitality/checkout/view/form/element/email',
+                template: !window.checkoutConfig.anonymous_order.is_enabled ? 'Magento_Checkout/form/element/email' : 'Ls_Hospitality/checkout/view/form/element/email',
             },
 
             showLoginForm: function () {
