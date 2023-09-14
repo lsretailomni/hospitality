@@ -161,18 +161,21 @@ class DataProviderPlugin
      */
     public function afterGetConfig(DataProvider $subject, $result)
     {
-        $storeId = $this->storeManager->getStore()->getId();
+        if ($this->lsr->isHospitalityStore()) {
+            $storeId = $this->storeManager->getStore()->getId();
 
-        $anonymousOrderEnabled = $this->lsr->getStoreConfig(
-            Lsr::ANONYMOUS_ORDER_ENABLED,
-            $storeId
-        );
+            $anonymousOrderEnabled = $this->lsr->getStoreConfig(
+                Lsr::ANONYMOUS_ORDER_ENABLED,
+                $storeId
+            );
 
-        $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
-            $storeId
-        );
-        $result['anonymous_order']['is_enabled'] = (bool) $anonymousOrderEnabled;
-        $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
+            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
+                $storeId
+            );
+            $result['anonymous_order']['is_enabled'] = (bool) $anonymousOrderEnabled;
+            $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
+        }
+
         $enabled = $this->lsr->isPickupTimeslotsEnabled();
         if (empty($this->checkoutSession->getStorePickupHours())) {
             $enabled = 0;

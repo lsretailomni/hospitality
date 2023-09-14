@@ -68,7 +68,10 @@ class LayoutProcessorPlugin
         $shippingStep               = &$jsLayout['components']['checkout']['children']['steps']['children']['shipping-step'];
         $billingStep                = &$jsLayout['components']['checkout']['children']['steps']['children']['billing-step'];
         $shippingAdditionalChildren = &$shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children'];
-        $this->processFormFields($shippingStep, $billingStep);
+
+        if ($this->hospLsr->getCurrentIndustry() == \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            $this->processFormFields($shippingStep, $billingStep);
+        }
 
         if (!$this->hospLsr->isEnabled()) {
             unset($shippingAdditionalChildren['ls-shipping-option-wrapper']);

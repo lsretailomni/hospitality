@@ -44,12 +44,9 @@ class QuoteRepositoryPlugin
      */
     public function beforeSave($subject, CartInterface $quote)
     {
-        $anonymousOrderEnabled = $this->hospitalityLsr->getStoreConfig(
-            Lsr::ANONYMOUS_ORDER_ENABLED,
-            $quote->getStoreId()
-        );
-
-        if ($anonymousOrderEnabled) {
+        if ($this->hospitalityLsr->isHospitalityStore() &&
+            $this->hospitalityLsr->getStoreConfig(Lsr::ANONYMOUS_ORDER_ENABLED, $quote->getStoreId())
+        ) {
             $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $quote->getStoreId()
             );
