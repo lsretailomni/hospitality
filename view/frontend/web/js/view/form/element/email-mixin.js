@@ -4,14 +4,20 @@ define([], function () {
     return function (Component) {
         return Component.extend({
             defaults: {
-                template: (!window.checkoutConfig.hasOwnProperty("anonymous_order") || !window.checkoutConfig.anonymous_order.is_enabled) ? 'Magento_Checkout/form/element/email' : 'Ls_Hospitality/checkout/view/form/element/email',
+                template: (!window.checkoutConfig.hasOwnProperty("anonymous_order") &&
+                    !window.checkoutConfig.anonymous_order.is_enabled) ||
+                (!window.checkoutConfig.hasOwnProperty("remove_checkout_step_enabled") &&
+                    !window.checkoutConfig.remove_checkout_step_enabled) ? 'Magento_Checkout/form/element/email' : 'Ls_Hospitality/checkout/view/form/element/email',
             },
 
             showLoginForm: function () {
                 return !(window.hasOwnProperty("checkoutConfig") &&
-                    window.checkoutConfig.hasOwnProperty("anonymous_order") &&
-                    window.checkoutConfig.anonymous_order.is_enabled &&
-                    !window.checkoutConfig.anonymous_order.required_fields.hasOwnProperty("email"));
+                    ((window.checkoutConfig.hasOwnProperty("remove_checkout_step_enabled")
+                        && window.checkoutConfig.remove_checkout_step_enabled) ||
+                        (window.checkoutConfig.hasOwnProperty("anonymous_order") &&
+                        window.checkoutConfig.anonymous_order.is_enabled &&
+                        !window.checkoutConfig.anonymous_order.required_fields.hasOwnProperty("email"))
+                    ));
             },
 
             isEmailAutoFilled: function () {

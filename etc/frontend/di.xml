@@ -40,4 +40,8 @@
         <plugin name="save_ls_one_list_id"
                 type="Ls\Hospitality\Plugin\Quote\Model\QuoteRepositoryPlugin"/>
     </type>
+    <type name="Magento\Quote\Model\Quote">
+        <plugin name="save_quote_as_virtual"
+                type="Ls\Hospitality\Plugin\Quote\Model\QuotePlugin"/>
+    </type>
 </config>

@@ -162,22 +162,35 @@ class LayoutProcessorPlugin
             Lsr::ANONYMOUS_ORDER_ENABLED,
             $storeId
         );
+        $removeCheckoutStepEnabled = $this->hospLsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $storeId
+        );
 
-        if ($anonymousOrderEnabled) {
-            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
-                $storeId
-            );
+        if ($anonymousOrderEnabled || $removeCheckoutStepEnabled) {
+            if ($removeCheckoutStepEnabled) {
+                $anonymousOrderRequiredAttributes = [];
+            } else {
+                $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
+                    $storeId
+                );
+            }
+
             $prefillAttributes                = $this->hospitalityHelper->getAnonymousOrderPrefillAttributes(
                 $anonymousOrderRequiredAttributes
             );
             $anonymousAddress = $this->hospitalityHelper->getAnonymousAddress($prefillAttributes);
-            $shippingAddressFieldSet =
-            &$shippingStep['children']['shippingAddress']['children']['shipping-address-fieldset']['children'];
-            $this->hideNotRequiredAddressAttributes(
-                $shippingAddressFieldSet,
-                $anonymousOrderRequiredAttributes,
-                $anonymousAddress
-            );
+
+            if ($anonymousOrderEnabled) {
+                $shippingAddressFieldSet =
+                &$shippingStep['children']['shippingAddress']['children']['shipping-address-fieldset']['children'];
+                $this->hideNotRequiredAddressAttributes(
+                    $shippingAddressFieldSet,
+                    $anonymousOrderRequiredAttributes,
+                    $anonymousAddress
+                );
+            }
+
             $paymentsList = &$billingStep['children']['payment']['children']['payments-list']['children'];
 
             foreach ($paymentsList as &$payment) {

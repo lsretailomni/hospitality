@@ -168,12 +168,17 @@ class DataProviderPlugin
                 Lsr::ANONYMOUS_ORDER_ENABLED,
                 $storeId
             );
+            $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
+                Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+                $storeId
+            );
 
             $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $storeId
             );
             $result['anonymous_order']['is_enabled'] = (bool) $anonymousOrderEnabled;
             $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
+            $result['remove_checkout_step_enabled'] = (bool) $removeCheckoutStepEnabled;
         }
 
         $enabled = $this->lsr->isPickupTimeslotsEnabled();
