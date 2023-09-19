@@ -70,7 +70,27 @@ class LayoutProcessorPlugin
         $shippingAdditionalChildren = &$shippingStep['children']['shippingAddress']['children']['shippingAdditional']['children'];
 
         if ($this->hospLsr->getCurrentIndustry() == \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            $this->processFormFields($shippingStep, $billingStep);
+            $storeId = $this->storeManager->getStore()->getId();
+
+            $anonymousOrderEnabled = $this->hospLsr->getStoreConfig(
+                Lsr::ANONYMOUS_ORDER_ENABLED,
+                $storeId
+            );
+            $removeCheckoutStepEnabled = $this->hospLsr->getStoreConfig(
+                Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+                $storeId
+            );
+            $this->processFormFields(
+                $shippingStep,
+                $billingStep,
+                $anonymousOrderEnabled,
+                $removeCheckoutStepEnabled,
+                $storeId
+            );
+
+            if ($anonymousOrderEnabled || $removeCheckoutStepEnabled) {
+                unset($jsLayout['components']['checkout']['children']['sidebar']['children']['shipping-information']);
+            }
         }
 
         if (!$this->hospLsr->isEnabled()) {
@@ -151,22 +171,19 @@ class LayoutProcessorPlugin
      *
      * @param $shippingStep
      * @param $billingStep
+     * @param $anonymousOrderEnabled
+     * @param $removeCheckoutStepEnabled
+     * @param $storeId
      * @return void
      * @throws NoSuchEntityException
      */
-    public function processFormFields(&$shippingStep, &$billingStep)
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-
-        $anonymousOrderEnabled = $this->hospLsr->getStoreConfig(
-            Lsr::ANONYMOUS_ORDER_ENABLED,
-            $storeId
-        );
-        $removeCheckoutStepEnabled = $this->hospLsr->getStoreConfig(
-            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
-            $storeId
-        );
-
+    public function processFormFields(
+        &$shippingStep,
+        &$billingStep,
+        $anonymousOrderEnabled,
+        $removeCheckoutStepEnabled,
+        $storeId
+    ) {
         if ($anonymousOrderEnabled || $removeCheckoutStepEnabled) {
             if ($removeCheckoutStepEnabled) {
                 $anonymousOrderRequiredAttributes = [];
