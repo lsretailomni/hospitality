@@ -76,10 +76,7 @@ class LayoutProcessorPlugin
                 Lsr::ANONYMOUS_ORDER_ENABLED,
                 $storeId
             );
-            $removeCheckoutStepEnabled = $this->hospLsr->getStoreConfig(
-                Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
-                $storeId
-            );
+            $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
             $this->processFormFields(
                 $shippingStep,
                 $billingStep,

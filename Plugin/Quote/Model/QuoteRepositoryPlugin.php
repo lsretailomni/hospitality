@@ -49,10 +49,7 @@ class QuoteRepositoryPlugin
             Lsr::ANONYMOUS_ORDER_ENABLED,
             $quote->getStoreId()
         );
-        $removeCheckoutStepEnabled = $this->hospitalityLsr->getStoreConfig(
-            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
-            $quote->getStoreId()
-        );
+        $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
         if ($isHospitalityStore && ($anonymousOrderEnabled || $removeCheckoutStepEnabled)) {
             if ($removeCheckoutStepEnabled) {
                 $anonymousOrderRequiredAttributes = [];
@@ -76,7 +73,7 @@ class QuoteRepositoryPlugin
                     );
                     $quote->setPickupStore($webStore);
                 }
-                if ($anonymousOrderEnabled) {
+                if (!$removeCheckoutStepEnabled) {
                     $quote->setShippingAddress($anonymousAddress);
                 }
                 $quote->setBillingAddress($anonymousAddress);

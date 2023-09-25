@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Plugin\Quote\Model;
 
+use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
@@ -14,12 +15,20 @@ class QuotePlugin
     private $hospitalityLsr;
 
     /**
+     * @var HospitalityHelper
+     */
+    public $hospitalityHelper;
+
+    /**
      * @param LSR $hospitalityLsr
+     * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        LSR $hospitalityLsr
+        LSR $hospitalityLsr,
+        HospitalityHelper $hospitalityHelper
     ) {
         $this->hospitalityLsr = $hospitalityLsr;
+        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -33,7 +42,7 @@ class QuotePlugin
     public function afterIsVirtual(Quote $subject, $result)
     {
         if ($this->hospitalityLsr->isHospitalityStore() &&
-            $this->hospitalityLsr->getStoreConfig(Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS, $subject->getStoreId())
+            $this->hospitalityHelper->removeCheckoutStepEnabled()
         ) {
             $result = true;
         }

@@ -31,6 +31,7 @@ use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Api\AddressMetadataInterface;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -200,6 +201,11 @@ class HospitalityHelper extends AbstractHelper
     public $qrCodeHelper;
 
     /**
+     * @var CustomerSession
+     */
+    public $customerSession;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -261,7 +267,8 @@ class HospitalityHelper extends AbstractHelper
         OrderHelper $orderHelper,
         ItemHelper $itemHelper,
         OrderRepositoryInterface $orderRepository,
-        QrCodeHelper $qrCodeHelper
+        QrCodeHelper $qrCodeHelper,
+        CustomerSession $customerSession
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -293,6 +300,7 @@ class HospitalityHelper extends AbstractHelper
         $this->itemHelper                                 = $itemHelper;
         $this->orderRepository                            = $orderRepository;
         $this->qrCodeHelper                               = $qrCodeHelper;
+        $this->customerSession                            = $customerSession;
     }
 
     /**
@@ -1348,5 +1356,23 @@ class HospitalityHelper extends AbstractHelper
             'ExtLineStatus'   => $extLineStatus,
             'LineNo'          => $lineNo
         ];
+    }
+
+    /**
+     * Remove Checkout Step enabled
+     *
+     * @return int
+     * @throws NoSuchEntityException
+     */
+    public function removeCheckoutStepEnabled()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $storeId
+        );
+        $qrCodeParams = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+
+        return $removeCheckoutStepEnabled & !empty($qrCodeParams);
     }
 }

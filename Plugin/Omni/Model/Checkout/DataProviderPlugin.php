@@ -168,10 +168,7 @@ class DataProviderPlugin
                 Lsr::ANONYMOUS_ORDER_ENABLED,
                 $storeId
             );
-            $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
-                Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
-                $storeId
-            );
+            $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
 
             $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $storeId
