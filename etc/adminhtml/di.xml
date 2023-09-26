@@ -51,6 +51,10 @@
     <type name="Magento\Catalog\Controller\Adminhtml\Product\Save">
         <plugin name="save_product_options_swatch" type="Ls\Hospitality\Plugin\Controller\Adminhtml\Product\SavePlugin" sortOrder="1" />
     </type>
+    <type name="Ls\Replication\Controller\Adminhtml\Deletion\LsTables">
+        <plugin name="ls_hospitality_deletion_ls_tables" type="Ls\Hospitality\Plugin\Controller\Adminhtml\Deletion\LsTablesPlugin" sortOrder="1" />
+    </type>
+
     <virtualType name="Magento\CatalogStaging\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
         <arguments>
             <argument name="modifiers" xsi:type="array">

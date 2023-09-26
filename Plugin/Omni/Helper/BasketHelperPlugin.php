@@ -177,8 +177,8 @@ class BasketHelperPlugin
     public function aroundCalculate(BasketHelper $subject, callable $proceed, Entity\OneList $oneList)
     {
         if ($subject->lsr->getCurrentIndustry(
-                $subject->getCorrectStoreIdFromCheckoutSession() ?? null
-            ) != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+            $subject->getCorrectStoreIdFromCheckoutSession() ?? null
+        ) != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($oneList);
         }

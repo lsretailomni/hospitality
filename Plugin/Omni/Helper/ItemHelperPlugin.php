@@ -144,10 +144,8 @@ class ItemHelperPlugin
             } elseif ($orderData instanceof OrderHosp) {
                 $orderLines = $orderData->getOrderLines();
 
-                if ($orderData->getOrderDiscountLines() && !empty($orderData->getOrderDiscountLines())) {
+                if (!empty($orderData->getOrderDiscountLines())) {
                     $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
-                } else {
-                    $discountsLines = [];
                 }
             }
 
@@ -169,7 +167,7 @@ class ItemHelperPlugin
             $this->logger->error($e->getMessage());
         }
 
-        if ($check == true) {
+        if ($check) {
             return [implode($discountInfo), $discountText];
         } else {
             return null;
