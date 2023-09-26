@@ -1,6 +1,6 @@
 {
     "name": "lsretail/hospitality",
-    "description": "LS Ecommerce - eCommerce integration of Magento with LS Hospitality",
+    "description": "LS Ecommerce - eCommerce integration of Magento with LS Hospitality ",
     "type": "magento2-module",
     "license": "proprietary",
     "version": "2.4.1",
