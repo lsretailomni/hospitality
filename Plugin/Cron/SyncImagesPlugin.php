@@ -49,11 +49,10 @@ class SyncImagesPlugin
             );
             $collection->getSelect()->order('main_table.processed ASC');
             $mergedCollectionIds = array_merge($result->getAllIds(), $collection->getAllIds());
-            $collection          = $subject->replImageLinkCollectionFactory->create()
+            return $subject->replImageLinkCollectionFactory->create()
                 ->addFieldToFilter('repl_image_link_id', ['in' => $mergedCollectionIds])
                 ->addFieldToSelect('*')
                 ->setPageSize($batchSize);
-            return $collection;
         }
         return $result;
     }

@@ -8,6 +8,7 @@ use Magento\Framework\App\ActionFactory;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\RouterInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Forward to route marching controller
@@ -41,6 +42,7 @@ class Router implements RouterInterface
      *
      * @param RequestInterface $request
      * @return ActionInterface|void
+     * @throws NoSuchEntityException
      */
     public function match(RequestInterface $request)
     {

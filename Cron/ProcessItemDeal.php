@@ -362,17 +362,11 @@ class ProcessItemDeal
                 $productData->setPrice($item->getDealPrice());
 
                 if ($lineNo) {
-                    $itemStock   = $this->replicationHelper->getInventoryStatus(
-                        $lineNo,
-                        $storeId,
-                        $this->getScopeId()
-                    );
                     $type        = $this->replicationHelper->getInventoryType(
                         $lineNo,
-                        $storeId,
-                        $this->store->getId()
+                        $this->getScopeId()
                     );
-                    $productData = $this->replicationHelper->manageStock($productData, $itemStock, $type);
+                    $productData = $this->replicationHelper->manageStock($productData, $type);
                 }
 
                 try {
@@ -418,17 +412,11 @@ class ProcessItemDeal
                 $product->setTypeId(Type::TYPE_SIMPLE);
 
                 if ($lineNo) {
-                    $itemStock   = $this->replicationHelper->getInventoryStatus(
-                        $lineNo,
-                        $storeId,
-                        $this->getScopeId()
-                    );
                     $type        = $this->replicationHelper->getInventoryType(
                         $lineNo,
-                        $storeId,
-                        $this->store->getId()
+                        $this->getScopeId()
                     );
-                    $productData = $this->replicationHelper->manageStock($productData, $itemStock, $type);
+                    $product = $this->replicationHelper->manageStock($product, $type);
                 }
                 try {
                     // @codingStandardsIgnoreLine
