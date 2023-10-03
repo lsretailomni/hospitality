@@ -1247,8 +1247,8 @@ class HospitalityHelper extends AbstractHelper
 
             foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
                 list($itemId, $variantId, $uom) = $this->itemHelper->getComparisonValues(
-                    $orderItem->getProductId(),
-                    $orderItem->getSku()
+                    $orderItem->getSku(),
+                    $orderItem->getProductId()
                 );
 
                 $qtyOrdered += $orderItem->getQtyOrdered();
@@ -1271,6 +1271,7 @@ class HospitalityHelper extends AbstractHelper
                 }
             }
 
+            $data['Amount'] = $magentoOrder->getGrandTotal();
             $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
 
             if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
