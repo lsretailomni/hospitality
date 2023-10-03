@@ -4,10 +4,7 @@ namespace Ls\Hospitality\Model\Order\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 
-/**
- * Get collapse value for comment field
- */
-class Collapse implements OptionSourceInterface
+class ShipmentKotStatus implements OptionSourceInterface
 {
     /**
      * Options getter
@@ -36,9 +33,13 @@ class Collapse implements OptionSourceInterface
     public function toArray()
     {
         return [
-            0 => __('Field closed'),
-            1 => __('Field opened'),
-            2 => __('Field without collapse')
+            'Not Sent' => __('Not Sent'),
+            'NAS Error' => __('NAS Error'),
+            'KDS Error' => __('KDS Error'),
+            'Sent' => __('Sent'),
+            'Started' => __('Started'),
+            'Finished' => __('Finished'),
+            'Served' => __('Served'),
         ];
     }
 }
