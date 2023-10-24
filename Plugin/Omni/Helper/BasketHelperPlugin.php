@@ -144,10 +144,13 @@ class BasketHelperPlugin
                 ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                 ->setQuantity($quoteItem->getData('qty'))
                 ->setItemId($itemId)
-                ->setId('')
+                ->setId($quoteItem->getItemId())
                 ->setBarcodeId($barCode)
                 ->setVariantId($variantId)
                 ->setUnitOfMeasureId($uom)
+                ->setAmount($quoteItem->getPrice())
+                ->setPrice($quoteItem->getPrice())
+                ->setImmutable(true)
                 ->setOnelistSubLines(
                     (new ArrayOfOneListItemSubLine())->setOneListItemSubLine($oneListSubLinesArray)
                 );
