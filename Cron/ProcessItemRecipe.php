@@ -71,7 +71,7 @@ class ProcessItemRecipe
     /**
      * @var LsTables
      */
-    public  LsTables $lsTables;
+    public LsTables $lsTables;
 
     /**
      * ProcessItemRecipe constructor.
@@ -182,6 +182,7 @@ class ProcessItemRecipe
      */
     public function processItemRecipies()
     {
+        $coreConfigTableName = $this->replicationHelper->getGivenTableName('core_config_data');
         //TODO cover the delete scenario.
         $batchSize = $this->hospitalityHelper->getItemRecipeBatchSize();
         $filters   = [
@@ -202,8 +203,8 @@ class ProcessItemRecipe
             null,
             ['repl_item_recipe_id']
         );
-        $dataToProcess      = [];
-        $deleteSubCodeArr   = [];
+        $dataToProcess    = [];
+        $deleteSubCodeArr = [];
         if ($collection->getSize() > 0) {
             /** @var ReplItemRecipe $itemRecipe */
             foreach ($collection->getItems() as $itemRecipe) {
@@ -242,7 +243,7 @@ class ProcessItemRecipe
                             }
                             $optionNeedsToBeUpdated = false;
                             $isOptionValueDeleted   = false;
-                            $optionData = [];
+                            $optionData             = [];
                             /** @var ReplItemRecipe $optionValueData */
                             foreach ($optionArray as $optionValueData) {
                                 $existingOptionValues = $productOption->getValues();
@@ -253,23 +254,23 @@ class ProcessItemRecipe
                                 $isOptionValueExist = false;
                                 if (!empty($existingOptionValues)) {
                                     foreach ($existingOptionValues as $existingOptionValue) {
-                                        if(($existingOptionValue->getSortOrder() == $optionValueData->getSubCode())
+                                        if (($existingOptionValue->getSortOrder() == $optionValueData->getSubCode())
                                             && $optionValueData->getIsDeleted()
                                         ) {
                                             $isOptionValueDeleted = true;
-                                            $isOptionValueExist = true;
-                                            $deleteSubCodeArr[]     = $optionValueData->getCode()."-".$optionValueData->getSubCode();
+                                            $isOptionValueExist   = true;
+                                            $deleteSubCodeArr[]   = $optionValueData->getCode() . "-" . $optionValueData->getSubCode();
                                             break;
                                         }
                                     }
 
                                     foreach ($existingOptionValues as $existingOptionValue) {
                                         //unset the data if deleted item already in optionData
-                                        if(in_array($optionValueData->getCode()."-".$existingOptionValue->getSortOrder(),$deleteSubCodeArr)) {
-                                            unset($optionData['values'][$optionValueData->getCode()."-".$existingOptionValue->getSortOrder()]);
+                                        if (in_array($optionValueData->getCode() . "-" . $existingOptionValue->getSortOrder(), $deleteSubCodeArr)) {
+                                            unset($optionData['values'][$optionValueData->getCode() . "-" . $existingOptionValue->getSortOrder()]);
                                             continue;
                                         }
-                                        $optionData['values'][$optionValueData->getCode()."-".$existingOptionValue->getSortOrder()] = $existingOptionValue;
+                                        $optionData['values'][$optionValueData->getCode() . "-" . $existingOptionValue->getSortOrder()] = $existingOptionValue;
                                         if ($existingOptionValue->getTitle() ==
                                             $optionValueData->getDescription()) {
                                             $isOptionValueExist = true;
@@ -313,12 +314,12 @@ class ProcessItemRecipe
                              */
                             if ($optionNeedsToBeUpdated || $isOptionValueDeleted) {
                                 try {
-                                    if($productOption &&
-                                        (!array_key_exists('values',$optionData) ||
-                                            (array_key_exists('values',$optionData)
+                                    if ($productOption &&
+                                        (!array_key_exists('values', $optionData) ||
+                                            (array_key_exists('values', $optionData)
                                                 && count($optionData['values']) == 0)
                                         )
-                                    ){
+                                    ) {
                                         //Remove custom option if all option values are deleted
                                         $this->optionRepository->delete($productOption);
                                     } else {
@@ -364,7 +365,7 @@ class ProcessItemRecipe
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
-            $this->lsTables->resetSpecificCronData("repl_hierarchy_hosp_deal",$this->getScopeId(),$coreConfigTableName);
+            $this->lsTables->resetSpecificCronData("repl_hierarchy_hosp_deal", $this->getScopeId(), $coreConfigTableName);
         } else {
             $this->cronStatus = true;
         }
