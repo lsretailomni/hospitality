@@ -194,6 +194,7 @@ class ProcessItemRecipe
             $batchSize,
             1
         );
+        $coreConfigTableName = $this->replicationHelper->getGivenTableName('core_config_data');
         /** @var Collection $collection */
         $collection = $this->replItemRecipeCollectionFactory->create();
         $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
