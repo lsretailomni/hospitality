@@ -3,7 +3,7 @@
 namespace Ls\Hospitality\Plugin\Cron;
 
 use \Ls\Replication\Cron\AbstractReplicationTask;
-use Magento\Framework\App\ObjectManager;
+use \Ls\Replication\Helper\ReplicationHelper;
 
 /**
  * Interceptor to intercept AbstractReplicationTask
@@ -14,29 +14,31 @@ class AbstractReplicationTaskPlugin
      * After plugin to set the respective app_id and full_replication
      *
      * @param AbstractReplicationTask $subject
-     * @param $result
-     * @param $properties
-     * @param $source
+     * @param mixed $result
+     * @param array $properties
+     * @param mixed $source
      * @return mixed
      */
     public function afterSaveSource(AbstractReplicationTask $subject, $result, $properties, $source)
     {
-        if ($subject->getConfigPath()!="ls_mag/replication/repl_item_modifier" &&
+        if ($subject->getConfigPath() != "ls_mag/replication/repl_item_modifier" &&
             $subject->getConfigPath() != "ls_mag/replication/repl_item_recipe"
         ) {
             return $result;
         }
 
         if ($source->getIsDeleted()) {
-            $uniqueAttributes = (array_key_exists($subject->getConfigPath(), AbstractReplicationTask::$deleteJobCodeUniqueFieldArray)) ?
-                AbstractReplicationTask::$deleteJobCodeUniqueFieldArray[$subject->getConfigPath()] :
-                AbstractReplicationTask::$jobCodeUniqueFieldArray[$subject->getConfigPath()];
+            $uniqueAttributes = (array_key_exists(
+                $subject->getConfigPath(),
+                ReplicationHelper::DELETE_JOB_CODE_UNIQUE_FIELD_ARRAY
+            )) ?
+                ReplicationHelper::DELETE_JOB_CODE_UNIQUE_FIELD_ARRAY[$subject->getConfigPath()] :
+                ReplicationHelper::JOB_CODE_UNIQUE_FIELD_ARRAY[$subject->getConfigPath()];
         } else {
-            $uniqueAttributes = AbstractReplicationTask::$jobCodeUniqueFieldArray[$subject->getConfigPath()];
+            $uniqueAttributes = ReplicationHelper::JOB_CODE_UNIQUE_FIELD_ARRAY[$subject->getConfigPath()];
         }
-        // phpcs:ignore Magento2.Security.InsecureFunction
-        $checksum    = crc32(serialize($source));
-        $entityArray = $this->checkEntityExistByAttributes($subject->getRepository(), $uniqueAttributes, $source);
+        $checksum    = $subject->getHashGivenString($source);
+        $entityArray = $this->checkEntityExistByAttributes($subject, $uniqueAttributes, $source);
 
         if (!empty($entityArray) && $source->getIsDeleted()) {
             foreach ($entityArray as $entity) {
@@ -45,7 +47,7 @@ class AbstractReplicationTaskPlugin
                 $entity->setIsDeleted(1);
                 $entity->setProcessed(0);
                 try {
-                    if($entity->getNavId()) {
+                    if ($entity->getNavId()) {
                         $subject->getRepository()->save($entity);
                     }
                 } catch (\Exception $e) {
@@ -54,9 +56,7 @@ class AbstractReplicationTaskPlugin
             }
         } else {
             if (!empty($entityArray)) {
-                foreach ($entityArray as $value) {
-                    $entity = $value;
-                }
+                $entity = reset($entityArray);
                 $entity->setIsUpdated(1);
                 $entity->setIsFailed(0);
                 $entity->setUpdatedAt($subject->rep_helper->getDateTime());
@@ -65,29 +65,33 @@ class AbstractReplicationTaskPlugin
             }
             if ($entity->getChecksum() != $checksum) {
                 $entity->setChecksum($checksum);
+
                 foreach ($properties as $property) {
                     if ($property === 'nav_id') {
-                        $set_method = 'setNavId';
-                        $get_method = 'getId';
+                        $setMethod = 'setNavId';
+                        $getMethod = 'getId';
                     } else {
-                        $field_name_optimized   = str_replace('_', ' ', $property);
-                        $field_name_capitalized = ucwords($field_name_optimized);
-                        $field_name_capitalized = str_replace(' ', '', $field_name_capitalized);
-                        $set_method             = "set$field_name_capitalized";
-                        $get_method             = "get$field_name_capitalized";
+                        $fieldNameCapitalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $property)));
+                        $setMethod             = "set$fieldNameCapitalized";
+                        $getMethod             = "get$fieldNameCapitalized";
                     }
-                    if ($entity && $source && method_exists($entity, $set_method) && method_exists($source, $get_method)) {
-                        $entity->{$set_method}($source->{$get_method}());
+                    if ($entity &&
+                        $source &&
+                        method_exists($entity, $setMethod) &&
+                        method_exists($source, $getMethod)
+                    ) {
+                        $entity->{$setMethod}($source->{$getMethod}());
                     }
                 }
-                try {
-                    if($source->getId()) {
-                        $entity->setIsDeleted(0);
-                        $subject->getRepository()->save($entity);
-                    }
-                } catch (\Exception $e) {
-                    $subject->logger->debug($e->getMessage());
+            }
+
+            try {
+                if ($source->getId()) {
+                    $entity->setIsDeleted(0);
+                    $subject->getRepository()->save($entity);
                 }
+            } catch (\Exception $e) {
+                $subject->logger->debug($e->getMessage());
             }
         }
 
@@ -95,58 +99,39 @@ class AbstractReplicationTaskPlugin
     }
 
     /**
-    * @param $subjectRepository
-    * @param $uniqueAttributes
-    * @param $source
-    * @param $notAnArraysObject
-    * @return mixed
+     * Check entity exists
+     *
+     * @param AbstractReplicationTask $subject
+     * @param array $uniqueAttributes
+     * @param mixed $source
+     * @return mixed
      */
-    public function checkEntityExistByAttributes($subjectRepository, $uniqueAttributes, $source, $notAnArraysObject = false)
+    public function checkEntityExistByAttributes(AbstractReplicationTask $subject, $uniqueAttributes, $source)
     {
-        $objectManager = $this->getObjectManager();
-        // @codingStandardsIgnoreStart
-        $criteria = $objectManager->get('Magento\Framework\Api\SearchCriteriaBuilder');
-        // @codingStandardsIgnoreEnd
+        $criteria = $subject->getSearchCriteria();
+
         foreach ($uniqueAttributes as $attribute) {
-            $field_name_optimized   = str_replace('_', ' ', $attribute);
-            $field_name_capitalized = ucwords($field_name_optimized);
-            $field_name_capitalized = str_replace(' ', '', $field_name_capitalized);
+            $fieldNameCapitalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $attribute)));
 
             if ($attribute == 'nav_id') {
-                $get_method = 'getId';
+                $getMethod = 'getId';
             } else {
-                $get_method = "get$field_name_capitalized";
+                $getMethod = "get$fieldNameCapitalized";
             }
 
-            if ($notAnArraysObject) {
-                foreach ($source as $keyprop => $valueprop) {
-                    if ($get_method == 'get' . $keyprop) {
-                        $sourceValue = $valueprop;
-                        if ($sourceValue != '') {
-                            break;
-                        }
-                    }
-                }
-            } else {
-                $sourceValue = $source->{$get_method}();
-            }
+            $sourceValue = $source->{$getMethod}();
 
             if (!$source->getIsDeleted() && $sourceValue == "") {
                 $criteria->addFilter($attribute, true, 'null');
-            } elseif (!$source->getIsDeleted() || ($source->getIsDeleted() && ($attribute == 'scope_id' || $attribute == 'Code' || $attribute == 'SubCode'))) {
+            } elseif (!$source->getIsDeleted() ||
+                ($source->getIsDeleted() &&
+                    ($attribute == 'scope_id' || $attribute == 'Code' || $attribute == 'SubCode')
+                )
+            ) {
                 $criteria->addFilter($attribute, $sourceValue);
             }
         }
-        $result = $subjectRepository->getList($criteria->create());
+        $result = $subject->getRepository()->getList($criteria->create());
         return $result->getItems();
-    }
-
-    /**
-     * Better to use this function when we need Object Manger in order to Organize all code in single place.
-     * @return ObjectManager
-     */
-    public function getObjectManager()
-    {
-        return ObjectManager::getInstance();
     }
 }
