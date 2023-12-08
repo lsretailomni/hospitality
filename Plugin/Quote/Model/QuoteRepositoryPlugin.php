@@ -7,9 +7,6 @@ use \Ls\Hospitality\Model\LSR;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
 
-/**
- * Plugin to store basket_response in the quote table
- */
 class QuoteRepositoryPlugin
 {
     /**
