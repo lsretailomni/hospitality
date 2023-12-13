@@ -3,7 +3,7 @@
 namespace Ls\Hospitality\ViewModel;
 
 use \Ls\Hospitality\Model\LSR;
-use Magento\Customer\Model\Session\Proxy;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
@@ -18,17 +18,17 @@ class QrCodeInfo implements ArgumentInterface
     private $lsr;
 
     /**
-     * @var Proxy
+     * @var CustomerSession
      */
     private $customerSession;
 
     /**
      * @param LSR $lsr
-     * @param Proxy $customerSession
+     * @param CustomerSession $customerSession
      */
     public function __construct(
         LSR $lsr,
-        Proxy $customerSession
+        CustomerSession $customerSession
     ) {
         $this->lsr             = $lsr;
         $this->customerSession = $customerSession;

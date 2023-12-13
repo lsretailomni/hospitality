@@ -239,6 +239,26 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>This configuration will remove checkout steps for QR code ordering</comment>
                 </field>
+                <field id="shipment_kotstatus"
+                       translate="label"
+                       type="select"
+                       sortOrder="150"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
+                    <label>Kot Status for shipment creation</label>
+                    <source_model>Ls\Hospitality\Model\Order\Config\Source\ShipmentKotStatus</source_model>
+                </field>
+                <field id="invoice_kotstatus"
+                       translate="label"
+                       type="select"
+                       sortOrder="160"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="0">
+                    <label>Kot Status for invoice creation</label>
+                    <source_model>Ls\Hospitality\Model\Order\Config\Source\ShipmentKotStatus</source_model>
+                </field>
                 <field id="enable_check_availability"
                        sortOrder="130"
                        type="select"

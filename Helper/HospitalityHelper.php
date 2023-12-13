@@ -31,6 +31,7 @@ use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Api\AddressMetadataInterface;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -39,6 +40,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
+use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
@@ -53,7 +55,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Zend_Db_Select;
 use Zend_Db_Select_Exception;
 
 /**
@@ -200,6 +201,11 @@ class HospitalityHelper extends AbstractHelper
     public $qrCodeHelper;
 
     /**
+     * @var CustomerSession
+     */
+    public $customerSession;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -261,7 +267,8 @@ class HospitalityHelper extends AbstractHelper
         OrderHelper $orderHelper,
         ItemHelper $itemHelper,
         OrderRepositoryInterface $orderRepository,
-        QrCodeHelper $qrCodeHelper
+        QrCodeHelper $qrCodeHelper,
+        CustomerSession $customerSession
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -293,6 +300,7 @@ class HospitalityHelper extends AbstractHelper
         $this->itemHelper                                 = $itemHelper;
         $this->orderRepository                            = $orderRepository;
         $this->qrCodeHelper                               = $qrCodeHelper;
+        $this->customerSession                            = $customerSession;
     }
 
     /**
@@ -319,15 +327,8 @@ class HospitalityHelper extends AbstractHelper
          * So in order to have a proper filter, we need to check if UoM is not empty then get the Code for specific item
          * based on description.
          */
-        $uoMCode = $mainDealLine = null;
+        $mainDealLine = null;
 
-        if ($uom) {
-            // only try if UoM is not null
-            // get UoM code based on Description
-            $uoMCode = $this->getUoMCodeByDescription($lsrId, $uom);
-        }
-        // if found UoM code by description then replace else continue.
-        $uom                        = $uoMCode ? $uoMCode : $uom;
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
         $selectedOrderHospSubLine   = [];
 
@@ -670,7 +671,7 @@ class HospitalityHelper extends AbstractHelper
             null
         );
         $collection2->getSelect()->group('main_table.DealNo')
-            ->reset(Zend_Db_Select::COLUMNS)
+            ->reset(Select::COLUMNS)
             ->columns(['main_table.DealNo']);
 
         $filters1 = [
@@ -691,7 +692,7 @@ class HospitalityHelper extends AbstractHelper
             null
         );
         $collection1->getSelect()->group('main_table.DealNo')
-            ->reset(Zend_Db_Select::COLUMNS)
+            ->reset(Select::COLUMNS)
             ->columns(['main_table.DealNo']);
         $select = $this->resourceConnection->getConnection()->select()->union(
             [$collection1->getSelect(), $collection2->getSelect()]
@@ -789,8 +790,7 @@ class HospitalityHelper extends AbstractHelper
 
             foreach ($o->getValues() as $value) {
                 if ($value->getTitle() == $optionValueTitle) {
-                    $sortOrder = $value->getSortOrder();
-                    return $sortOrder;
+                    return $value->getSortOrder();
                 }
             }
         }
@@ -1302,8 +1302,8 @@ class HospitalityHelper extends AbstractHelper
 
             foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
                 list($itemId, $variantId, $uom) = $this->itemHelper->getComparisonValues(
-                    $orderItem->getProductId(),
-                    $orderItem->getSku()
+                    $orderItem->getSku(),
+                    $orderItem->getProductId()
                 );
 
                 $qtyOrdered += $orderItem->getQtyOrdered();
@@ -1326,6 +1326,7 @@ class HospitalityHelper extends AbstractHelper
                 }
             }
 
+            $data['Amount'] = $magentoOrder->getGrandTotal();
             $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
 
             if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
@@ -1403,5 +1404,23 @@ class HospitalityHelper extends AbstractHelper
             'ExtLineStatus'   => $extLineStatus,
             'LineNo'          => $lineNo
         ];
+    }
+
+    /**
+     * Remove Checkout Step enabled
+     *
+     * @return int
+     * @throws NoSuchEntityException
+     */
+    public function removeCheckoutStepEnabled()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $storeId
+        );
+        $qrCodeParams = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+
+        return $removeCheckoutStepEnabled & !empty($qrCodeParams);
     }
 }

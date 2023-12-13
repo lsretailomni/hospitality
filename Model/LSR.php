@@ -52,13 +52,14 @@ class LSR extends \Ls\Core\Model\LSR
 
     const SC_CLICKCOLLECT_PAYMENT_OPTION = 'carriers/clickandcollect/payment_option';
 
+    const SC_SHIPMENT_KOTSTATUS = 'ls_mag/hospitality/shipment_kotstatus';
+    const SC_INVOICE_KOTSTATUS = 'ls_mag/hospitality/invoice_kotstatus';
     //For Deal item html
     const SC_TRANSLATION_ID_DEAL_ITEM_HTML = 'T0010000825-F0000000020';
 
     const SC_ITEM_DEAL_HTML_JOB_CODE = 'repl_deal_html_translation';
     const SC_SUCCESS_PROCESS_TRANSLATION = 'ls_mag/replication/success_process_translation';
     const SC_PROCESS_TRANSLATION_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_translation';
-
 
     /**
      * Check service mode is enabled

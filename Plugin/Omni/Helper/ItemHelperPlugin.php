@@ -83,7 +83,7 @@ class ItemHelperPlugin
             );
 
             foreach ($orderLines as $index => $line) {
-                if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                if ($subject->isValid($quoteItem, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
                     $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
 
                     $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $quoteItem, $unitPrice, $type);
@@ -144,15 +144,13 @@ class ItemHelperPlugin
             } elseif ($orderData instanceof OrderHosp) {
                 $orderLines = $orderData->getOrderLines();
 
-                if ($orderData->getOrderDiscountLines() && !empty($orderData->getOrderDiscountLines())) {
+                if (!empty($orderData->getOrderDiscountLines())) {
                     $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
-                } else {
-                    $discountsLines = [];
                 }
             }
 
             foreach ($orderLines as $line) {
-                if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                if ($subject->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
                     if ($customPrice > 0 && $customPrice != null) {
                         foreach ($discountsLines as $orderDiscountLine) {
                             if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {
@@ -169,7 +167,7 @@ class ItemHelperPlugin
             $this->logger->error($e->getMessage());
         }
 
-        if ($check == true) {
+        if ($check) {
             return [implode($discountInfo), $discountText];
         } else {
             return null;

@@ -36,5 +36,12 @@
             </argument>
         </arguments>
     </type>
-
+    <type name="Magento\Quote\Model\ResourceModel\Quote">
+        <plugin name="save_pre_filled_address_attributes"
+                type="Ls\Hospitality\Plugin\Quote\Model\QuoteRepositoryPlugin"/>
+    </type>
+    <type name="Magento\Quote\Model\Quote">
+        <plugin name="save_quote_as_virtual"
+                type="Ls\Hospitality\Plugin\Quote\Model\QuotePlugin"/>
+    </type>
 </config>
