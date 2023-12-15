@@ -2,27 +2,27 @@
 
 namespace Ls\Hospitality\Plugin\Cron;
 
-use \Ls\Replication\Cron\AbstractReplicationTask;
-use \Ls\Replication\Helper\ReplicationHelper;
+use Ls\Replication\Cron\AbstractReplicationTask;
+use Ls\Replication\Helper\ReplicationHelper;
 
 /**
- * Interceptor to intercept AbstractReplicationTask
+ * Interceptor to intercept AbstractReplicationTask.
  */
 class AbstractReplicationTaskPlugin
 {
     /**
-     * After plugin to set the respective app_id and full_replication
+     * After plugin to set the respective app_id and full_replication.
      *
-     * @param AbstractReplicationTask $subject
      * @param mixed $result
      * @param array $properties
      * @param mixed $source
+     *
      * @return mixed
      */
     public function afterSaveSource(AbstractReplicationTask $subject, $result, $properties, $source)
     {
-        if ($subject->getConfigPath() != "ls_mag/replication/repl_item_modifier" &&
-            $subject->getConfigPath() != "ls_mag/replication/repl_item_recipe"
+        if ('ls_mag/replication/repl_item_modifier' != $subject->getConfigPath()
+            && 'ls_mag/replication/repl_item_recipe' != $subject->getConfigPath()
         ) {
             return $result;
         }
@@ -37,7 +37,7 @@ class AbstractReplicationTaskPlugin
         } else {
             $uniqueAttributes = ReplicationHelper::JOB_CODE_UNIQUE_FIELD_ARRAY[$subject->getConfigPath()];
         }
-        $checksum    = $subject->getHashGivenString($source);
+        $checksum = $subject->getHashGivenString($source);
         $entityArray = $this->checkEntityExistByAttributes($subject, $uniqueAttributes, $source);
 
         if (!empty($entityArray) && $source->getIsDeleted()) {
@@ -46,6 +46,7 @@ class AbstractReplicationTaskPlugin
                 $entity->setUpdatedAt($subject->rep_helper->getDateTime());
                 $entity->setIsDeleted(1);
                 $entity->setProcessed(0);
+
                 try {
                     if ($entity->getNavId()) {
                         $subject->getRepository()->save($entity);
@@ -67,18 +68,18 @@ class AbstractReplicationTaskPlugin
                 $entity->setChecksum($checksum);
 
                 foreach ($properties as $property) {
-                    if ($property === 'nav_id') {
+                    if ('nav_id' === $property) {
                         $setMethod = 'setNavId';
                         $getMethod = 'getId';
                     } else {
                         $fieldNameCapitalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $property)));
-                        $setMethod             = "set$fieldNameCapitalized";
-                        $getMethod             = "get$fieldNameCapitalized";
+                        $setMethod = "set{$fieldNameCapitalized}";
+                        $getMethod = "get{$fieldNameCapitalized}";
                     }
-                    if ($entity &&
-                        $source &&
-                        method_exists($entity, $setMethod) &&
-                        method_exists($source, $getMethod)
+                    if ($entity
+                        && $source
+                        && method_exists($entity, $setMethod)
+                        && method_exists($source, $getMethod)
                     ) {
                         $entity->{$setMethod}($source->{$getMethod}());
                     }
@@ -86,7 +87,7 @@ class AbstractReplicationTaskPlugin
             }
 
             try {
-                if ($source->getId()) {
+                if ($source && (method_exists($source, 'getId') || method_exists($source, 'getRecipeNo'))) {
                     $entity->setIsDeleted(0);
                     $subject->getRepository()->save($entity);
                 }
@@ -99,11 +100,11 @@ class AbstractReplicationTaskPlugin
     }
 
     /**
-     * Check entity exists
+     * Check entity exists.
      *
-     * @param AbstractReplicationTask $subject
      * @param array $uniqueAttributes
      * @param mixed $source
+     *
      * @return mixed
      */
     public function checkEntityExistByAttributes(AbstractReplicationTask $subject, $uniqueAttributes, $source)
@@ -113,25 +114,27 @@ class AbstractReplicationTaskPlugin
         foreach ($uniqueAttributes as $attribute) {
             $fieldNameCapitalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $attribute)));
 
-            if ($attribute == 'nav_id') {
+            if ('nav_id' == $attribute) {
                 $getMethod = 'getId';
             } else {
-                $getMethod = "get$fieldNameCapitalized";
+                $getMethod = "get{$fieldNameCapitalized}";
             }
 
             $sourceValue = $source->{$getMethod}();
 
-            if (!$source->getIsDeleted() && $sourceValue == "") {
+            if (!$source->getIsDeleted() && '' == $sourceValue) {
                 $criteria->addFilter($attribute, true, 'null');
-            } elseif (!$source->getIsDeleted() ||
-                ($source->getIsDeleted() &&
-                    ($attribute == 'scope_id' || $attribute == 'Code' || $attribute == 'SubCode')
+            } elseif (!$source->getIsDeleted()
+                || (
+                    $source->getIsDeleted()
+                    && ('scope_id' == $attribute || 'Code' == $attribute || 'SubCode' == $attribute)
                 )
             ) {
                 $criteria->addFilter($attribute, $sourceValue);
             }
         }
         $result = $subject->getRepository()->getList($criteria->create());
+
         return $result->getItems();
     }
 }
