@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
 use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Hospitality\Helper\HospitalityHelper;
+use Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
@@ -70,7 +71,7 @@ class DataProviderPlugin
      * @param DataProvider $subject
      * @param callable $proceed
      * @return Collection
-     * @throws NoSuchEntityException|LocalizedException
+     * @throws NoSuchEntityException|LocalizedException|InvalidEnumException
      */
     public function aroundGetStores(
         DataProvider $subject,
@@ -111,7 +112,12 @@ class DataProviderPlugin
                     ->addFieldToFilter('nav_id', [
                         'in' => implode(',', $salesTypeStoreIdArray),
                     ])
-                    ->addFieldToFilter('scope_id', $subject->getStoreId())
+                    ->addFieldToFilter(
+                        'scope_id',
+                        !$subject->replicationHelper->isSSM() ?
+                            $subject->lsr->getCurrentWebsiteId() :
+                            $subject->lsr->getAdminStore()->getWebsiteId()
+                    )
                     ->addFieldToFilter('ClickAndCollect', 1);
             } else {
                 if ($response) {

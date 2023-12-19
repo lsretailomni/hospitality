@@ -86,10 +86,8 @@ class AbstractReplicationTaskPlugin
             }
 
             try {
-                if ($source->getId()) {
-                    $entity->setIsDeleted(0);
-                    $subject->getRepository()->save($entity);
-                }
+                $entity->setIsDeleted(0);
+                $subject->getRepository()->save($entity);
             } catch (\Exception $e) {
                 $subject->logger->debug($e->getMessage());
             }
