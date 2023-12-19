@@ -114,7 +114,7 @@ class DataProviderPlugin
                     ])
                     ->addFieldToFilter(
                         'scope_id',
-                        !$subject->replicationHelper->isSSM() ?
+                        !$subject->lsr->isSSM() ?
                             $subject->lsr->getCurrentWebsiteId() :
                             $subject->lsr->getAdminStore()->getWebsiteId()
                     )
