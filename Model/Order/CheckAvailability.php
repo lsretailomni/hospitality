@@ -113,7 +113,7 @@ class CheckAvailability
      * @throws NoSuchEntityException
      * @throws ValidatorException
      */
-    public function validateQty()
+    public function validateQty($isItem = false, $qty = null, $item = null)
     {
         $checkAvailabilityCollection = [];
         $availabilityRequestArray    = [];
@@ -121,8 +121,14 @@ class CheckAvailability
 
         if ($this->lsr->isCheckAvailabilityEnabled()) {
             $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
-            if ($itemsCount > 0) {
+            if ($isItem == true) {
+                $items      = [$item];
+                $itemsCount = 1;
+            } else {
+                $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
                 $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
+            }
+            if ($itemsCount > 0) {
                 foreach ($items as $item) {
                     $itemQty = $item->getQty();
                     list($itemId, , $unitOfMeasure) = $this->itemHelper->getComparisonValues(
@@ -171,7 +177,8 @@ class CheckAvailability
         $options = $this->hospitalityHelper->getCustomOptionsFromQuoteItem($item);
         if ($options) {
             foreach ($options as $option) {
-                if (isset($option['ls_modifier_recipe_id'])) {
+                if (isset($option['ls_modifier_recipe_id'])
+                    && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX) {
                     $qty            = 1;
                     $modifier       = current($this->hospitalityHelper->getModifierByDescription($option['value']));
                     $modifierItemId = $modifier->getTriggerCode();
@@ -226,7 +233,7 @@ class CheckAvailability
                         $code        = $checkAvailabilityCollection[$result->getNumber()]['code'];
                         $productName = $checkAvailabilityCollection[$result->getNumber()]['product_name'];
                         $message     .= __(
-                            '%1 modifier option %2 (%3) has quantity of %4 which is greater then currently available quantity %5. Please select different option for the product.',
+                            '%1 modifier option %2 (%3) has quantity of %4 which is greater then currently available quantity %5. Please select different option for this modifier.',
                             $productName,
                             $code,
                             $name,
@@ -235,7 +242,7 @@ class CheckAvailability
                         );
                     } else {
                         $message .= __(
-                            'Product %1 has quantity of %2 which is greater then current available quantity %3. Please adjust the product in your cart.',
+                            'Product %1 has quantity of %2 which is greater then current available quantity %3. Please adjust the product quantity.',
                             $name,
                             $qty,
                             $resultQty
