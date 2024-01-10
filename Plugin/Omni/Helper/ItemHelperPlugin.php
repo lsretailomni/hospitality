@@ -83,7 +83,7 @@ class ItemHelperPlugin
             );
 
             foreach ($orderLines as $index => $line) {
-                if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                if ($subject->isValid($quoteItem, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
                     $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
 
                     $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $quoteItem, $unitPrice, $type);
@@ -150,7 +150,7 @@ class ItemHelperPlugin
             }
 
             foreach ($orderLines as $line) {
-                if ($subject->isValid($line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                if ($subject->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
                     if ($customPrice > 0 && $customPrice != null) {
                         foreach ($discountsLines as $orderDiscountLine) {
                             if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {

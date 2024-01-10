@@ -4,6 +4,7 @@ define(['jquery'], function ($) {
         $('#ls_mag_service_selected_store').on('change', function () {
             let baseUrl = $('#ls_mag_service_base_url').val();
             let storeId = $('#ls_mag_service_selected_store').val();
+            let lsKey   = $('#ls_mag_service_ls_key').val();
             if (storeId == "") {
                 return false;
             }
@@ -12,7 +13,7 @@ define(['jquery'], function ($) {
                 type: 'POST',
                 showLoader: true,
                 dataType: 'json',
-                data: {baseUrl: baseUrl, storeId: storeId},
+                data: {baseUrl: baseUrl, lsKey: lsKey, storeId: storeId},
                 complete: function (response) {
                     let salesTypes = response.responseJSON.salesType;
                     $("#ls_mag_hospitality_delivery_salas_type option").remove();

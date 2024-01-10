@@ -70,9 +70,10 @@ class GetSalesType extends Action
         try {
             $baseUrl    = $this->getRequest()->getParam('baseUrl');
             $storeId    = $this->getRequest()->getParam('storeId');
+            $lsKey      = $this->getRequest()->getParam('lsKey');
             $salesTypes = null;
             if ($this->lsr->validateBaseUrl($baseUrl) && $storeId != "") {
-                $salesTypes = $this->storeHelper->getSalesType('', $storeId, $baseUrl);
+                $salesTypes = $this->storeHelper->getSalesType('', $storeId, $baseUrl, $lsKey);
             }
             if (!empty($salesTypes)) {
                 $salesTypeArray = $salesTypes->getHospSalesTypes();

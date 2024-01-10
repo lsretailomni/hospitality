@@ -103,10 +103,14 @@ class ProcessTranslation
      */
     public function execute($storeData = null)
     {
-        if (!empty($storeData) && $storeData instanceof StoreInterface) {
-            $stores = [$storeData];
+        if (!$this->lsr->isSSM()) {
+            if (!empty($storeData) && $storeData instanceof StoreInterface) {
+                $stores = [$storeData];
+            } else {
+                $stores = $this->lsr->getAllStores();
+            }
         } else {
-            $stores = $this->lsr->getAllStores();
+            $stores = [$this->lsr->getAdminStore()];
         }
         if (!empty($stores)) {
             foreach ($stores as $store) {

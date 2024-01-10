@@ -3,6 +3,8 @@
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
 use \Ls\Core\Model\LSR as LSRAlias;
+use \Ls\Hospitality\Helper\HospitalityHelper;
+use Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
@@ -10,6 +12,7 @@ use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * For intercepting data provider functions
@@ -32,18 +35,34 @@ class DataProviderPlugin
     public $checkoutSession;
 
     /**
+     * @var StoreManagerInterface
+     */
+    public $storeManager;
+
+    /**
+     * @var HospitalityHelper
+     */
+    public $hospitalityHelper;
+
+    /**
      * @param StoreHelper $storeHelper
      * @param LSR $lsr
      * @param CheckoutSession $checkoutSession
+     * @param StoreManagerInterface $storeManager
+     * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
         StoreHelper $storeHelper,
         LSR $lsr,
-        CheckoutSession $checkoutSession
+        CheckoutSession $checkoutSession,
+        StoreManagerInterface $storeManager,
+        HospitalityHelper $hospitalityHelper
     ) {
         $this->storeHelper     = $storeHelper;
         $this->lsr             = $lsr;
         $this->checkoutSession = $checkoutSession;
+        $this->storeManager = $storeManager;
+        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -52,7 +71,7 @@ class DataProviderPlugin
      * @param DataProvider $subject
      * @param callable $proceed
      * @return Collection
-     * @throws NoSuchEntityException|LocalizedException
+     * @throws NoSuchEntityException|LocalizedException|InvalidEnumException
      */
     public function aroundGetStores(
         DataProvider $subject,
@@ -93,7 +112,12 @@ class DataProviderPlugin
                     ->addFieldToFilter('nav_id', [
                         'in' => implode(',', $salesTypeStoreIdArray),
                     ])
-                    ->addFieldToFilter('scope_id', $subject->getStoreId())
+                    ->addFieldToFilter(
+                        'scope_id',
+                        !$subject->lsr->isSSM() ?
+                            $subject->lsr->getCurrentWebsiteId() :
+                            $subject->lsr->getAdminStore()->getWebsiteId()
+                    )
                     ->addFieldToFilter('ClickAndCollect', 1);
             } else {
                 if ($response) {
@@ -143,6 +167,23 @@ class DataProviderPlugin
      */
     public function afterGetConfig(DataProvider $subject, $result)
     {
+        if ($this->lsr->isHospitalityStore()) {
+            $storeId = $this->storeManager->getStore()->getId();
+
+            $anonymousOrderEnabled = $this->lsr->getStoreConfig(
+                Lsr::ANONYMOUS_ORDER_ENABLED,
+                $storeId
+            );
+            $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
+
+            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
+                $storeId
+            );
+            $result['anonymous_order']['is_enabled'] = (bool) $anonymousOrderEnabled;
+            $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
+            $result['remove_checkout_step_enabled'] = (bool) $removeCheckoutStepEnabled;
+        }
+
         $enabled = $this->lsr->isPickupTimeslotsEnabled();
         if (empty($this->checkoutSession->getStorePickupHours())) {
             $enabled = 0;
@@ -156,7 +197,6 @@ class DataProviderPlugin
 
         return $result;
     }
-
 
     /**
      * After getting the configuration
