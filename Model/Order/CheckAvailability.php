@@ -108,6 +108,9 @@ class CheckAvailability
     /**
      * Validate current availability of modifiers and deals
      *
+     * @param $isItem
+     * @param $qty
+     * @param $item
      * @return void
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -120,13 +123,12 @@ class CheckAvailability
         $lineNo                      = null;
 
         if ($this->lsr->isCheckAvailabilityEnabled()) {
-            $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
             if ($isItem == true) {
                 $items      = [$item];
                 $itemsCount = 1;
             } else {
                 $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
-                $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
+                $items      = $this->checkoutSession->getQuote()->getAllVisibleItems();
             }
             if ($itemsCount > 0) {
                 foreach ($items as $item) {
@@ -210,10 +212,8 @@ class CheckAvailability
     /**
      * Process and validate the response get from check availability Api
      *
-     * @param $item
-     * @param $itemId
-     * @param $availabilityRequestArray
      * @param $checkAvailabilityCollection
+     * @param $responseResult
      * @return void
      * @throws ValidatorException
      */

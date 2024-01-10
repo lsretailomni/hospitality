@@ -37,6 +37,7 @@ class DataAssignObserver implements ObserverInterface
 
     /**
      * @param StoreHelper $storeHelper
+     * @param CheckAvailability $checkAvailability
      * @param Http $request
      * @param LSR $lsr
      */

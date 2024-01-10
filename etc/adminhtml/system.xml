@@ -267,7 +267,7 @@
                        showInStore="1">
                     <label>Enable Check Availability</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Check availability of items before order placement.</comment>
+                    <comment>Check current availability of items.</comment>
                 </field>
             </group>
         </section>
