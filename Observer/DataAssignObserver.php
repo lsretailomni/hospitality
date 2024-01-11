@@ -54,6 +54,8 @@ class DataAssignObserver implements ObserverInterface
     }
 
     /**
+     * For setting values in quote
+     *
      * @param Observer $observer
      * @return DataAssignObserver
      * @throws NoSuchEntityException
@@ -107,8 +109,8 @@ class DataAssignObserver implements ObserverInterface
     /**
      * Validate pickup date and time range
      *
-     * @param $quote
-     * @param $storeId
+     * @param object $quote
+     * @param string $storeId
      * @return \Magento\Framework\Phrase
      * @throws \Zend_Log_Exception
      * @throws NoSuchEntityException

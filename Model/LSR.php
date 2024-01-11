@@ -249,11 +249,10 @@ class LSR extends \Ls\Core\Model\LSR
         return $this->getStoreConfig(self::ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME, $this->getCurrentStoreId());
     }
 
-
     /**
      * Configuration for checking of items availability
      *
-     * @param null $storeId
+     * @param string $storeId
      * @return array|string
      * @throws NoSuchEntityException
      */

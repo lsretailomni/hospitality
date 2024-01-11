@@ -22,7 +22,7 @@ class ItemPlugin
 
     /**
      * @param LSR $LSR
-     * @param StockHelper $stockHelper
+     * @param CheckAvailability $checkAvailability
      */
     public function __construct(
         LSR $LSR,
@@ -36,14 +36,14 @@ class ItemPlugin
      * After plugin intercepting addQty of each quote_item
      *
      * @param Item $subject
-     * @param $result
-     * @return mixed
+     * @param object $result
+     * @return mixed|void
      * @throws LocalizedException
      */
     public function afterAddQty(Item $subject, $result)
     {
         if ($this->lsr->isLSR($this->lsr->getCurrentStoreId()) && (!$result->getParentItem())) {
-            return $this->checkAvailability->validateQty(true,$result->getQty(), $result);
+            $this->checkAvailability->validateQty(true, $result->getQty(), $result);
         }
 
         return $result;

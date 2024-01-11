@@ -79,8 +79,8 @@ class CheckAvailability
     /**
      * Api call to check the current availability of items
      *
-     * @param $storeId
-     * @param $availabilityRequestArray
+     * @param string $storeId
+     * @param array $availabilityRequestArray
      * @return HospAvailabilityResponse[]|null
      */
     public function availability($storeId, $availabilityRequestArray)
@@ -108,9 +108,9 @@ class CheckAvailability
     /**
      * Validate current availability of modifiers and deals
      *
-     * @param $isItem
-     * @param $qty
-     * @param $item
+     * @param bool $isItem
+     * @param string $qty
+     * @param object $item
      * @return void
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -166,9 +166,9 @@ class CheckAvailability
     /**
      * Set modifiers for check availability
      *
-     * @param $item
-     * @param $availabilityRequestArray
-     * @param $checkAvailabilityCollection
+     * @param string $item
+     * @param string $availabilityRequestArray
+     * @param string $checkAvailabilityCollection
      * @return void
      */
     public function setModifiersForCheckingAvailability(
@@ -212,8 +212,8 @@ class CheckAvailability
     /**
      * Process and validate the response get from check availability Api
      *
-     * @param $checkAvailabilityCollection
-     * @param $responseResult
+     * @param array $checkAvailabilityCollection
+     * @param array $responseResult
      * @return void
      * @throws ValidatorException
      */
