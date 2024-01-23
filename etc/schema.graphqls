@@ -44,6 +44,7 @@ type Mutation {
     setGivenFieldsOnAddress(input: SetGivenFieldsOnAddressInput): SetGivenFieldsOnAddressOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\SetGivenFieldsOnAddress") @doc(description: "Set Given fields on both shipping and billing address.")
     setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
     setQRCodeParams(input: QrCodeInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetQRCodeParams") @doc(description: "Set QR code params to sync on placing order with Central.")
+    removeQRCodeParams(input: QrCodeRemoveInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\RemoveQRCodeParams") @doc(description: "Remove QR code.")
 }
 
 type Query {
@@ -54,6 +55,10 @@ type Query {
 input QrCodeInput @doc(description: "Contain required input for setting qrcode") {
     cart_id: String @doc(description: "The unique ID of a `Cart` object.")
     qr_code_id: String! @doc(description: "QR code encrypted information")
+}
+
+input QrCodeRemoveInput @doc(description: "Contain required input for removing qrcode") {
+    cart_id: String @doc(description: "The unique ID of a `Cart` object.")
 }
 
 input SetGivenFieldsOnAddressInput @doc(description: "Contain required input for setting given fields on address.") {

@@ -9,6 +9,7 @@ use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\Url\DecoderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -23,6 +24,11 @@ class QrCodeHelper extends AbstractHelper
      * @var CustomerSession
      */
     public $customerSession;
+
+    /**
+     * @var CheckoutSession
+     */
+    public $checkoutSession;
 
     /**
      * @var CollectionFactory
@@ -52,6 +58,7 @@ class QrCodeHelper extends AbstractHelper
 
     /**
      * @param CustomerSession $customerSession
+     * @param CheckoutSession $checkoutSession
      * @param CollectionFactory $storeCollection
      * @param LSR $lsr
      * @param CartRepositoryInterface $quoteRepository
@@ -61,6 +68,7 @@ class QrCodeHelper extends AbstractHelper
      */
     public function __construct(
         CustomerSession $customerSession,
+        CheckoutSession $checkoutSession,
         CollectionFactory $storeCollection,
         LSR $lsr,
         CartRepositoryInterface $quoteRepository,
@@ -70,6 +78,7 @@ class QrCodeHelper extends AbstractHelper
     ) {
         parent::__construct($context);
         $this->customerSession = $customerSession;
+        $this->checkoutSession = $checkoutSession;
         $this->lsr             = $lsr;
         $this->storeCollection = $storeCollection;
         $this->quoteRepository = $quoteRepository;
@@ -91,11 +100,23 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Set QR code ordering data
      *
-     * @param $params
+     * @param array $params
      */
     public function setQrCodeOrderingInSession($params)
     {
+        $this->setQrCodeInCheckoutSession(null);
         $this->customerSession->setData(LSR::LS_QR_CODE_ORDERING, $params);
+        if ($this->isPersistQrCodeEnabled()) {
+            $this->setQrCodeInCheckoutSession($params);
+        }
+    }
+
+    /**
+     * Remove QR code ordering data
+     */
+    public function removeQrCodeOrderingInSession()
+    {
+        $this->customerSession->setData(LSR::LS_QR_CODE_ORDERING, null);
     }
 
     /**
@@ -103,7 +124,11 @@ class QrCodeHelper extends AbstractHelper
      */
     public function getQrCodeOrderingInSession()
     {
-        return $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+        $qrcodeData = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+        if (empty($qrcodeData) && $this->isPersistQrCodeEnabled()) {
+            $qrcodeData = $this->getQrCodeInCheckoutSession();
+        }
+        return $qrcodeData;
     }
 
     /**
@@ -149,10 +174,14 @@ class QrCodeHelper extends AbstractHelper
      */
     public function saveQrCodeParams($cartId, $qrCodeParams)
     {
+        $this->setQrCodeInCheckoutSession(null);
         $quote = $this->quoteRepository->getActive($cartId);
 
         try {
             $qrCodeParams = $this->serializerJson->serialize($qrCodeParams);
+            if ($this->isPersistQrCodeEnabled()) {
+                $this->setQrCodeInCheckoutSession($qrCodeParams);
+            }
             $quote->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
             $this->quoteRepository->save($quote);
         } catch (GraphQlNoSuchEntityException $e) {
@@ -162,6 +191,21 @@ class QrCodeHelper extends AbstractHelper
         }
 
         return $qrCodeParams;
+    }
+
+    /**
+     * Remove QR code in quote
+     *
+     * @param string $cartId
+     * @return void
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     */
+    public function removeQrCodeParams($cartId)
+    {
+        $quote = $this->quoteRepository->getActive($cartId);
+        $quote->setData(LSR::LS_QR_CODE_ORDERING);
+        $this->quoteRepository->save($quote);
     }
 
     /**
@@ -176,6 +220,11 @@ class QrCodeHelper extends AbstractHelper
         try {
             $quote              = $this->quoteRepository->getActive($cartId);
             $qrCodeOrderingData = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+
+            if (empty($qrCodeOrderingData) && $this->isPersistQrCodeEnabled()) {
+                $qrCodeOrderingData = $this->getQrCodeInCheckoutSession();
+            }
+
             if ($qrCodeOrderingData) {
                 $qrCodeParams = $this->serializerJson->unserialize($qrCodeOrderingData);
             }
@@ -200,5 +249,48 @@ class QrCodeHelper extends AbstractHelper
         }
 
         return $formattedValues;
+    }
+
+    /**
+     * Check if persist qrcode enabled
+     *
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function isPersistQrCodeEnabled()
+    {
+        return $this->lsr->getStoreConfig(LSR::PERSIST_QRCODE_ORDERING, $this->lsr->getCurrentStoreId());
+    }
+
+    /**
+     * Set Qr Code in checkout session
+     *
+     * @param $qrCodeParams
+     * @return void
+     */
+    public function setQrCodeInCheckoutSession($qrCodeParams)
+    {
+        $this->checkoutSession->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
+    }
+
+    /**
+     * Get Qr Code in checkout session
+     *
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getQrCodeInCheckoutSession()
+    {
+        return $this->checkoutSession->getData(LSR::LS_QR_CODE_ORDERING);
+    }
+
+    /**
+     * Remove Qr Code in checkout session
+     *
+     * @throws NoSuchEntityException
+     */
+    public function removeQrCodeInCheckoutSession()
+    {
+        $this->checkoutSession->setData(LSR::LS_QR_CODE_ORDERING, null);
     }
 }
