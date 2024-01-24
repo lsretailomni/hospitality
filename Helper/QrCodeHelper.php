@@ -89,7 +89,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Decrypt the parameters pass to QR ordering
      *
-     * @param $params
+     * @param string $params
      * @return string
      */
     public function decrypt($params)
@@ -100,7 +100,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Set QR code ordering data
      *
-     * @param array $params
+     * @param string $params
      */
     public function setQrCodeOrderingInSession($params)
     {
@@ -121,6 +121,9 @@ class QrCodeHelper extends AbstractHelper
 
     /**
      * Get QR code ordering data
+     *
+     * @return array|mixed
+     * @throws NoSuchEntityException
      */
     public function getQrCodeOrderingInSession()
     {
@@ -132,9 +135,9 @@ class QrCodeHelper extends AbstractHelper
     }
 
     /**
-     * validate store id
+     * Validate store id
      *
-     * @param $storeId
+     * @param string $storeId
      * @return bool
      * @throws NoSuchEntityException
      */
@@ -166,8 +169,8 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Save QR code in quote
      *
-     * @param $cartId
-     * @param $qrCodeParams
+     * @param string $cartId
+     * @param array $qrCodeParams
      * @return mixed
      * @throws CouldNotSaveException
      * @throws NoSuchEntityException
@@ -211,7 +214,8 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Get QR Code Params from Quote
      *
-     * @return array
+     * @param string $cartId
+     * @return array|bool|float|int|mixed|string|null
      * @throws \Exception
      */
     public function getQrCode($cartId)
@@ -238,6 +242,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Get formatted Qr Code Params
      *
+     * @param array $qrCodeParams
      * @return array
      */
     public function getFormattedQrCodeParams($qrCodeParams)
@@ -265,7 +270,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Set Qr Code in checkout session
      *
-     * @param $qrCodeParams
+     * @param string $qrCodeParams
      * @return void
      */
     public function setQrCodeInCheckoutSession($qrCodeParams)

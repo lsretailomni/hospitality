@@ -13,7 +13,7 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 
 /**
- * Resolver class responsible for removing relevant QR perms
+ * Resolver class responsible for removing relevant QR params
  */
 class RemoveQRCodeParams implements ResolverInterface
 {
@@ -77,6 +77,6 @@ class RemoveQRCodeParams implements ResolverInterface
             $this->qrCodeHelper->removeQrCodeParams($cart->getId());
         }
         $this->qrCodeHelper->removeQrCodeOrderingInSession();
-        $this->qrCodeHelper->removeQrCodeOrderingInCheckoutSession();
+        $this->qrCodeHelper->removeQrCodeInCheckoutSession();
     }
 }
