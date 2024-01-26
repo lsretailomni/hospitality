@@ -49,10 +49,7 @@ class RemoveQRCodeParams implements ResolverInterface
         $storeId       = (int)$context->getExtensionAttributes()->getStore()->getId();
         $currentUserId = $context->getUserId();
         $cart          = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
-
-        if (!empty($storeId) && $this->qrCodeHelper->validateStoreId($storeId)) {
-            $this->removeQrCode($cart);
-        }
+        $this->removeQrCode($cart);
 
         if ($cart) {
             return [

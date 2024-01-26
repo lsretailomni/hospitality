@@ -58,7 +58,7 @@ input QrCodeInput @doc(description: "Contain required input for setting qrcode")
 }
 
 input QrCodeRemoveInput @doc(description: "Contain required input for removing qrcode") {
-    cart_id: String @doc(description: "The unique ID of a `Cart` object.")
+    cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
 }
 
 input SetGivenFieldsOnAddressInput @doc(description: "Contain required input for setting given fields on address.") {
