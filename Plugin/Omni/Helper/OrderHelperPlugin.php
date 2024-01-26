@@ -91,7 +91,7 @@ class OrderHelperPlugin
             $cardId        = $oneListCalculateResponse->getCardId();
             $customerEmail = $order->getCustomerEmail();
             $billToName    = substr($order->getBillingAddress()->getFirstname() . ' ' .
-                                    $order->getBillingAddress()->getLastname(), 0, 20);
+                $order->getBillingAddress()->getLastname(), 0, 20);
 
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
@@ -119,7 +119,9 @@ class OrderHelperPlugin
             if (!empty($qrCodeParams)) {
                 $qrCodeParams = $subject->json->unserialize($qrCodeParams);
             } else {
-                $qrCodeParams = $subject->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+                $qrCodeParams = $subject->json->unserialize(
+                    $this->hospitalityHelper->qrcodeHelperObject()->getQrCodeOrderingInSession()
+                );
             }
 
             if (!empty($qrCodeParams)) {
