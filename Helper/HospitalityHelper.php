@@ -14,7 +14,6 @@ use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
-use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
@@ -423,6 +422,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get amount from given line
+     *
      * @param OrderHospLine $line
      * @return float|null
      */
@@ -442,6 +443,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get price from given line
+     *
      * @param OrderHospLine $line
      * @return float|null
      */
@@ -526,6 +529,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get item sublines
+     *
      * @param $label
      * @return mixed|string
      */
@@ -537,6 +542,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get item modifier
+     *
      * @param $navId
      * @param $code
      * @param $value
@@ -560,6 +567,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get unit of measure by description
+     *
      * @param $navId
      * @param $description
      * @return |null
@@ -583,6 +592,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get recipe
+     *
      * @param $recipeNo
      * @param $value
      * @return mixed
@@ -598,6 +609,53 @@ class HospitalityHelper extends AbstractHelper
 
         return $recipe->getItems();
     }
+
+    /**
+     * Get modifier by description
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function getModifierByDescription($value)
+    {
+        $modifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
+
+    /**
+     * Get custom options from quote item
+     *
+     * @param $quoteItem
+     * @return array
+     */
+    public function getCustomOptionsFromQuoteItem($quoteItem)
+    {
+        return $this->configurationHelper->getCustomOptions($quoteItem);
+    }
+
+
+    /**
+     * @param $recipeNo
+     * @param $value
+     * @return mixed
+     */
+    public function getCustomOptions($value)
+    {
+        $modifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
 
     /**
      * @param $store
@@ -657,6 +715,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get item modifier batch size
+     *
      * @return string
      */
     public function getItemModifiersBatchSize()
@@ -665,6 +725,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get item recipe batch size
+     *
      * @return string
      */
     public function getItemRecipeBatchSize()
@@ -673,6 +735,8 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get main deal line
+     *
      * @param $dealNo
      * @return array
      */
@@ -772,8 +836,8 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedSubLinesCount($selectedOrderHospSubLine)
     {
         return $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'modifier') +
-               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
-               $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
+            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'recipe') +
+            $this->getOrderHosSubLineCount($selectedOrderHospSubLine, 'deal');
     }
 
     /**
@@ -1279,7 +1343,7 @@ class HospitalityHelper extends AbstractHelper
                 }
             }
 
-            $data['Amount'] = $magentoOrder->getGrandTotal();
+            $data['Amount']         = $magentoOrder->getGrandTotal();
             $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
 
             if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
@@ -1367,13 +1431,23 @@ class HospitalityHelper extends AbstractHelper
      */
     public function removeCheckoutStepEnabled()
     {
-        $storeId = $this->storeManager->getStore()->getId();
+        $storeId                   = $this->storeManager->getStore()->getId();
         $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $storeId
         );
-        $qrCodeParams = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+        $qrCodeParams              = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
 
         return $removeCheckoutStepEnabled & !empty($qrCodeParams);
+    }
+
+    /**
+     * Return qrcode helper class object
+     *
+     * @return QrCodeHelper
+     */
+    public function qrcodeHelperObject()
+    {
+        return $this->qrCodeHelper;
     }
 }
