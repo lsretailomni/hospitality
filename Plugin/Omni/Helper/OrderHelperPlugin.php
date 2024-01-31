@@ -127,7 +127,9 @@ class OrderHelperPlugin
             }
 
             $comment = $order->getData(LSR::LS_ORDER_COMMENT);
-
+            //if the shipping address is empty, we use the contact address as shipping address.
+            $shipToAddress = $order->getShippingAddress() ?
+                $subject->convertAddress($order->getShippingAddress()) : null;
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
@@ -138,7 +140,8 @@ class OrderHelperPlugin
                 ->setEmail($customerEmail)
                 ->setName($billToName)
                 ->setBillToName($billToName)
-                ->setExternalId($order->getIncrementId());
+                ->setExternalId($order->getIncrementId())
+                ->setAddress($shipToAddress);
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
@@ -149,9 +152,9 @@ class OrderHelperPlugin
         $oneListCalculateResponse->setOrderLines($orderLinesArray);
         $request->setRequest($oneListCalculateResponse);
 
-        if (version_compare($this->lsr->getOmniVersion(), '2023.05.1', '>=')) {
-            $request->setReturnOrderIdOnly(true);
-        }
+//        if (version_compare($this->lsr->getOmniVersion(), '2023.05.1', '>=')) {
+//            $request->setReturnOrderIdOnly(true);
+//        }
 
         return $request;
     }
