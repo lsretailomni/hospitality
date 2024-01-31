@@ -269,6 +269,16 @@
                     <label>Kot Status for invoice creation</label>
                     <source_model>Ls\Hospitality\Model\Order\Config\Source\ShipmentKotStatus</source_model>
                 </field>
+                <field id="enable_check_availability"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Check Availability</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Check current availability of items.</comment>
+                </field>
             </group>
         </section>
     </system>

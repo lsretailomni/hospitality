@@ -33,6 +33,7 @@ class LSR extends \Ls\Core\Model\LSR
     const ANONYMOUS_ORDER_ENABLED = 'ls_mag/hospitality/anonymous_order_enabled';
     const ANONYMOUS_ORDER_REQUIRED_ADDRESS_ATTRIBUTES = 'ls_mag/hospitality/anonymous_order_address_attributes_required';
     const ANONYMOUS_REMOVE_CHECKOUT_STEPS = 'ls_mag/hospitality/remove_checkout_steps';
+    const ENABLE_CHECK_AVAILABILITY = 'ls_mag/hospitality/enable_check_availability';
     const PERSIST_QRCODE_ORDERING = 'ls_mag/hospitality/persist_qrcode_ordering';
 
     //For Item Modifiers in Hospitality
@@ -247,5 +248,22 @@ class LSR extends \Ls\Core\Model\LSR
     public function displayEstimatedDeliveryTime()
     {
         return $this->getStoreConfig(self::ORDER_DISPLAY_ESTIMATED_DELIVERY_TIME, $this->getCurrentStoreId());
+    }
+
+    /**
+     * Configuration for checking of items availability
+     *
+     * @param string $storeId
+     * @return array|string
+     * @throws NoSuchEntityException
+     */
+    public function isCheckAvailabilityEnabled($storeId = null)
+    {
+        //If StoreID is not passed they retrieve it from the global area.
+        if ($storeId === null) {
+            $storeId = $this->getCurrentStoreId();
+        }
+
+        return $this->getStoreConfig(self::ENABLE_CHECK_AVAILABILITY, $storeId);
     }
 }

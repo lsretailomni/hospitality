@@ -148,4 +148,15 @@
                 type="Ls\Hospitality\Plugin\Cron\AbstractReplicationTaskPlugin"
                 sortOrder="1"/>
     </type>
+    <!-- Plugin to stop redirecting to shipping steps in case of error on placing order-->
+    <type name="Magento\Webapi\Controller\Rest">
+        <plugin name="ls_hospitality_webapi_rest_controller"
+                type="Ls\Hospitality\Plugin\Controller\WebApi\RestPlugin"
+                sortOrder="1"/>
+    </type>
+    <!-- For add to cart item quantity validation for both frontend and graphql -->
+    <type name="Magento\Quote\Model\Quote\Item">
+        <plugin name="validate_qty" type="Ls\Hospitality\Plugin\Magento\Quote\Model\Quote\ItemPlugin"
+                sortOrder="1"/>
+    </type>
 </config>

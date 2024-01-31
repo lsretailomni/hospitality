@@ -27,6 +27,9 @@ var config = {
             'Magento_Checkout/js/view/form/element/email': {
                 'Ls_Hospitality/js/view/form/element/email-mixin': true
             },
+            'Magento_Ui/js/view/messages': {
+                'Ls_Hospitality/js/view/messages-mixin': true
+            }
         }
     }
 };

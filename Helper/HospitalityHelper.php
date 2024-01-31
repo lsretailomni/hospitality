@@ -611,8 +611,53 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
-     * Get updated deal lines
+     * Get modifier by description
      *
+     * @param $value
+     * @return mixed
+     */
+    public function getModifierByDescription($value)
+    {
+        $modifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
+
+    /**
+     * Get custom options from quote item
+     *
+     * @param $quoteItem
+     * @return array
+     */
+    public function getCustomOptionsFromQuoteItem($quoteItem)
+    {
+        return $this->configurationHelper->getCustomOptions($quoteItem);
+    }
+
+
+    /**
+     * @param $recipeNo
+     * @param $value
+     * @return mixed
+     */
+    public function getCustomOptions($value)
+    {
+        $modifier = $this->itemModifierRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
+
+    /**
      * @param $store
      * @return array
      * @throws Zend_Db_Select_Exception
