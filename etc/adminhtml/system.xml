@@ -239,6 +239,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>This configuration will remove checkout steps for QR code ordering</comment>
                 </field>
+                <field id="persist_qrcode_ordering"
+                       sortOrder="140"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Persist QR code ordering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Reorder without scanning qr code again</comment>
+                </field>
                 <field id="shipment_kotstatus"
                        translate="label"
                        type="select"
