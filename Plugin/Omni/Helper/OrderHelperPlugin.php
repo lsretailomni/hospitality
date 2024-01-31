@@ -119,9 +119,7 @@ class OrderHelperPlugin
             if (!empty($qrCodeParams)) {
                 $qrCodeParams = $subject->json->unserialize($qrCodeParams);
             } else {
-                if ($qrCodeInSession = $this->hospitalityHelper->qrcodeHelperObject()->getQrCodeOrderingInSession()) {
-                    $qrCodeParams = $subject->json->unserialize($qrCodeInSession);
-                }
+                $qrCodeParams = $this->hospitalityHelper->qrcodeHelperObject()->getQrCodeOrderingInSession();
             }
 
             if (!empty($qrCodeParams)) {

@@ -170,7 +170,7 @@ class QrCodeHelper extends AbstractHelper
      * Save QR code in quote
      *
      * @param string $cartId
-     * @param array $qrCodeParams
+     * @param string $qrCodeParams
      * @return mixed
      * @throws CouldNotSaveException
      * @throws NoSuchEntityException
@@ -181,10 +181,10 @@ class QrCodeHelper extends AbstractHelper
         $quote = $this->quoteRepository->getActive($cartId);
 
         try {
-            $qrCodeParams = $this->serializerJson->serialize($qrCodeParams);
             if ($this->isPersistQrCodeEnabled()) {
                 $this->setQrCodeInCheckoutSession($qrCodeParams);
             }
+            $qrCodeParams = $this->serializerJson->serialize($qrCodeParams);
             $quote->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
             $this->quoteRepository->save($quote);
         } catch (GraphQlNoSuchEntityException $e) {
@@ -227,6 +227,10 @@ class QrCodeHelper extends AbstractHelper
 
             if (empty($qrCodeOrderingData) && $this->isPersistQrCodeEnabled()) {
                 $qrCodeOrderingData = $this->getQrCodeInCheckoutSession();
+                if ($qrCodeOrderingData) {
+                    $quote->setData(LSR::LS_QR_CODE_ORDERING, $this->serializerJson->serialize($qrCodeOrderingData));
+                    $this->quoteRepository->save($quote);
+                }
             }
 
             if ($qrCodeOrderingData) {
@@ -281,7 +285,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Get Qr Code in checkout session
      *
-     * @return array
+     * @return string
      * @throws NoSuchEntityException
      */
     public function getQrCodeInCheckoutSession()
