@@ -239,6 +239,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>This configuration will remove checkout steps for QR code ordering</comment>
                 </field>
+                <field id="persist_qrcode_ordering"
+                       sortOrder="140"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Persist QR code ordering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Reorder without scanning qr code again</comment>
+                </field>
                 <field id="shipment_kotstatus"
                        translate="label"
                        type="select"
@@ -258,6 +268,16 @@
                        showInStore="0">
                     <label>Kot Status for invoice creation</label>
                     <source_model>Ls\Hospitality\Model\Order\Config\Source\ShipmentKotStatus</source_model>
+                </field>
+                <field id="enable_check_availability"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Check Availability</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Check current availability of items.</comment>
                 </field>
             </group>
         </section>
