@@ -314,12 +314,15 @@ class BasketHelperPlugin
     }
 
     /**
-     * Around plugin to change orderLines object
+     * This function is overriding in hospitality module
+     *
+     * Around plugin for getting Correct Item Row Discount for minicart after comparison
      *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param $item
      * @return float|int
+     * @return string
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      */
@@ -328,21 +331,21 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
-
-        $rowDiscount = 0;
+        $rowDiscount       = 0;
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
             $item->getSku()
         );
 
         $basketData = $subject->getOneListCalculation();
-        $orderLines = $basketData ? $basketData->getOrderLines()->getOrderHospLine() : [];
-
-        foreach ($orderLines as $line) {
-            if ($subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                $rowDiscount = $line->getQuantity() == $item->getQty() ? $line->getDiscountAmount()
-                    : ($line->getDiscountAmount() / $line->getQuantity()) * $item->getQty();
-                break;
+        if (!empty($basketData)) {
+            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+            foreach ($orderLines as $line) {
+                if ($subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                    $rowDiscount = $line->getQuantity() == $item->getQty() ? $line->getDiscountAmount()
+                        : ($line->getDiscountAmount() / $line->getQuantity()) * $item->getQty();
+                    break;
+                }
             }
         }
 
