@@ -196,7 +196,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * PaymentLine - pay at the store
      * @depends testOneListSaveBasket
      */
-    public function testOrderHospCreate()
+    public function testOrderHospCreateTakeAway()
     {
         $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
         $oneListRequest = $response->getResult();
@@ -238,7 +238,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * PaymentLine - Online Card
      * @depends testOneListSaveBasket
      */
-    public function testOrderHospCreateOnlinePayment()
+    public function testOrderHospCreateTakeAwayOnlinePayment()
     {
         $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
         $oneListRequest = $response->getResult();
@@ -292,7 +292,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * User - Guest
      * PaymentLine - Pay at the store
      */
-    public function testOrderHospCreateGuest()
+    public function testOrderHospCreateTakeAwayGuest()
     {
         $response       = $this->getOneList();
         $oneListRequest = $response->getResult();
@@ -334,7 +334,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * User - Member
      * PaymentLines - Credit Card + Gift Card + Loyalty
      */
-    public function testOrderHospCreateOnlinePaymentWithGiftCardAndLoyalty()
+    public function testOrderHospCreateTakeAwayOnlinePaymentWithGiftCardAndLoyalty()
     {
         $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
         $oneListRequest = $response->getResult();

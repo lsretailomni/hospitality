@@ -313,6 +313,41 @@ class BasketHelperPlugin
         return $rowTotal;
     }
 
+    /**
+     * Around plugin to change orderLines object
+     *
+     * @param BasketHelper $subject
+     * @param callable $proceed
+     * @param $item
+     * @return float|int
+     * @throws InvalidEnumException
+     * @throws NoSuchEntityException
+     */
+    public function aroundGetItemRowDiscount(BasketHelper $subject, callable $proceed, $item)
+    {
+        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($item);
+        }
+
+        $rowDiscount = 0;
+        $baseUnitOfMeasure = $item->getProduct()->getData('uom');
+        list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
+            $item->getSku()
+        );
+
+        $basketData = $subject->getOneListCalculation();
+        $orderLines = $basketData ? $basketData->getOrderLines()->getOrderHospLine() : [];
+
+        foreach ($orderLines as $line) {
+            if ($subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                $rowDiscount = $line->getQuantity() == $item->getQty() ? $line->getDiscountAmount()
+                    : ($line->getDiscountAmount() / $line->getQuantity()) * $item->getQty();
+                break;
+            }
+        }
+
+        return $rowDiscount;
+    }
 
     /**
      * Around plugin to formulate Central Order requests given Magento order

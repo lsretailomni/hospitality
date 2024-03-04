@@ -160,6 +160,20 @@ class OrderHelperPlugin
     }
 
     /**
+     * After interceptor to inject into payment methods array
+     *
+     * @param OrderHelper $subject
+     * @param array $result
+     * @return array
+     */
+    public function afterPaymentLineNotRequiredPaymentMethods(OrderHelper $subject, $result)
+    {
+        array_push($result, 'cashondelivery');
+
+        return $result;
+    }
+
+    /**
      * Around plugin for updating shipping amount
      *
      * @param OrderHelper $subject
@@ -193,6 +207,7 @@ class OrderHelperPlugin
                 ->setItemId($shipmentFeeId)
                 ->setLineType(Entity\Enum\LineType::ITEM)
                 ->setQuantity(1)
+                ->setPriceModified(true)
                 ->setDiscountAmount($order->getShippingDiscountAmount());
             array_push($orderLines, $shipmentOrderLine);
         }
