@@ -30,7 +30,7 @@ class ReplicationHelperPlugin
      *
      * @param ReplicationHelper $subject
      * @param $proceed
-     * @param $sku
+     * @param $product
      * @param $replInvStatus
      * @return mixed
      * @throws NoSuchEntityException
@@ -38,13 +38,15 @@ class ReplicationHelperPlugin
     public function aroundUpdateInventory(
         ReplicationHelper $subject,
         $proceed,
-        $sku,
-        $replInvStatus
+        $product,
+        $replInvStatus,
+        $isSyncInventory,
+        $sourceItems
     ) {
-        $result = $proceed($sku, $replInvStatus);
+        $result = $proceed($product, $replInvStatus, $isSyncInventory, $sourceItems);
 
         if ($this->hospitalityHelper->lsr->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
-            $deals = $this->hospitalityHelper->getAllDealsGivenMainItemSku($sku, $replInvStatus->getScopeId());
+            $deals = $this->hospitalityHelper->getAllDealsGivenMainItemSku($product, $replInvStatus->getScopeId());
 
             foreach ($deals as $deal) {
                 $result = $proceed($deal->getDealNo(), $replInvStatus);
