@@ -314,7 +314,6 @@ class BasketHelperPlugin
     }
 
     /**
-     * This function is overriding in hospitality module
      *
      * Around plugin for getting Correct Item Row Discount for minicart after comparison
      *
