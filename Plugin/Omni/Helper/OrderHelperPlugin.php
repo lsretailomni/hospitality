@@ -102,10 +102,13 @@ class OrderHelperPlugin
             $pickupDateTime          = $this->date->date($dateTimeFormat);
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
+
+                if ($isClickCollect) {
+                    $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
+                }
             }
 
-            if ($isClickCollect) {
-                $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
+            if (!empty($order->getPickupDateTimeslot())) {
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
                 if (!empty($pickupDateTimeslot)) {
                     $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
@@ -152,9 +155,9 @@ class OrderHelperPlugin
         $oneListCalculateResponse->setOrderLines($orderLinesArray);
         $request->setRequest($oneListCalculateResponse);
 
-//        if (version_compare($this->lsr->getOmniVersion(), '2023.05.1', '>=')) {
-//            $request->setReturnOrderIdOnly(true);
-//        }
+        if (version_compare($this->lsr->getOmniVersion(), '2023.05.1', '>=')) {
+            $request->setReturnOrderIdOnly(true);
+        }
 
         return $request;
     }
