@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Test\Unit\Client\Ecommerce\Operation;
 
-use Ls\Omni\Client\Ecommerce\Entity\Address;
+use \Ls\Omni\Client\Ecommerce\Entity\Address;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfInventoryRequest;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfInventoryResponse;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItem;
@@ -15,8 +15,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\OneList;
 use \Ls\Omni\Client\Ecommerce\Entity\OneListHospCalculate;
 use \Ls\Omni\Client\Ecommerce\Entity\OneListItem;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
-use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use Ls\Omni\Client\Ecommerce\Entity\OrderLine;
+use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderPayment;
 use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
 use \Ls\Omni\Exception\InvalidEnumException;
