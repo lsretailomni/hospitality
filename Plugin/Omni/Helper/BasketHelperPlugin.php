@@ -314,13 +314,13 @@ class BasketHelperPlugin
     }
 
     /**
-     * This function is overriding in hospitality module
      *
      * Around plugin for getting Correct Item Row Discount for minicart after comparison
      *
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param $item
+     * @return float|int
      * @return string
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
@@ -350,7 +350,6 @@ class BasketHelperPlugin
 
         return $rowDiscount;
     }
-
 
     /**
      * Around plugin to formulate Central Order requests given Magento order
