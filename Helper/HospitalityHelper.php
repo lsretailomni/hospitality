@@ -751,12 +751,14 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get All Deals Given Main Item Sku And scope
      *
-     * @param $mainItemSku
+     * @param $product
      * @param $scopeId
+     * @param $replInvStatus
      * @return mixed
      */
-    public function getAllDealsGivenMainItemSku($mainItemSku, $scopeId)
+    public function getAllDealsGivenMainItemSku($product, $scopeId, $replInvStatus)
     {
+        $mainItemSku = $product ? $product->getSku() : $replInvStatus->getSku();
         return $this->replHierarchyHospDealRepository->getList(
             $this->searchCriteriaBuilder
                 ->addFilter('No', $mainItemSku)

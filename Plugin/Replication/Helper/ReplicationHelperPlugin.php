@@ -30,24 +30,33 @@ class ReplicationHelperPlugin
      *
      * @param ReplicationHelper $subject
      * @param $proceed
-     * @param $sku
+     * @param $product
      * @param $replInvStatus
+     * @param $isSyncInventory
+     * @param $sourceItems
      * @return mixed
      * @throws NoSuchEntityException
      */
     public function aroundUpdateInventory(
         ReplicationHelper $subject,
         $proceed,
-        $sku,
-        $replInvStatus
+        $product,
+        $replInvStatus,
+        $isSyncInventory,
+        $sourceItems
     ) {
-        $result = $proceed($sku, $replInvStatus);
+        $result = $proceed($product, $replInvStatus, $isSyncInventory, $sourceItems);
 
         if ($this->hospitalityHelper->lsr->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
-            $deals = $this->hospitalityHelper->getAllDealsGivenMainItemSku($sku, $replInvStatus->getScopeId());
+            $deals = $this->hospitalityHelper->getAllDealsGivenMainItemSku(
+                $product,
+                $replInvStatus->getScopeId(),
+                $replInvStatus
+            );
 
             foreach ($deals as $deal) {
-                $result = $proceed($deal->getDealNo(), $replInvStatus);
+                $replInvStatus->setSku($deal->getDealNo());
+                $result = $proceed(null, $replInvStatus, true, $sourceItems);
             }
         }
 
