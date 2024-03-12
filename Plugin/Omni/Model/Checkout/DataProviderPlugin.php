@@ -4,7 +4,8 @@ namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
 use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use Ls\Omni\Exception\InvalidEnumException;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
+use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
@@ -88,18 +89,26 @@ class DataProviderPlugin
 
         foreach ($allStores as $store) {
             if ($this->checkSalesType($store->getHospSalesTypes()->getSalesType(), $takeAwaySalesType) &&
-                $store->getIsClickAndCollect()) {
+                $store->getIsClickAndCollect()
+            ) {
                 $webStoreId              = $store->getId();
                 $salesTypeStoreIdArray[] = $webStoreId;
-                if ($this->lsr->isPickupTimeslotsEnabled()) {
-                    $storeHoursArray[$webStoreId] = $this->storeHelper->formatDateTimeSlotsValues(
-                        $store->getStoreHours()
-                    );
-                }
+            }
+        }
+
+        if ($this->lsr->isDeliveryTimeslotsEnabled()) {
+            $deliveryHoursArray = $subject->getRelevantStoreHours(StoreHourCalendarType::RECEIVING, $allStores);
+
+            if (!empty($deliveryHoursArray)) {
+                $this->checkoutSession->setDeliveryHours($deliveryHoursArray);
             }
         }
 
         if (!empty($salesTypeStoreIdArray)) {
+            if ($this->lsr->isPickupTimeslotsEnabled()) {
+                $storeHoursArray = $subject->getRelevantStoreHours(null, $allStores);
+            }
+
             if (!empty($storeHoursArray)) {
                 $this->checkoutSession->setStorePickupHours($storeHoursArray);
             }
@@ -170,7 +179,7 @@ class DataProviderPlugin
         if ($this->lsr->isHospitalityStore()) {
             $storeId = $this->storeManager->getStore()->getId();
 
-            $anonymousOrderEnabled = $this->lsr->getStoreConfig(
+            $anonymousOrderEnabled     = $this->lsr->getStoreConfig(
                 Lsr::ANONYMOUS_ORDER_ENABLED,
                 $storeId
             );
@@ -179,20 +188,27 @@ class DataProviderPlugin
             $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $storeId
             );
-            $result['anonymous_order']['is_enabled'] = (bool) $anonymousOrderEnabled;
+            $result['anonymous_order']['is_enabled']      = (bool)$anonymousOrderEnabled;
             $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
-            $result['remove_checkout_step_enabled'] = (bool) $removeCheckoutStepEnabled;
+            $result['remove_checkout_step_enabled']       = (bool)$removeCheckoutStepEnabled;
         }
 
-        $enabled = $this->lsr->isPickupTimeslotsEnabled();
+        $enabled              = $this->lsr->isPickupTimeslotsEnabled();
+        $deliveryHoursEnabled = $this->lsr->isDeliveryTimeslotsEnabled();
         if (empty($this->checkoutSession->getStorePickupHours())) {
             $enabled = 0;
         }
+        if (empty($this->checkoutSession->getDeliveryHours())) {
+            $deliveryHoursEnabled = 0;
+        }
         $result['shipping'] ['pickup_date_timeslots'] = [
-            'options'           => $this->checkoutSession->getStorePickupHours(),
-            'enabled'           => $enabled,
-            'current_web_store' => $this->lsr->getActiveWebStore(),
-            'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
+            'options'                => $this->checkoutSession->getStorePickupHours(),
+            'delivery_hours'         => $this->checkoutSession->getDeliveryHours(),
+            'enabled'                => $enabled,
+            'current_web_store'      => $this->lsr->getActiveWebStore(),
+            'store_type'             => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ?
+                1 : 0,
+            'delivery_hours_enabled' => $deliveryHoursEnabled
         ];
 
         return $result;
