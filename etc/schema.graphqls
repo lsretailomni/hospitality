@@ -35,8 +35,8 @@ type Order {
 }
 
 input SetShippingMethodsOnCartInput {
-    pickup_date: String @doc(description: "Pickup Date if applicable.")
-    pickup_time_slot: String @doc(description: "Pickup Time slot if applicable.")
+    selected_date: String @doc(description: "Pickup Date if applicable.")
+    selected_date_time_slot: String @doc(description: "Pickup Time slot if applicable.")
 }
 
 
