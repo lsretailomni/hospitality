@@ -103,8 +103,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $inventoryRequestArray->setInventoryRequest($inventoryRequestCollection);
         $itemStock->setItems($inventoryRequestArray);
         $itemStock->setStoreId('');
-        $response = $this->client->ItemsInStoreGetEx($itemStock);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("ItemsInStoreGetEx", $itemStock);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(ArrayOfInventoryResponse::class, $result);
         foreach ($result as $inventoryResponse) {
             $this->assertEquals(
@@ -133,8 +133,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $inventoryRequestCollection[] = $inventoryRequest;
         $inventoryRequestArray->setInventoryRequest($inventoryRequestCollection);
         $itemStock->setItems($inventoryRequestArray);
-        $response = $this->client->ItemsInStoreGetEx($itemStock);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("ItemsInStoreGetEx", $itemStock);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(ArrayOfInventoryResponse::class, $result);
         foreach ($result as $inventoryResponse) {
             $this->assertEquals(
@@ -176,8 +176,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setName(ListType::BASKET)
             ->setIsHospitality(1);
         $param    = ['oneList' => $oneListRequest, 'calculate' => true];
-        $response = $this->client->OneListSave($param);
-        $oneList  = $response->getResult();
+        $response = $this->executeMethod("OneListSave", $param);
+        $oneList = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OneList::class, $oneList);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
         $this->assertTrue(property_exists($oneList, 'Id'));
@@ -218,8 +218,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -273,8 +273,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -315,8 +315,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -342,8 +342,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $oneListRequest = $response->getResult();
         $entity         = new OneListHospCalculate();
         $entity->setOneList($oneListRequest);
-        $response = $this->client->OneListHospCalculate($entity);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
         $preApprovedDate   = date('Y-m-d', strtotime('+1 years'));
@@ -384,9 +384,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
 
         // Order creation request
         $paramOrderCreate = ['request' => $result];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -413,8 +412,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $oneListRequest = $response->getResult();
         $entity         = new OneListHospCalculate();
         $entity->setOneList($oneListRequest);
-        $response = $this->client->OneListHospCalculate($entity);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
         $address = new Address();
@@ -468,8 +467,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
