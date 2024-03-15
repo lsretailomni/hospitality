@@ -34,12 +34,6 @@ type Order {
     pickup_time: String @doc(description: "Order pickup time.")
 }
 
-input SetShippingMethodsOnCartInput {
-    selected_date: String @doc(description: "Delivery/Pickup Date if applicable.")
-    selected_date_time_slot: String @doc(description: "Delivery/Pickup Time slot if applicable.")
-}
-
-
 type Mutation {
     setGivenFieldsOnAddress(input: SetGivenFieldsOnAddressInput): SetGivenFieldsOnAddressOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\SetGivenFieldsOnAddress") @doc(description: "Set Given fields on both shipping and billing address.")
     setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
