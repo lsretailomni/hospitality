@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Observer;
 
 use Carbon\Carbon;
 use \Ls\Hospitality\Model\LSR;
+use Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\App\Request\Http;
@@ -11,6 +12,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
+use Magento\Framework\Phrase;
 
 /**
  * Class DataAssignObserver for assigning service mode value to order
@@ -66,7 +68,9 @@ class DataAssignObserver implements ObserverInterface
     {
         $quote                      = $observer->getQuote();
         $order                      = $observer->getOrder();
+        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
         $validatePickupDateRangeMsg = "";
+        $pickupStore = "";
         if ($quote->getServiceMode()) {
             $order->setServiceMode($quote->getServiceMode());
         }
@@ -83,19 +87,24 @@ class DataAssignObserver implements ObserverInterface
             $this->checkAvailability->validateQty();
         }
 
-        if ($this->lsr->isHospitalityStore()
-            && $quote->getShippingAddress()->getShippingMethod() == "clickandcollect_clickandcollect"
+        if ($this->lsr->isHospitalityStore() &&
+            ($shippingMethod == 'clickandcollect_clickandcollect' || $shippingMethod == 'flatrate_flatrate')
         ) {
+            if ($shippingMethod == 'flatrate_flatrate') {
+                $pickupStore = $this->lsr->getActiveWebStore();
+            } else {
+                $pickupStore = $quote->getPickupStore();
+            }
             if (str_contains($this->request->getOriginalPathInfo(), "graphql")) {
                 $validatePickupDateRangeMsg = ($this->lsr->getStoreConfig(
                     LSR::LSR_GRAPHQL_DATETIME_RANGE_VALIDATION_ACTIVE,
                     $this->lsr->getCurrentStoreId()
-                )) ? $this->validatePickupDateRange($quote, $quote->getPickupStore()) : '';
+                )) ? $this->validatePickupDateRange($quote, $pickupStore, $shippingMethod) : '';
             } else {
                 $validatePickupDateRangeMsg = ($this->lsr->getStoreConfig(
                     LSR::LSR_DATETIME_RANGE_VALIDATION_ACTIVE,
                     $this->lsr->getCurrentStoreId()
-                )) ? $this->validatePickupDateRange($quote, $quote->getPickupStore()) : '';
+                )) ? $this->validatePickupDateRange($quote, $pickupStore, $shippingMethod) : '';
             }
         }
 
@@ -109,13 +118,13 @@ class DataAssignObserver implements ObserverInterface
     /**
      * Validate pickup date and time range
      *
-     * @param object $quote
-     * @param string $storeId
-     * @return \Magento\Framework\Phrase
-     * @throws \Zend_Log_Exception
+     * @param $quote
+     * @param $storeId
+     * @param $shippingMethod
+     * @return Phrase|null
      * @throws NoSuchEntityException
      */
-    public function validatePickupDateRange($quote, $storeId)
+    public function validatePickupDateRange($quote, $storeId, $shippingMethod)
     {
         $message       = null;
         $validDateTime = false;
@@ -129,7 +138,8 @@ class DataAssignObserver implements ObserverInterface
             $websiteId       = $quote->getStore()->getWebsiteId();
             $store           = $this->storeHelper->getStore($websiteId, $storeId);
             $storeHoursArray = $this->storeHelper->formatDateTimeSlotsValues(
-                $store->getStoreHours()
+                $store->getStoreHours(),
+                $shippingMethod == 'flatrate_flatrate' ? StoreHourCalendarType::RECEIVING : null
             );
 
             foreach ($storeHoursArray as $date => $hoursArr) {
