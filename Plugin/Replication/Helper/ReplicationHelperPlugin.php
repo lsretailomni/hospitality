@@ -42,8 +42,8 @@ class ReplicationHelperPlugin
         $proceed,
         $product,
         $replInvStatus,
-        $isSyncInventory,
-        $sourceItems
+        $isSyncInventory = false,
+        $sourceItems = []
     ) {
         $result = $proceed($product, $replInvStatus, $isSyncInventory, $sourceItems);
 
