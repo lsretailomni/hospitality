@@ -4,7 +4,7 @@ namespace Ls\Hospitality\Observer;
 
 use Carbon\Carbon;
 use \Ls\Hospitality\Model\LSR;
-use Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\App\Request\Http;
