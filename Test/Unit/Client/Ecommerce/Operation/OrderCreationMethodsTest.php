@@ -461,6 +461,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setItemId('66010')
             ->setLineType('Item')
             ->setQuantity(1);
+
         array_push($orderLines, $shipmentOrderLine);
         $result->setOrderLines($orderLines);
         // Order creation request
