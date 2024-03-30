@@ -1438,9 +1438,30 @@ class HospitalityHelper extends AbstractHelper
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $storeId
         );
-        $qrCodeParams              = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+        $quote                     = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
+        $qrCodeParams              = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+        if (empty($qrCodeParams)) {
+            $qrCodeParams = $this->qrcodeHelperObject()->getQrCodeOrderingInSession();
+        }
 
         return $removeCheckoutStepEnabled & !empty($qrCodeParams);
+    }
+
+    /**
+     * Get remove checkout steps configuration
+     *
+     * @return int
+     * @throws NoSuchEntityException
+     */
+    public function getRemoveCheckoutStepEnabled()
+    {
+        $storeId                   = $this->storeManager->getStore()->getId();
+        $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $storeId
+        );
+
+        return $removeCheckoutStepEnabled;
     }
 
     /**
@@ -1451,5 +1472,15 @@ class HospitalityHelper extends AbstractHelper
     public function qrcodeHelperObject()
     {
         return $this->qrCodeHelper;
+    }
+
+    /**
+     * Return serialize json class object
+     *
+     * @return QrCodeHelper
+     */
+    public function getJson()
+    {
+        return $this->serializerJson;
     }
 }
