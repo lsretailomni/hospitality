@@ -95,19 +95,10 @@ class OrderHelperPlugin
 
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
-            $shippingMethod          = $order->getShippingMethod(true);
             $isClickCollect          = false;
             $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
             $pickupDateTimeslot      = null;
             $pickupDateTime          = $this->date->date($dateTimeFormat);
-            if ($shippingMethod !== null) {
-                $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
-
-                if ($isClickCollect) {
-                    $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
-                }
-            }
-
             if (!empty($order->getPickupDateTimeslot())) {
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
                 if (!empty($pickupDateTimeslot)) {
@@ -127,6 +118,22 @@ class OrderHelperPlugin
 
             if (!empty($qrCodeParams)) {
                 $qrCodeQueryString = http_build_query($qrCodeParams);
+            }
+
+            if ($this->hospitalityHelper->removeCheckoutStepEnabled()) {
+                $order->setShippingMethod('clickandcollect_clickandcollect');
+            }
+
+            $shippingMethod = $order->getShippingMethod(true);
+            if ($shippingMethod !== null) {
+                $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
+                if ($isClickCollect) {
+                    $salesType = $this->lsr->getTakeAwaySalesType();
+                    if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
+                        $salesType = $qrCodeParams['sales_type'];
+                    }
+                    $oneListCalculateResponse->setSalesType($salesType);
+                }
             }
 
             $comment = $order->getData(LSR::LS_ORDER_COMMENT);

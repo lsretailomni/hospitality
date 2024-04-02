@@ -18,9 +18,11 @@ define(
                 var form = this.getForm();
 
                 var comment = form.find('.input-text.order-comment').val();
-                if (this.hasMaxLength() && comment.length > this.getMaxLength()) {
-                    messageContainer.addErrorMessage({message: __("Comment is too long")});
-                    return false;
+                if (comment) {
+                    if (this.hasMaxLength() && comment.length > this.getMaxLength()) {
+                        messageContainer.addErrorMessage({message: __("Comment is too long")});
+                        return false;
+                    }
                 }
 
                 var quoteId = quote.getQuoteId();
