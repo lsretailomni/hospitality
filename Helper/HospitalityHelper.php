@@ -1428,17 +1428,21 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Remove Checkout Step enabled
      *
+     * @param $quote
      * @return int
      * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function removeCheckoutStepEnabled()
+    public function removeCheckoutStepEnabled($quote = null)
     {
         $storeId                   = $this->storeManager->getStore()->getId();
         $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $storeId
         );
-        $quote                     = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
+        if (empty($quote)) {
+            $quote = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
+        }
         $qrCodeParams              = $quote->getData(LSR::LS_QR_CODE_ORDERING);
         if (empty($qrCodeParams)) {
             $qrCodeParams = $this->qrcodeHelperObject()->getQrCodeOrderingInSession();
