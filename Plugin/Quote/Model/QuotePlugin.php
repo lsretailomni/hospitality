@@ -42,7 +42,7 @@ class QuotePlugin
     public function afterIsVirtual(Quote $subject, $result)
     {
         if ($this->hospitalityLsr->isHospitalityStore() &&
-            $this->hospitalityHelper->removeCheckoutStepEnabled()
+            $this->hospitalityHelper->removeCheckoutStepEnabled($subject)
         ) {
             $subject->getShippingAddress()->setShippingMethod('clickandcollect_clickandcollect');
             if (empty($subject->getCustomerEmail())) {
