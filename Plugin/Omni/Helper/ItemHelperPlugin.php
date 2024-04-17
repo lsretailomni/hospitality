@@ -103,9 +103,10 @@ class ItemHelperPlugin
      *
      * @param ItemHelper $subject
      * @param callable $proceed
-     * @param $item
-     * @param $orderData
+     * @param object $item
+     * @param object $orderData
      * @param int $type
+     * @param int $graphQlRequest
      * @return array|null
      */
     public function aroundGetOrderDiscountLinesForItem(
