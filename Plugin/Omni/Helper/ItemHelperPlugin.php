@@ -113,7 +113,8 @@ class ItemHelperPlugin
         callable $proceed,
         $item,
         $orderData,
-        $type = 1
+        $type = 1,
+        $graphQlRequest = 0
     ) {
         $check             = false;
         $baseUnitOfMeasure = "";
@@ -122,7 +123,7 @@ class ItemHelperPlugin
 
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-                return $proceed($item, $orderData, $type);
+                return $proceed($item, $orderData, $type, $graphQlRequest);
             }
 
             if ($type == 2) {
@@ -168,6 +169,7 @@ class ItemHelperPlugin
         }
 
         if ($check) {
+
             return [implode($discountInfo), $discountText];
         } else {
             return null;
