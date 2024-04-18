@@ -157,7 +157,14 @@ class ItemHelperPlugin
                         foreach ($discountsLines as $orderDiscountLine) {
                             if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {
                                 if (!in_array($orderDiscountLine->getDescription() . '<br />', $discountInfo)) {
-                                    $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
+                                    if (!$graphQlRequest) {
+                                        $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
+                                    } else {
+                                        $discountInfo[] = [
+                                            'description' => $orderDiscountLine->getDescription(),
+                                            'value'       => $orderDiscountLine->getDiscountAmount()
+                                        ];
+                                    }
                                 }
                             }
                             $check = true;
