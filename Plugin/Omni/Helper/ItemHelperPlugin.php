@@ -178,7 +178,7 @@ class ItemHelperPlugin
 
         if ($check) {
 
-            return [implode($discountInfo), $discountText];
+            return [$discountInfo, $discountText];
         } else {
             return null;
         }
