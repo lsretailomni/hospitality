@@ -103,9 +103,10 @@ class ItemHelperPlugin
      *
      * @param ItemHelper $subject
      * @param callable $proceed
-     * @param $item
-     * @param $orderData
+     * @param object $item
+     * @param object $orderData
      * @param int $type
+     * @param int $graphQlRequest
      * @return array|null
      */
     public function aroundGetOrderDiscountLinesForItem(
@@ -113,7 +114,8 @@ class ItemHelperPlugin
         callable $proceed,
         $item,
         $orderData,
-        $type = 1
+        $type = 1,
+        $graphQlRequest = 0
     ) {
         $check             = false;
         $baseUnitOfMeasure = "";
@@ -122,7 +124,7 @@ class ItemHelperPlugin
 
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-                return $proceed($item, $orderData, $type);
+                return $proceed($item, $orderData, $type, $graphQlRequest);
             }
 
             if ($type == 2) {
@@ -155,7 +157,14 @@ class ItemHelperPlugin
                         foreach ($discountsLines as $orderDiscountLine) {
                             if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {
                                 if (!in_array($orderDiscountLine->getDescription() . '<br />', $discountInfo)) {
-                                    $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
+                                    if (!$graphQlRequest) {
+                                        $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
+                                    } else {
+                                        $discountInfo[] = [
+                                            'description' => $orderDiscountLine->getDescription(),
+                                            'value'       => $orderDiscountLine->getDiscountAmount()
+                                        ];
+                                    }
                                 }
                             }
                             $check = true;
@@ -168,7 +177,8 @@ class ItemHelperPlugin
         }
 
         if ($check) {
-            return [implode($discountInfo), $discountText];
+
+            return [$discountInfo, $discountText];
         } else {
             return null;
         }
