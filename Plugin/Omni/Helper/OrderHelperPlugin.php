@@ -174,10 +174,16 @@ class OrderHelperPlugin
      *
      * @param OrderHelper $subject
      * @param array $result
+     * @param Model\Order $order
      * @return array
+     * @throws NoSuchEntityException
      */
-    public function afterPaymentLineNotRequiredPaymentMethods(OrderHelper $subject, $result)
+    public function afterPaymentLineNotRequiredPaymentMethods(OrderHelper $subject, $result, Model\Order $order)
     {
+        if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $result;
+        }
+
         array_push($result, 'cashondelivery');
 
         return $result;
