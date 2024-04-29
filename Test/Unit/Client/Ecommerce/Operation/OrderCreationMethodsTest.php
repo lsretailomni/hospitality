@@ -250,6 +250,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $result   = $response->getResult();
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
+        $preApprovedDate  = date('Y-m-d', strtotime('+1 years'));
         $orderPayment = new OrderPayment();
         $orderPayment->setCurrencyFactor(1)
             ->setAmount($result->getTotalAmount())
@@ -259,7 +260,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setCardType('VISA')
             ->setCardNumber('4111111111111111')
             ->setTokenNumber('1276349812634981234')
-            ->setPaymentType('Payment');
+            ->setPaymentType('Payment')
+            ->setPreApprovedValidDate($preApprovedDate);
         $orderPayments = new ArrayOfOrderPayment();
         $orderPayments->setOrderPayment([$orderPayment]);
         $result->setOrderPayments($orderPayments);
@@ -346,13 +348,14 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
-        $preApprovedDate   = date('Y-m-d', strtotime('+1 years'));
+        $preApprovedDate  = date('Y-m-d', strtotime('+1 years'));
         $orderPayment      = new OrderPayment();
         $orderPayment->setCurrencyFactor(1)
             ->setAmount($result->getTotalAmount() - 0.1 - 1)
             ->setLineNumber('1')
             ->setExternalReference('TEST0012345')
-            ->setTenderType($this->getEnvironmentVariableValueGivenName('HOSP_CREDIT_CARD_TENDER_TYPE'));
+            ->setTenderType($this->getEnvironmentVariableValueGivenName('HOSP_CREDIT_CARD_TENDER_TYPE'))
+            ->setPreApprovedValidDate($preApprovedDate);
         $orderPaymentLoyalty = new OrderPayment();
         $orderPaymentLoyalty->setCurrencyCode('LOY')
             ->setCurrencyFactor('0.10000000000000000000')
@@ -416,6 +419,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
+        $preApprovedDate   = date('Y-m-d', strtotime('+1 years'));
         $address = new Address();
         $address
             ->setAddress1('LS Retail ehf.')
@@ -435,7 +439,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setCardType('VISA')
             ->setCardNumber('4111111111111111')
             ->setTokenNumber('1276349812634981234')
-            ->setPaymentType('Payment');
+            ->setPaymentType('Payment')
+            ->setPreApprovedValidDate($preApprovedDate);
         $orderPayments = new ArrayOfOrderPayment();
         $orderPayments->setOrderPayment([$orderPayment]);
         $result->setOrderPayments($orderPayments);
