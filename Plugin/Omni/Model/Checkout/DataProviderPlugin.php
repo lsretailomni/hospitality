@@ -100,18 +100,18 @@ class DataProviderPlugin
             $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
             $result['remove_checkout_step_enabled']       = (bool)$removeCheckoutStepEnabled;
         }
-
-        $enabled              = $this->lsr->isPickupTimeslotsEnabled();
-        $deliveryHoursEnabled = $this->lsr->isDeliveryTimeslotsEnabled();
-        if (empty($subject->checkoutSession->getStorePickupHours())) {
+        $clickAndCollectEnabled = $this->lsr->getClickCollectEnabled();
+        $enabled                = $this->lsr->isPickupTimeslotsEnabled();
+        $deliveryHoursEnabled   = $this->lsr->isDeliveryTimeslotsEnabled();
+        if (empty($subject->basketHelper->getStorePickUpHoursFromCheckoutSession()) || !$clickAndCollectEnabled) {
             $enabled = 0;
         }
-        if (empty($subject->checkoutSession->getDeliveryHours())) {
+        if (empty($subject->basketHelper->getDeliveryHoursFromCheckoutSession())) {
             $deliveryHoursEnabled = 0;
         }
         $result['shipping'] ['pickup_date_timeslots'] = [
-            'options'                => $subject->checkoutSession->getStorePickupHours(),
-            'delivery_hours'         => $subject->checkoutSession->getDeliveryHours(),
+            'options'                => $subject->basketHelper->getStorePickUpHoursFromCheckoutSession(),
+            'delivery_hours'         => $subject->basketHelper->getDeliveryHoursFromCheckoutSession(),
             'enabled'                => $enabled,
             'current_web_store'      => $this->lsr->getActiveWebStore(),
             'store_type'             => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ?
