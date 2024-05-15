@@ -177,7 +177,9 @@ class ItemHelperPlugin
         }
 
         if ($check) {
-
+            if (!$graphQlRequest) {
+                return [implode($discountInfo), $discountText];
+            }
             return [$discountInfo, $discountText];
         } else {
             return null;
