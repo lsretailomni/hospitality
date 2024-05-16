@@ -6,6 +6,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneList;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItem;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListPublishedOffer;
+use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderDiscountLine;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\ListType;
@@ -35,8 +36,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             'itemId'  => $this->getEnvironmentVariableValueGivenName('HOSP_ITEM_ID'),
             'storeId' => $this->getEnvironmentVariableValueGivenName('HOSP_STORE_ID'),
         ];
-        $response = $this->client->ItemGetbyId($param);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("ItemGetbyId", $param);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(LoyItem::class, $result);
     }
 
@@ -94,8 +95,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             'oneList' => $oneListRequest,
             'calculate' => false
         ];
-        $response = $this->client->OneListSave($param);
-        $oneList  = $response->getResult();
+        $response = $this->executeMethod("OneListSave", $param);
+        $oneList = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OneList::class, $oneList);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
         $this->assertTrue(property_exists($oneList, 'Id'));
@@ -119,8 +120,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             'listType' => ListType::WISH,
             'includeLines' => true
         ];
-        $response = $this->client->OneListGetByCardId($param);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListGetByCardId", $param);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(ArrayOfOneList::class, $result);
         foreach ($result as $oneList) {
             $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
@@ -153,8 +154,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             $paramDelete = [
                 'oneListId' => $oneList->getId()
             ];
-            $response    = $this->client->OneListDeleteById($paramDelete);
-            $result      = $response->getResult();
+            $response = $this->executeMethod("OneListDeleteById", $paramDelete);
+            $result = $response ? $response->getResult() : null;
             $this->assertTrue(is_bool($result));
         }
     }
@@ -178,8 +179,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             $paramDelete = [
                 'oneListId' => $oneList->getId()
             ];
-            $response    = $this->client->OneListDeleteById($paramDelete);
-            $result      = $response->getResult();
+            $response = $this->executeMethod("OneListDeleteById", $paramDelete);
+            $result = $response ? $response->getResult() : null;
             $this->assertTrue(is_bool($result));
         }
     }
@@ -210,8 +211,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             ->setName(ListType::BASKET)
             ->setIsHospitality(1);
         $param    = ['oneList' => $oneListRequest, 'calculate' => true];
-        $response = $this->client->OneListSave($param);
-        $oneList  = $response->getResult();
+        $response = $this->executeMethod("OneListSave", $param);
+        $oneList = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OneList::class, $oneList);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
         $this->assertTrue(property_exists($oneList, 'Id'));
@@ -236,8 +237,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             'listType' => ListType::BASKET,
             'includeLines' => true
         ];
-        $response = $this->client->OneListGetByCardId($param);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListGetByCardId", $param);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(ArrayOfOneList::class, $result);
         foreach ($result as $oneList) {
             $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
@@ -279,8 +280,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             'oneList' => $oneListRequest,
             'calculate' => true
         ];
-        $response = $this->client->OneListSave($param);
-        $oneList  = $response->getResult();
+        $response = $this->executeMethod("OneListSave", $param);
+        $oneList = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OneList::class, $oneList);
         $this->assertTrue(property_exists($oneList, 'Id'));
         $this->assertTrue(property_exists($oneList, 'ListType'));
@@ -323,23 +324,29 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             ->setId($this->getEnvironmentVariableValueGivenName('HOSP_COUPON_CODE'))
             ->setType('Coupon');
         $oneListRequest->setPublishedOffers($offers);
-        $param    = [
-            'oneList' => $oneListRequest,
-            'calculate' => true
-        ];
-        $response = $this->client->OneListSave($param);
-        $oneList  = $response->getResult();
-        $this->assertInstanceOf(OneList::class, $oneList);
+        $entity = new OneListHospCalculate();
+        $entity->setOneList($oneListRequest);
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $oneList = $response ? $response->getResult() : null;
+        $this->assertInstanceOf(OrderHosp::class, $oneList);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
-        $this->assertTrue(property_exists($oneList, 'Id'));
-        $this->assertTrue(property_exists($oneList, 'ListType'));
-        $this->assertTrue(property_exists($oneList, 'PublishedOffers'));
-        $this->assertTrue(property_exists($oneList, 'CreateDate'));
-        $this->assertTrue(property_exists($oneList, 'StoreId'));
-        $this->assertTrue(property_exists($oneList, 'TotalAmount'));
-        $this->assertTrue(property_exists($oneList, 'TotalDiscAmount'));
-        $this->assertTrue(property_exists($oneList, 'TotalNetAmount'));
-        $this->assertTrue(property_exists($oneList, 'TotalTaxAmount'));
+        $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_STORE_ID'), $oneList->getStoreId());
+        $this->assertInstanceOf(ArrayOfOrderHospLine::class, $oneList->getOrderLines());
+        $this->assertInstanceOf(ArrayOfOrderDiscountLine::class, $oneList->getOrderDiscountLines());
+        $this->assertGreaterThan(0, $oneList->getTotalAmount());
+        $this->assertGreaterThan(0, $oneList->getTotalNetAmount());
+        $this->assertGreaterThan(0, $oneList->getTotalDiscount());
+        $discountExists = false;
+
+        foreach ($oneList->getOrderDiscountLines() as $oneListItemDiscount) {
+            if ($oneListItemDiscount->getOfferNumber() ==
+                $this->getEnvironmentVariableValueGivenName('HOSP_COUPON_CODE')) {
+                $discountExists = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($discountExists);
     }
 
     /**
@@ -369,8 +376,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             ->setSalesType('TAKEAWAY');
 
         $entity->setOneList($oneListRequest);
-        $response = $this->client->OneListHospCalculate($entity);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_STORE_ID'), $result->getStoreId());
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $result->getCardId());
@@ -405,8 +412,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             ->setSalesType('TAKEAWAY');
 
         $entity->setOneList($oneListRequest);
-        $response = $this->client->OneListHospCalculate($entity);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_STORE_ID'), $result->getStoreId());
         $this->assertNotNull($result->getTotalAmount());
@@ -491,8 +498,8 @@ class AddToCartMethodsTest extends OmniClientSetupTest
             ->setSalesType('TAKEAWAY');
 
         $entity->setOneList($oneListRequest);
-        $response = $this->client->OneListHospCalculate($entity);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_STORE_ID'), $result->getStoreId());
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $result->getCardId());

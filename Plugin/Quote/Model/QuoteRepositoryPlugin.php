@@ -46,7 +46,7 @@ class QuoteRepositoryPlugin
             Lsr::ANONYMOUS_ORDER_ENABLED,
             $quote->getStoreId()
         );
-        $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
+        $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled($quote);
         if ($isHospitalityStore && ($anonymousOrderEnabled || $removeCheckoutStepEnabled)) {
             if ($removeCheckoutStepEnabled) {
                 $anonymousOrderRequiredAttributes = [];

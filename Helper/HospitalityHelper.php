@@ -751,12 +751,14 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get All Deals Given Main Item Sku And scope
      *
-     * @param $mainItemSku
+     * @param $product
      * @param $scopeId
+     * @param $replInvStatus
      * @return mixed
      */
-    public function getAllDealsGivenMainItemSku($mainItemSku, $scopeId)
+    public function getAllDealsGivenMainItemSku($product, $scopeId, $replInvStatus)
     {
+        $mainItemSku = $product ? $product->getSku() : $replInvStatus->getSku();
         return $this->replHierarchyHospDealRepository->getList(
             $this->searchCriteriaBuilder
                 ->addFilter('No', $mainItemSku)
@@ -1426,19 +1428,44 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Remove Checkout Step enabled
      *
+     * @param $quote
      * @return int
      * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function removeCheckoutStepEnabled()
+    public function removeCheckoutStepEnabled($quote = null)
     {
         $storeId                   = $this->storeManager->getStore()->getId();
         $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $storeId
         );
-        $qrCodeParams              = $this->customerSession->getData(LSR::LS_QR_CODE_ORDERING);
+        if (empty($quote)) {
+            $quote = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
+        }
+        $qrCodeParams              = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+        if (empty($qrCodeParams)) {
+            $qrCodeParams = $this->qrcodeHelperObject()->getQrCodeOrderingInSession();
+        }
 
         return $removeCheckoutStepEnabled & !empty($qrCodeParams);
+    }
+
+    /**
+     * Get remove checkout steps configuration
+     *
+     * @return int
+     * @throws NoSuchEntityException
+     */
+    public function getRemoveCheckoutStepEnabled()
+    {
+        $storeId                   = $this->storeManager->getStore()->getId();
+        $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
+            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
+            $storeId
+        );
+
+        return $removeCheckoutStepEnabled;
     }
 
     /**
@@ -1449,5 +1476,15 @@ class HospitalityHelper extends AbstractHelper
     public function qrcodeHelperObject()
     {
         return $this->qrCodeHelper;
+    }
+
+    /**
+     * Return serialize json class object
+     *
+     * @return QrCodeHelper
+     */
+    public function getJson()
+    {
+        return $this->serializerJson;
     }
 }

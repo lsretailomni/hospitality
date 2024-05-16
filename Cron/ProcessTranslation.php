@@ -116,7 +116,7 @@ class ProcessTranslation
             foreach ($stores as $store) {
                 $this->lsr->setStoreId($store->getId());
                 $this->store = $store;
-                if ($this->lsr->isLSR($this->store->getId())) {
+                if ($this->lsr->isLSR($this->store->getId()) && $this->lsr->isHospitalityStore($store->getId())) {
                     $langCode = $this->lsr->getStoreConfig(
                         LSR::SC_STORE_DATA_TRANSLATION_LANG_CODE,
                         $store->getId()
@@ -189,11 +189,11 @@ class ProcessTranslation
             try {
                 $sku = $dataTranslation->getKey();
                 $productData = $this->replicationHelper->getProductDataByIdentificationAttributes(
-                        $sku,
-                        '',
-                        '',
-                        $store->getId()
-                    );
+                    $sku,
+                    '',
+                    '',
+                    $store->getId()
+                );
                 if (isset($productData)) {
                     if ($dataTranslation->getTranslationId() == LSR::SC_TRANSLATION_ID_DEAL_ITEM_HTML) {
                         $productData->setDescription($dataTranslation->getText());

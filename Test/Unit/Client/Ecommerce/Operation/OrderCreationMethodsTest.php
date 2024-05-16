@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Test\Unit\Client\Ecommerce\Operation;
 
+use \Ls\Omni\Client\Ecommerce\Entity\Address;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfInventoryRequest;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfInventoryResponse;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItem;
@@ -14,6 +15,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\OneList;
 use \Ls\Omni\Client\Ecommerce\Entity\OneListHospCalculate;
 use \Ls\Omni\Client\Ecommerce\Entity\OneListItem;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
+use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderPayment;
 use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
 use \Ls\Omni\Exception\InvalidEnumException;
@@ -101,8 +103,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $inventoryRequestArray->setInventoryRequest($inventoryRequestCollection);
         $itemStock->setItems($inventoryRequestArray);
         $itemStock->setStoreId('');
-        $response = $this->client->ItemsInStoreGetEx($itemStock);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("ItemsInStoreGetEx", $itemStock);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(ArrayOfInventoryResponse::class, $result);
         foreach ($result as $inventoryResponse) {
             $this->assertEquals(
@@ -131,8 +133,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $inventoryRequestCollection[] = $inventoryRequest;
         $inventoryRequestArray->setInventoryRequest($inventoryRequestCollection);
         $itemStock->setItems($inventoryRequestArray);
-        $response = $this->client->ItemsInStoreGetEx($itemStock);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("ItemsInStoreGetEx", $itemStock);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(ArrayOfInventoryResponse::class, $result);
         foreach ($result as $inventoryResponse) {
             $this->assertEquals(
@@ -174,8 +176,8 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setName(ListType::BASKET)
             ->setIsHospitality(1);
         $param    = ['oneList' => $oneListRequest, 'calculate' => true];
-        $response = $this->client->OneListSave($param);
-        $oneList  = $response->getResult();
+        $response = $this->executeMethod("OneListSave", $param);
+        $oneList = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OneList::class, $oneList);
         $this->assertEquals($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'), $oneList->getCardId());
         $this->assertTrue(property_exists($oneList, 'Id'));
@@ -196,7 +198,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * PaymentLine - pay at the store
      * @depends testOneListSaveBasket
      */
-    public function testOrderHospCreate()
+    public function testOrderHospCreateTakeAway()
     {
         $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
         $oneListRequest = $response->getResult();
@@ -209,15 +211,15 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $result
             ->setId($this->generateGUID())
             ->setExternalId('test' . substr(preg_replace("/[^A-Za-z0-9 ]/", '', $result->getId()), 0, 10))
-            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_SALES_TYPE'))
+            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_TAKEAWAY_SALES_TYPE'))
             ->setRestaurantNo($result->getStoreId())
             ->setPickupTime($datetime->format('Y-m-d'). 'T01:00:00');
         // Order creation request
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -238,7 +240,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * PaymentLine - Online Card
      * @depends testOneListSaveBasket
      */
-    public function testOrderHospCreateOnlinePayment()
+    public function testOrderHospCreateTakeAwayOnlinePayment()
     {
         $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
         $oneListRequest = $response->getResult();
@@ -248,6 +250,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $result   = $response->getResult();
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
+        $preApprovedDate  = date('Y-m-d', strtotime('+1 years'));
         $orderPayment = new OrderPayment();
         $orderPayment->setCurrencyFactor(1)
             ->setAmount($result->getTotalAmount())
@@ -257,22 +260,23 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setCardType('VISA')
             ->setCardNumber('4111111111111111')
             ->setTokenNumber('1276349812634981234')
-            ->setPaymentType('Payment');
+            ->setPaymentType('Payment')
+            ->setPreApprovedValidDate($preApprovedDate);
         $orderPayments = new ArrayOfOrderPayment();
         $orderPayments->setOrderPayment([$orderPayment]);
         $result->setOrderPayments($orderPayments);
         $result
             ->setId($this->generateGUID())
             ->setExternalId('test' . substr(preg_replace("/[^A-Za-z0-9 ]/", '', $result->getId()), 0, 10))
-            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_SALES_TYPE'))
+            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_TAKEAWAY_SALES_TYPE'))
             ->setRestaurantNo($result->getStoreId())
             ->setPickupTime($datetime->format('Y-m-d'). 'T01:00:00');
         // Order creation request
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -292,7 +296,7 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * User - Guest
      * PaymentLine - Pay at the store
      */
-    public function testOrderHospCreateGuest()
+    public function testOrderHospCreateTakeAwayGuest()
     {
         $response       = $this->getOneList();
         $oneListRequest = $response->getResult();
@@ -306,15 +310,15 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
             ->setId($this->generateGUID())
             ->setEmail($this->getEnvironmentVariableValueGivenName('HOSP_EMAIL'))
             ->setExternalId('test' . substr(preg_replace("/[^A-Za-z0-9 ]/", '', $result->getId()), 0, 10))
-            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_SALES_TYPE'))
+            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_TAKEAWAY_SALES_TYPE'))
             ->setRestaurantNo($result->getStoreId())
             ->setPickupTime($datetime->format('Y-m-d'). 'T01:00:00');
         // Order creation request
         $paramOrderCreate  = [
             'request' => $result
         ];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
-        $resultOrderCreate = $responseOrder->getResult();
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
@@ -334,23 +338,24 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
      * User - Member
      * PaymentLines - Credit Card + Gift Card + Loyalty
      */
-    public function testOrderHospCreateOnlinePaymentWithGiftCardAndLoyalty()
+    public function testOrderHospCreateTakeAwayOnlinePaymentWithGiftCardAndLoyalty()
     {
         $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
         $oneListRequest = $response->getResult();
         $entity         = new OneListHospCalculate();
         $entity->setOneList($oneListRequest);
-        $response = $this->client->OneListHospCalculate($entity);
-        $result   = $response->getResult();
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
         $this->assertInstanceOf(OrderHosp::class, $result);
         $datetime = new \DateTime('tomorrow + 1day');
-        $preApprovedDate   = date('Y-m-d', strtotime('+1 years'));
+        $preApprovedDate  = date('Y-m-d', strtotime('+1 years'));
         $orderPayment      = new OrderPayment();
         $orderPayment->setCurrencyFactor(1)
             ->setAmount($result->getTotalAmount() - 0.1 - 1)
             ->setLineNumber('1')
             ->setExternalReference('TEST0012345')
-            ->setTenderType($this->getEnvironmentVariableValueGivenName('HOSP_CREDIT_CARD_TENDER_TYPE'));
+            ->setTenderType($this->getEnvironmentVariableValueGivenName('HOSP_CREDIT_CARD_TENDER_TYPE'))
+            ->setPreApprovedValidDate($preApprovedDate);
         $orderPaymentLoyalty = new OrderPayment();
         $orderPaymentLoyalty->setCurrencyCode('LOY')
             ->setCurrencyFactor('0.10000000000000000000')
@@ -376,15 +381,100 @@ class OrderCreationMethodsTest extends OmniClientSetupTest
         $result
             ->setId($this->generateGUID())
             ->setExternalId('test' . substr(preg_replace("/[^A-Za-z0-9 ]/", '', $result->getId()), 0, 10))
-            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_SALES_TYPE'))
+            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_TAKEAWAY_SALES_TYPE'))
             ->setRestaurantNo($result->getStoreId())
             ->setPickupTime($datetime->format('Y-m-d'). 'T01:00:00');
 
         // Order creation request
         $paramOrderCreate = ['request' => $result];
-        $responseOrder     = $this->client->OrderHospCreate($paramOrderCreate);
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
+        $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
+        $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'ExternalId'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'StoreId'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'TotalAmount'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'TotalDiscount'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'TotalNetAmount'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'Status'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'Payments'));
+        $this->assertTrue(property_exists($resultOrderCreate, 'Lines'));
+    }
 
-        $resultOrderCreate = $responseOrder->getResult();
+    /**
+     * Create Customer Order for Takeaway using Online Payment Line only
+     * Type - Takeaway
+     * User - Member
+     * PaymentLine - Online Card
+     * @depends testOneListSaveBasket
+     */
+    public function testOrderHospCreateDeliveryOnlinePayment()
+    {
+        $response       = $this->getOneList($this->getEnvironmentVariableValueGivenName('HOSP_CARD_ID'));
+        $oneListRequest = $response->getResult();
+        $entity         = new OneListHospCalculate();
+        $entity->setOneList($oneListRequest);
+        $response = $this->executeMethod("OneListHospCalculate", $entity);
+        $result = $response ? $response->getResult() : null;
+        $this->assertInstanceOf(OrderHosp::class, $result);
+        $datetime = new \DateTime('tomorrow + 1day');
+        $preApprovedDate   = date('Y-m-d', strtotime('+1 years'));
+        $address = new Address();
+        $address
+            ->setAddress1('LS Retail ehf.')
+            ->setAddress2('Hagasmari 3')
+            ->setCity('Kopavogur')
+            ->setCountry('IS')
+            ->setCounty('Austurland')
+            ->setPhoneNumber('+3544145700')
+            ->setPostCode('201');
+
+        $orderPayment = new OrderPayment();
+        $orderPayment->setCurrencyFactor(1)
+            ->setAmount($result->getTotalAmount())
+            ->setLineNumber('1')
+            ->setExternalReference('TEST0012345')
+            ->setTenderType($this->getEnvironmentVariableValueGivenName('HOSP_CREDIT_CARD_TENDER_TYPE'))
+            ->setCardType('VISA')
+            ->setCardNumber('4111111111111111')
+            ->setTokenNumber('1276349812634981234')
+            ->setPaymentType('Payment')
+            ->setPreApprovedValidDate($preApprovedDate);
+        $orderPayments = new ArrayOfOrderPayment();
+        $orderPayments->setOrderPayment([$orderPayment]);
+        $result->setOrderPayments($orderPayments);
+        $result
+            ->setId($this->generateGUID())
+            ->setAddress($address)
+            ->setBillToName('test')
+            ->setName('test')
+            ->setComment('This is a delivery order')
+            ->setEmail($this->getEnvironmentVariableValueGivenName('HOSP_EMAIL'))
+            ->setExternalId('test' . substr(preg_replace("/[^A-Za-z0-9 ]/", '', $result->getId()), 0, 10))
+            ->setSalesType($this->getEnvironmentVariableValueGivenName('HOSP_DELIVERY_SALES_TYPE'))
+            ->setRestaurantNo($result->getStoreId())
+            ->setPickupTime($datetime->format('Y-m-d'). 'T01:00:00');
+
+        $orderLines        = $result->getOrderLines()->getOrderHospLine();
+        $shipmentOrderLine = new OrderHospLine();
+        $shipmentOrderLine->setPrice('5')
+            ->setPriceModified(true)
+            ->setNetPrice('5')
+            ->setNetAmount('5')
+            ->setAmount('5')
+            ->setItemId('66010')
+            ->setLineType('Item')
+            ->setQuantity(1);
+
+        array_push($orderLines, $shipmentOrderLine);
+        $result->setOrderLines($orderLines);
+        // Order creation request
+        $paramOrderCreate  = [
+            'request' => $result
+        ];
+        $response = $this->executeMethod("OrderHospCreate", $paramOrderCreate);
+        $resultOrderCreate = $response ? $response->getResult() : null;
         $this->assertInstanceOf(SalesEntry::class, $resultOrderCreate);
         $this->assertTrue(property_exists($resultOrderCreate, 'Id'));
         $this->assertTrue(property_exists($resultOrderCreate, 'CardId'));

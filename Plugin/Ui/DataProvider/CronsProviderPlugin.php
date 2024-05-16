@@ -12,32 +12,52 @@ use Magento\Store\Model\ScopeInterface;
  */
 class CronsProviderPlugin
 {
-
+    /**
+     * @var string[]
+     */
     public $translationList = [
         'repl_deal_html_translation'
     ];
 
+    /**
+     * @var LSR
+     */
+    public $hospLsr;
+
+    /**
+     * @param LSR $hospLsr
+     */
+    public function __construct(
+        LSR $hospLsr,
+    ) {
+        $this->hospLsr = $hospLsr;
+    }
 
     /**
      * After plugin to intercept readCronFile
      *
      * @param CronsProvider $subject
+     * @param $scopeId
      * @param mixed $result
      * @return array|mixed
      */
-    public function afterReadCronFile(CronsProvider $subject, $result)
+    public function afterReadCronFile(CronsProvider $subject, $result, $scopeId)
     {
         try {
             $filePath        = $subject->moduleDirReader->getModuleDir('etc', 'Ls_Hospitality') . '/crontab.xml';
             $parsedArray     = $subject->parser->load($filePath)->xmlToArray();
-            $hospitalityJobs = $parsedArray['config']['_value']['group'];
-            // merge both data.
-            return array_merge($hospitalityJobs, $result);
+            if ($this->hospLsr->isHospitalityStore($scopeId)) {
+                $hospitalityJobs = $parsedArray['config']['_value']['group'];
+                // merge both data.
+                return array_merge($hospitalityJobs, $result);
+            }
         } catch (Exception $e) {
             $subject->logger->debug($e);
             // just return base data.
             return $result;
         }
+
+        return $result;
     }
 
     /**

@@ -4,15 +4,10 @@ namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
 use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use Ls\Omni\Exception\InvalidEnumException;
-use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * For intercepting data provider functions
@@ -20,9 +15,9 @@ use Magento\Store\Model\StoreManagerInterface;
 class DataProviderPlugin
 {
     /**
-     * @var StoreHelper
+     * @var HospitalityHelper
      */
-    public $storeHelper;
+    public $hospitalityHelper;
 
     /**
      * @var LSR
@@ -30,113 +25,35 @@ class DataProviderPlugin
     public $lsr;
 
     /**
-     * @var CheckoutSession
-     */
-    public $checkoutSession;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    public $storeManager;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @param StoreHelper $storeHelper
      * @param LSR $lsr
-     * @param CheckoutSession $checkoutSession
-     * @param StoreManagerInterface $storeManager
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        StoreHelper $storeHelper,
         LSR $lsr,
-        CheckoutSession $checkoutSession,
-        StoreManagerInterface $storeManager,
         HospitalityHelper $hospitalityHelper
     ) {
-        $this->storeHelper     = $storeHelper;
-        $this->lsr             = $lsr;
-        $this->checkoutSession = $checkoutSession;
-        $this->storeManager = $storeManager;
+        $this->lsr = $lsr;
         $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
-     * Around plugin for intercepting get stores function
+     * After plugin for intercepting get required stores method to get takeaway stores
      *
      * @param DataProvider $subject
-     * @param callable $proceed
+     * @param Collection $result
      * @return Collection
-     * @throws NoSuchEntityException|LocalizedException|InvalidEnumException
+     * @throws NoSuchEntityException
      */
-    public function aroundGetStores(
+    public function afterGetRequiredStores(
         DataProvider $subject,
-        callable $proceed
+        $result
     ) {
-        $salesTypeStoreIdArray = [];
-        $storeHoursArray       = [];
-
-        if ($subject->lsr->getCurrentIndustry($subject->getStoreId()) != LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed();
+        if ($this->lsr->getCurrentIndustry($subject->getStoreId()) != LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $result;
         }
         $takeAwaySalesType = $this->lsr->getTakeAwaySalesType();
-        $allStores         = $this->storeHelper->getAllStores($subject->getStoreId());
 
-        foreach ($allStores as $store) {
-            if ($this->checkSalesType($store->getHospSalesTypes()->getSalesType(), $takeAwaySalesType) &&
-                $store->getIsClickAndCollect()) {
-                $webStoreId              = $store->getId();
-                $salesTypeStoreIdArray[] = $webStoreId;
-                if ($this->lsr->isPickupTimeslotsEnabled()) {
-                    $storeHoursArray[$webStoreId] = $this->storeHelper->formatDateTimeSlotsValues(
-                        $store->getStoreHours()
-                    );
-                }
-            }
-        }
-
-        if (!empty($salesTypeStoreIdArray)) {
-            if (!empty($storeHoursArray)) {
-                $this->checkoutSession->setStorePickupHours($storeHoursArray);
-            }
-            $this->checkoutSession->setNoManageStock(0);
-            $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
-            list($response) = $subject->stockHelper->getGivenItemsStockInGivenStore($items);
-            if (!$subject->availableStoresOnlyEnabled()) {
-                return $subject->storeCollectionFactory
-                    ->create()
-                    ->addFieldToFilter('nav_id', [
-                        'in' => implode(',', $salesTypeStoreIdArray),
-                    ])
-                    ->addFieldToFilter(
-                        'scope_id',
-                        !$subject->lsr->isSSM() ?
-                            $subject->lsr->getCurrentWebsiteId() :
-                            $subject->lsr->getAdminStore()->getWebsiteId()
-                    )
-                    ->addFieldToFilter('ClickAndCollect', 1);
-            } else {
-                if ($response) {
-                    if (is_object($response)) {
-                        if (!is_array($response->getInventoryResponse())) {
-                            $response = [$response->getInventoryResponse()];
-                        } else {
-                            $response = $response->getInventoryResponse();
-                        }
-                    }
-                }
-
-                $subject->filterClickAndCollectStores($response, $salesTypeStoreIdArray);
-            }
-
-            return $subject->filterStoresOnTheBasisOfQty($response, $items);
-        }
-
-        return $proceed();
+        return $result->addFieldToFilter('HospSalesTypes', ['like' => '%'.$takeAwaySalesType.'%']);
     }
 
     /**
@@ -149,7 +66,7 @@ class DataProviderPlugin
      */
     public function beforeGetSelectedClickAndCollectStoresData(DataProvider $subject, $responseItems)
     {
-        if ($subject->lsr->getCurrentIndustry($subject->getStoreId()) == LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY
+        if ($this->lsr->getCurrentIndustry($subject->getStoreId()) == LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY
             && empty($responseItems)) {
             $responseItems [] = $this->lsr->getActiveWebStore();
         }
@@ -168,9 +85,9 @@ class DataProviderPlugin
     public function afterGetConfig(DataProvider $subject, $result)
     {
         if ($this->lsr->isHospitalityStore()) {
-            $storeId = $this->storeManager->getStore()->getId();
+            $storeId = $subject->storeManager->getStore()->getId();
 
-            $anonymousOrderEnabled = $this->lsr->getStoreConfig(
+            $anonymousOrderEnabled     = $this->lsr->getStoreConfig(
                 Lsr::ANONYMOUS_ORDER_ENABLED,
                 $storeId
             );
@@ -179,20 +96,27 @@ class DataProviderPlugin
             $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $storeId
             );
-            $result['anonymous_order']['is_enabled'] = (bool) $anonymousOrderEnabled;
+            $result['anonymous_order']['is_enabled']      = (bool)$anonymousOrderEnabled;
             $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
-            $result['remove_checkout_step_enabled'] = (bool) $removeCheckoutStepEnabled;
+            $result['remove_checkout_step_enabled']       = (bool)$removeCheckoutStepEnabled;
         }
-
-        $enabled = $this->lsr->isPickupTimeslotsEnabled();
-        if (empty($this->checkoutSession->getStorePickupHours())) {
+        $clickAndCollectEnabled = $this->lsr->getClickCollectEnabled();
+        $enabled                = $this->lsr->isPickupTimeslotsEnabled();
+        $deliveryHoursEnabled   = $this->lsr->isDeliveryTimeslotsEnabled();
+        if (empty($subject->basketHelper->getStorePickUpHoursFromCheckoutSession()) || !$clickAndCollectEnabled) {
             $enabled = 0;
         }
+        if (empty($subject->basketHelper->getDeliveryHoursFromCheckoutSession())) {
+            $deliveryHoursEnabled = 0;
+        }
         $result['shipping'] ['pickup_date_timeslots'] = [
-            'options'           => $this->checkoutSession->getStorePickupHours(),
-            'enabled'           => $enabled,
-            'current_web_store' => $this->lsr->getActiveWebStore(),
-            'store_type'        => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ? 1 : 0
+            'options'                => $subject->basketHelper->getStorePickUpHoursFromCheckoutSession(),
+            'delivery_hours'         => $subject->basketHelper->getDeliveryHoursFromCheckoutSession(),
+            'enabled'                => $enabled,
+            'current_web_store'      => $this->lsr->getActiveWebStore(),
+            'store_type'             => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ?
+                1 : 0,
+            'delivery_hours_enabled' => $deliveryHoursEnabled
         ];
 
         return $result;
@@ -213,26 +137,5 @@ class DataProviderPlugin
         }
 
         return $result;
-    }
-
-    /**
-     * Check Sales Type
-     *
-     * @param $hospSalesType
-     * @param $takeAwaySalesType
-     * @return bool
-     */
-    public function checkSalesType(
-        $hospSalesType,
-        $takeAwaySalesType
-    ) {
-        if (!empty($hospSalesType)) {
-            foreach ($hospSalesType as $salesType) {
-                if ($salesType->getCode() == $takeAwaySalesType) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

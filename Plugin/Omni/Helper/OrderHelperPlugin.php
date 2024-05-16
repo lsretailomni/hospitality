@@ -95,17 +95,11 @@ class OrderHelperPlugin
 
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
             $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
-            $shippingMethod          = $order->getShippingMethod(true);
             $isClickCollect          = false;
             $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
             $pickupDateTimeslot      = null;
             $pickupDateTime          = $this->date->date($dateTimeFormat);
-            if ($shippingMethod !== null) {
-                $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
-            }
-
-            if ($isClickCollect) {
-                $oneListCalculateResponse->setSalesType($this->lsr->getTakeAwaySalesType());
+            if (!empty($order->getPickupDateTimeslot())) {
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
                 if (!empty($pickupDateTimeslot)) {
                     $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
@@ -126,8 +120,26 @@ class OrderHelperPlugin
                 $qrCodeQueryString = http_build_query($qrCodeParams);
             }
 
-            $comment = $order->getData(LSR::LS_ORDER_COMMENT);
+            if ($this->hospitalityHelper->removeCheckoutStepEnabled()) {
+                $order->setShippingMethod('clickandcollect_clickandcollect');
+            }
 
+            $shippingMethod = $order->getShippingMethod(true);
+            if ($shippingMethod !== null) {
+                $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
+                if ($isClickCollect) {
+                    $salesType = $this->lsr->getTakeAwaySalesType();
+                    if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
+                        $salesType = $qrCodeParams['sales_type'];
+                    }
+                    $oneListCalculateResponse->setSalesType($salesType);
+                }
+            }
+
+            $comment = $order->getData(LSR::LS_ORDER_COMMENT);
+            //if the shipping address is empty, we use the contact address as shipping address.
+            $shipToAddress = $order->getShippingAddress() ?
+                $subject->convertAddress($order->getShippingAddress()) : null;
             $oneListCalculateResponse
                 ->setCardId($cardId)
                 ->setStoreId($storeId)
@@ -138,7 +150,8 @@ class OrderHelperPlugin
                 ->setEmail($customerEmail)
                 ->setName($billToName)
                 ->setBillToName($billToName)
-                ->setExternalId($order->getIncrementId());
+                ->setExternalId($order->getIncrementId())
+                ->setAddress($shipToAddress);
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
@@ -154,6 +167,26 @@ class OrderHelperPlugin
         }
 
         return $request;
+    }
+
+    /**
+     * After interceptor to inject into payment methods array
+     *
+     * @param OrderHelper $subject
+     * @param array $result
+     * @param Model\Order $order
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function afterPaymentLineNotRequiredPaymentMethods(OrderHelper $subject, $result, Model\Order $order)
+    {
+        if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $result;
+        }
+
+        array_push($result, 'cashondelivery');
+
+        return $result;
     }
 
     /**
@@ -190,6 +223,7 @@ class OrderHelperPlugin
                 ->setItemId($shipmentFeeId)
                 ->setLineType(Entity\Enum\LineType::ITEM)
                 ->setQuantity(1)
+                ->setPriceModified(true)
                 ->setDiscountAmount($order->getShippingDiscountAmount());
             array_push($orderLines, $shipmentOrderLine);
         }

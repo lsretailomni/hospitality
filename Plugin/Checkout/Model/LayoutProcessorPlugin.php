@@ -107,7 +107,7 @@ class LayoutProcessorPlugin
         }
 
         if ($this->hospLsr->getCurrentIndustry() == \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
-            && $this->hospLsr->isPickupTimeslotsEnabled() &&
+            && ($this->hospLsr->isPickupTimeslotsEnabled() || $this->hospLsr->isDeliveryTimeslotsEnabled()) &&
             $this->hospLsr->isLSR($this->hospLsr->getCurrentStoreId())) {
             $shippingAdditionalChildren['ls-pickup-additional-options-wrapper'] =
                 [

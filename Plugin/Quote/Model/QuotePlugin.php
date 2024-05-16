@@ -27,7 +27,7 @@ class QuotePlugin
         LSR $hospitalityLsr,
         HospitalityHelper $hospitalityHelper
     ) {
-        $this->hospitalityLsr = $hospitalityLsr;
+        $this->hospitalityLsr    = $hospitalityLsr;
         $this->hospitalityHelper = $hospitalityHelper;
     }
 
@@ -42,8 +42,17 @@ class QuotePlugin
     public function afterIsVirtual(Quote $subject, $result)
     {
         if ($this->hospitalityLsr->isHospitalityStore() &&
-            $this->hospitalityHelper->removeCheckoutStepEnabled()
+            $this->hospitalityHelper->removeCheckoutStepEnabled($subject)
         ) {
+            $subject->getShippingAddress()->setShippingMethod('clickandcollect_clickandcollect');
+            if (empty($subject->getCustomerEmail())) {
+                $subject->setCustomerEmail($this->hospitalityHelper->getAnonymousOrderCustomerEmail());
+            }
+            if (empty($subject->getBillingAddress()->getFirstname())) {
+                $storeInformation = $this->hospitalityHelper->getStoreInformation();
+                $subject->getBillingAddress()->setFirstname($storeInformation['name']);
+                $subject->getBillingAddress()->setLastname($storeInformation['name']);
+            }
             $result = true;
         }
 
