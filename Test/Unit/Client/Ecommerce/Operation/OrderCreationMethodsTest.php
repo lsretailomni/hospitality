@@ -9,7 +9,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItem;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderPayment;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\ListType;
-use Ls\Omni\Client\Ecommerce\Entity\Enum\PaymentType;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\PaymentType;
 use \Ls\Omni\Client\Ecommerce\Entity\InventoryRequest;
 use \Ls\Omni\Client\Ecommerce\Entity\ItemsInStoreGetEx;
 use \Ls\Omni\Client\Ecommerce\Entity\OneList;
