@@ -8,7 +8,9 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
 use \Ls\Omni\Helper\ItemHelper;
+use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface;
 
@@ -77,23 +79,59 @@ class ItemHelperPlugin
         }
 
         foreach ($quoteItemList as $quoteItem) {
-            $baseUnitOfMeasure = $quoteItem->getProduct()->getData('uom');
-            list($itemId, $variantId, $uom) = $subject->getComparisonValues(
-                $quoteItem->getSku()
-            );
+            $bundleProduct = $customPrice = $taxAmount = $rowTotal = $rowTotalIncTax = $priceInclTax = 0;
+            $children      = [];
 
-            foreach ($orderLines as $index => $line) {
-                if ($subject->isValid($quoteItem, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                    $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+            if ($quoteItem->getProductType() == Type::TYPE_BUNDLE) {
+                $children      = $quoteItem->getChildren();
+                $bundleProduct = 1;
+            } else {
+                $children[] = $quoteItem;
+            }
 
-                    $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $quoteItem, $unitPrice, $type);
-                    unset($orderLines[$index]);
-                    break;
+            foreach ($children as $child) {
+                foreach ($orderLines as $index => $line) {
+                    if (is_numeric($line->getId()) ?
+                        $child->getItemId() == $line->getId() :
+                        $subject->isSameItem($child, $line)
+                    ) {
+                        $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+                        $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $child, $unitPrice, $type);
+                        unset($orderLines[$index]);
+                        break;
+                    }
+                }
+                $child->getProduct()->setIsSuperMode(true);
+                try {
+                    // @codingStandardsIgnoreLine
+                    $subject->itemResourceModel->save($child);
+                } catch (LocalizedException $e) {
+                    $this->logger->critical("Error saving SKU:-" . $child->getSku() . " - " . $e->getMessage());
+                }
+
+                $customPrice    += $child->getCustomPrice();
+                $priceInclTax   += $child->getPriceInclTax();
+                $taxAmount      += $child->getTaxAmount();
+                $rowTotal       += $child->getRowTotal();
+                $rowTotalIncTax += $child->getRowTotalInclTax();
+            }
+
+            if ($bundleProduct == 1) {
+                $quoteItem->setCustomPrice($customPrice);
+                $quoteItem->setRowTotal($rowTotal);
+                $quoteItem->setRowTotalInclTax($rowTotalIncTax);
+                $quoteItem->setTaxAmount($taxAmount);
+                $quoteItem->setPriceInclTax($priceInclTax);
+                $quoteItem->getProduct()->setIsSuperMode(true);
+                try {
+                    // @codingStandardsIgnoreLine
+                    $subject->itemResourceModel->save($quoteItem);
+                } catch (LocalizedException $e) {
+                    $this->logger->critical(
+                        "Error saving Quote Item:-" . $quoteItem->getSku() . " - " . $e->getMessage()
+                    );
                 }
             }
-            $quoteItem->getProduct()->setIsSuperMode(true);
-            // @codingStandardsIgnoreLine
-            $subject->itemResourceModel->save($quoteItem);
         }
     }
 

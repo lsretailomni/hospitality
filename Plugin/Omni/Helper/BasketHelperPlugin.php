@@ -91,10 +91,9 @@ class BasketHelperPlugin
 
         foreach ($quoteItems as $index => $quoteItem) {
             ++$index;
-            list($itemId, $variantId, $uom, $barCode) = $subject->itemHelper->getComparisonValues(
-                $quoteItem->getSku()
-            );
-            $product = $subject->productRepository->getById($quoteItem->getProductId());
+            list($itemId, $variantId, $uom, $barCode) =
+                $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
+            $product = $quoteItem->getProduct();
 
             $oneListSubLinesArray = [];
             $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(

@@ -313,11 +313,10 @@ class HospitalityHelper extends AbstractHelper
     public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
     {
         $lineNumber *= 10000;
-        $sku        = $quoteItem->getSku();
 
         /** @var Interceptor $product */
-        $product = $this->getProductFromRepositoryGivenSku($sku);
-        list($lsrId, , $uom) = $this->itemHelper->getComparisonValues($sku);
+        $product = $quoteItem->getProduct();
+        list($lsrId, , $uom) = $this->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
 
         /**
          * Business Logic ***
@@ -403,7 +402,6 @@ class HospitalityHelper extends AbstractHelper
                     );
 
                     if (!empty($itemModifier)) {
-
                         $subCode                                = reset($itemModifier)->getSubCode();
                         $selectedOrderHospSubLine['modifier'][] =
                             [
