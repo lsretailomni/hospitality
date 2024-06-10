@@ -304,7 +304,7 @@ class BasketHelperPlugin
                     $subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
                     $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
                 ) {
-                    $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
+                    $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line)/$line->getQuantity();
                     break;
                 }
             }
