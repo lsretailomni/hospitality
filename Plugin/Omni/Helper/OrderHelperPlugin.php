@@ -211,7 +211,7 @@ class OrderHelperPlugin
         $shipmentTaxPercent = $subject->getShipmentTaxPercent($order->getStore());
         $shippingAmount     = $order->getShippingAmount();
 
-        if (!empty($shipmentTaxPercent) && $shippingAmount > 0) {
+        if (isset($shipmentTaxPercent) && $shippingAmount > 0) {
             $netPriceFormula = 1 + $shipmentTaxPercent / 100;
             $netPrice        = $subject->loyaltyHelper->formatValue($shippingAmount / $netPriceFormula);
             $taxAmount       = $subject->loyaltyHelper->formatValue($shippingAmount - $netPrice);
