@@ -1,7 +1,7 @@
 <?php
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
-list(,$status, $estimatedTime, $pickupOrderTime) = $block->getData('data');
+list(, $status, $productionTime, $qCounter, $kotNo, $pickupOrderTime) = $block->getData('data');
 if (empty($status)) {
     $status = __('Kitchen status service is down. Please try again by refreshing the page.');
 }
@@ -9,17 +9,22 @@ if (empty($status)) {
 <div class="hosp-info-container">
     <div class="block-content">
         <div class="custom-box">
-            <strong class="box-title"><span><?= /* @escapeNotVerified */__('Status:') ?></span></strong>
-            <span><?= /* @escapeNotVerified */ $status; ?></span>
+            <strong class="box-title"><span><?= /* @escapeNotVerified */
+                    __('Status:') ?></span></strong>
+            <span><?= /* @escapeNotVerified */
+                $status; ?></span>
         </div>
     </div>
     <br/>
-    <?php if ($estimatedTime > 0): ?>
+    <?php if ($productionTime > 0): ?>
         <div class="block-content">
             <div class="custom-box">
                 <strong class="box-title"><span>
-                <?= /* @escapeNotVerified */__('Estimated Time:') ?></span></strong>
-                <span><?= /* @escapeNotVerified */ $estimatedTime; ?> <?= /* @escapeNotVerified */__('Minutes') ?></span>
+                <?= /* @escapeNotVerified */
+                __('Production Time:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */
+                    $productionTime; ?> <?= /* @escapeNotVerified */
+                    __('Minutes') ?></span>
             </div>
         </div>
     <?php endif; ?>
@@ -27,8 +32,32 @@ if (empty($status)) {
         <div class="block-content">
             <div class="custom-box">
                 <strong class="box-title"><span>
-                <?= /* @escapeNotVerified */__('Pickup Order Time:') ?></span></strong>
-                <span><?= /* @escapeNotVerified */ $pickupOrderTime; ?></span>
+                <?= /* @escapeNotVerified */
+                __('Pickup Order Time:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */
+                    $pickupOrderTime; ?></span>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($kotNo): ?>
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Kitchen Order No:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */
+                    $kotNo; ?></span>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($qCounter): ?>
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Queue Counter:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */
+                    $qCounter; ?></span>
             </div>
         </div>
     <?php endif; ?>
