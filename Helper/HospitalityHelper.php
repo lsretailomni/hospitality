@@ -64,12 +64,13 @@ class HospitalityHelper extends AbstractHelper
 {
     public const DESTINATION_FOLDER = 'ls/swatch';
 
-    public const ADDRESS_ATTRIBUTE_MAPPER = [
-        'firstname' => 'name',
-        'lastname'  => 'name',
-        'telephone' => 'phone',
-        'street'    => ['street_line1', 'street_line2']
-    ];
+    public const ADDRESS_ATTRIBUTE_MAPPER
+        = [
+            'firstname' => 'name',
+            'lastname'  => 'name',
+            'telephone' => 'phone',
+            'street'    => ['street_line1', 'street_line2']
+        ];
 
     /** @var ProductRepository $productRepository */
     public $productRepository;
@@ -402,15 +403,15 @@ class HospitalityHelper extends AbstractHelper
                     );
 
                     if (!empty($itemModifier)) {
-                        $subCode                                = reset($itemModifier)->getSubCode();
-                        $selectedOrderHospSubLine['modifier'][] =
-                            [
-                                'ModifierGroupCode' => $formattedItemSubLineCode,
-                                'ModifierSubCode'   => $subCode,
-                                'DealLineId'        => $mainDealLineNo,
-                                'ParentSubLineId'   => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
-                                    $lineNumber : ''
-                            ];
+                        $subCode = reset($itemModifier)->getSubCode();
+                        $selectedOrderHospSubLine['modifier'][]
+                                 = [
+                            'ModifierGroupCode' => $formattedItemSubLineCode,
+                            'ModifierSubCode'   => $subCode,
+                            'DealLineId'        => $mainDealLineNo,
+                            'ParentSubLineId'   => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
+                                $lineNumber : ''
+                        ];
                     }
                 }
             }
@@ -878,7 +879,7 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status   = $estimatedTime = $statusDescription = '';
+        $status   = $productionTime = $statusDescription = $qCounter = $kotNo = '';
         $response = $this->getKitchenOrderStatus(
             $orderId,
             $storeId
@@ -886,9 +887,11 @@ class HospitalityHelper extends AbstractHelper
 
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $status = $response->getHospOrderStatusResult()->getStatus();
+                $status   = $response->getHospOrderStatusResult()->getStatus();
+                $qCounter = $response->getHospOrderStatusResult()->getQueueCounter();
+                $kotNo    = $response->getHospOrderStatusResult()->getKotNo();
                 if ($this->lsr->displayEstimatedDeliveryTime()) {
-                    $estimatedTime = $response->getHospOrderStatusResult()->getEstimatedTime();
+                    $productionTime = $response->getHospOrderStatusResult()->getProductionTime();
                 }
             } else {
                 $status = $response->getHospOrderKotStatusResult()->getStatus();
@@ -896,7 +899,7 @@ class HospitalityHelper extends AbstractHelper
 
             if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
                 if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
-                    $estimatedTime = 0;
+                    $productionTime = 0;
                 }
 
                 $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
@@ -904,7 +907,7 @@ class HospitalityHelper extends AbstractHelper
 
         }
 
-        return [$status, $statusDescription, $estimatedTime];
+        return [$status, $statusDescription, $productionTime, $qCounter, $kotNo];
     }
 
     /**
@@ -1441,7 +1444,7 @@ class HospitalityHelper extends AbstractHelper
         if (empty($quote)) {
             $quote = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
         }
-        $qrCodeParams              = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+        $qrCodeParams = $quote->getData(LSR::LS_QR_CODE_ORDERING);
         if (empty($qrCodeParams)) {
             $qrCodeParams = $this->qrcodeHelperObject()->getQrCodeOrderingInSession();
         }
