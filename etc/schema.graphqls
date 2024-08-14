@@ -98,6 +98,8 @@ type KitchenInformation {
     estimated_time: String @doc(description: "Estimated Time.")
     pickup_date: String @doc(description: "Order pickup date.")
     pickup_time: String @doc(description: "Order pickup time.")
+    queue_counter: String @doc(description: "Queue Counter.")
+    kot_no: String @doc(description: "Kitchen Order Number.")
 }
 
 type SalesEntryLine {
