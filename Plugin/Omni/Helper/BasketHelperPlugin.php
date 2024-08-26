@@ -91,10 +91,9 @@ class BasketHelperPlugin
 
         foreach ($quoteItems as $index => $quoteItem) {
             ++$index;
-            list($itemId, $variantId, $uom, $barCode) = $subject->itemHelper->getComparisonValues(
-                $quoteItem->getSku()
-            );
-            $product = $subject->productRepository->getById($quoteItem->getProductId());
+            list($itemId, $variantId, $uom, $barCode) =
+                $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
+            $product = $quoteItem->getProduct();
 
             $oneListSubLinesArray = [];
             $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
@@ -320,15 +319,15 @@ class BasketHelperPlugin
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param $item
+     * @param array $lines
      * @return float|int
-     * @return string
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      */
-    public function aroundGetItemRowDiscount(BasketHelper $subject, callable $proceed, $item)
+    public function aroundGetItemRowDiscount(BasketHelper $subject, callable $proceed, $item, $lines = [])
     {
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($item);
+            return $proceed($item, $lines);
         }
         $rowDiscount       = 0;
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
