@@ -279,6 +279,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Check current availability of items.</comment>
                 </field>
+                <field id="disable_inventory_checking"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Disable inventory checking</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Disable inventory checking at checkout and create new items as no manage stock.</comment>
+                </field>
             </group>
         </section>
     </system>

@@ -26,6 +26,7 @@
                 <anonymous_order_enabled>1</anonymous_order_enabled>
                 <remove_checkout_steps>1</remove_checkout_steps>
                 <enable_check_availability>1</enable_check_availability>
+                <disable_inventory_checking>1</disable_inventory_checking>
                 <persist_qrcode_ordering>0</persist_qrcode_ordering>
             </hospitality>
         </ls_mag>

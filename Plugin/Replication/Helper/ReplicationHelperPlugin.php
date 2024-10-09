@@ -47,7 +47,7 @@ class ReplicationHelperPlugin
     ) {
         $result = $proceed($product, $replInvStatus, $isSyncInventory, $sourceItems);
 
-        if ($this->hospitalityHelper->lsr->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
+        if ($this->hospitalityHelper->getLSR()->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
             $deals = $this->hospitalityHelper->getAllDealsGivenMainItemSku(
                 $product,
                 $replInvStatus->getScopeId(),
@@ -57,6 +57,36 @@ class ReplicationHelperPlugin
             foreach ($deals as $deal) {
                 $replInvStatus->setSku($deal->getDealNo());
                 $result = $proceed(null, $replInvStatus, true, $sourceItems);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Around plugin to change status of manage stock
+     *
+     * @param ReplicationHelper $subject
+     * @param $proceed
+     * @param $product
+     * @param $type
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function aroundManageStock(
+        ReplicationHelper $subject,
+        $proceed,
+        $product,
+        $type
+    ) {
+        $result = $proceed($product, $type);
+        if ($this->hospitalityHelper->lsr->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
+            $disableInventoryChecking = $this->hospitalityHelper->getLSR()->isDisableInventory();
+            if ($disableInventoryChecking) {
+                $useManageStock = 0;
+                $result->setStockData([
+                    'use_config_manage_stock' => $useManageStock
+                ]);
             }
         }
 

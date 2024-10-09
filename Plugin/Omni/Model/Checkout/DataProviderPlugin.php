@@ -2,9 +2,12 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
+use Laminas\Json\Json;
+use Ls\Core\Model\Data;
 use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
+use Ls\Omni\Block\Stores\Stores;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -32,7 +35,7 @@ class DataProviderPlugin
         LSR $lsr,
         HospitalityHelper $hospitalityHelper
     ) {
-        $this->lsr = $lsr;
+        $this->lsr               = $lsr;
         $this->hospitalityHelper = $hospitalityHelper;
     }
 
@@ -53,7 +56,7 @@ class DataProviderPlugin
         }
         $takeAwaySalesType = $this->lsr->getTakeAwaySalesType();
 
-        return $result->addFieldToFilter('HospSalesTypes', ['like' => '%'.$takeAwaySalesType.'%']);
+        return $result->addFieldToFilter('HospSalesTypes', ['like' => '%' . $takeAwaySalesType . '%']);
     }
 
     /**
@@ -93,7 +96,7 @@ class DataProviderPlugin
             );
             $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
 
-            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
+            $anonymousOrderRequiredAttributes             = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $storeId
             );
             $result['anonymous_order']['is_enabled']      = (bool)$anonymousOrderEnabled;
@@ -108,6 +111,19 @@ class DataProviderPlugin
         }
         if (empty($subject->basketHelper->getDeliveryHoursFromCheckoutSession())) {
             $deliveryHoursEnabled = 0;
+        }
+        if ($this->lsr->isDisableInventory() && $this->lsr->isHospitalityStore()) {
+            $storesResponse                                = $subject->getRequiredStores();
+            $stores                                        = $storesResponse ? $storesResponse->toArray() : [];
+            $resultPage                                    = $subject->resultPageFactory->create();
+            $storesData                                    = $resultPage->getLayout()->createBlock(Stores::class)
+                ->setTemplate('Ls_Omni::stores/stores.phtml')
+                ->setData('data', $storesResponse)
+                ->setData('storeHours', 0)
+                ->toHtml();
+            $stores['storesInfo']                          = $storesData;
+            $encodedStores                                 = Json::encode($stores);
+            $result['shipping']['select_store'] ['stores'] = $encodedStores;
         }
         $result['shipping'] ['pickup_date_timeslots'] = [
             'options'                => $subject->basketHelper->getStorePickUpHoursFromCheckoutSession(),
