@@ -3,7 +3,6 @@
 namespace Ls\Hospitality\Plugin\Omni\Model\Checkout;
 
 use Laminas\Json\Json;
-use Ls\Core\Model\Data;
 use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
