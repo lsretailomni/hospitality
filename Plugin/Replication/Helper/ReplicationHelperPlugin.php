@@ -80,7 +80,8 @@ class ReplicationHelperPlugin
         $type
     ) {
         $result = $proceed($product, $type);
-        if ($this->hospitalityHelper->lsr->isHospitalityStore($this->hospitalityHelper->lsr->getCurrentStoreId())) {
+        if ($this->hospitalityHelper->getLSR()->isHospitalityStore($this->hospitalityHelper->getLSR()->
+        getCurrentStoreId())) {
             $disableInventoryChecking = $this->hospitalityHelper->getLSR()->isDisableInventory();
             if ($disableInventoryChecking) {
                 $useManageStock = 0;
