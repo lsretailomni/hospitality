@@ -31,5 +31,11 @@ var config = {
                 'Ls_Hospitality/js/view/messages-mixin': true
             }
         }
-    }
+    },
+
+    map: {
+        'Ls_Omni/js/model/shipping-save-processor/checkout': {
+            'Ls_Omni/js/model/shipping-save-processor/payload-extender': 'Ls_Hospitality/js/model/shipping-save-processor/payload-extender'
+        }
+    },
 };
