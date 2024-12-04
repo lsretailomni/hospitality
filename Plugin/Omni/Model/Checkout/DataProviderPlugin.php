@@ -114,8 +114,8 @@ class DataProviderPlugin
         if ($this->lsr->isDisableInventory() && $this->lsr->isHospitalityStore()) {
             $storesResponse                                = $subject->getRequiredStores();
             $stores                                        = $storesResponse ? $storesResponse->toArray() : [];
-            $resultPage                                    = $subject->resultPageFactory->create();
-            $storesData                                    = $resultPage->getLayout()->createBlock(Stores::class)
+            $layout                                        = $subject->layoutFactory->create();
+            $storesData                                    = $layout->createBlock(Stores::class)
                 ->setTemplate('Ls_Omni::stores/stores.phtml')
                 ->setData('data', $storesResponse)
                 ->setData('storeHours', 0)
