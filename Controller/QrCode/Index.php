@@ -55,18 +55,25 @@ class Index implements HttpGetActionInterface
      */
     public function execute()
     {
-        $storeId     = $this->request->getParam('?store_no');
+        $storeId = $this->request->getParam('?store_no');
 
         if (!$storeId) {
-            $storeId     = $this->request->getParam('store_id');
+            $storeId = $this->request->getParam('store_id');
         }
-        $params      = $this->request->getParams();
+        $params = $this->request->getParams();
         if (!empty($storeId) && $this->qrCodeHelper->validateStoreId($storeId)) {
             $this->qrCodeHelper->setQrCodeOrderingInSession($params);
+            $quote = $this->qrCodeHelper->getCheckoutSessionObject()->getQuote();
+            if ($quote !== null && !$quote->getData('is_virtual')) {
+                $quote->setIsVirtual(true);
+                $quote->removeAddress($quote->getShippingAddress()->getId());
+                $quote->setTotalsCollectedFlag(false)->save();
+            }
         } else {
             $error['error'] = __('Store not found.');
             $this->qrCodeHelper->setQrCodeOrderingInSession($error);
         }
+
         $resultPage = $this->resultPageFactory->create();
         $resultPage->getConfig()->getTitle()->set(
             __('QR Code Ordering')

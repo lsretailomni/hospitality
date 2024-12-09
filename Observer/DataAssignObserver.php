@@ -163,7 +163,7 @@ class DataAssignObserver implements ObserverInterface
             }
         }
 
-        if (!$validDateTime) {
+        if (!$validDateTime && !empty($quote->getPickupDateTimeslot())) {
             $message = __('Please select a date & time within store opening hours.');
         }
 
