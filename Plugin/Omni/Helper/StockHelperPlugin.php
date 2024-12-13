@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
-use \Ls\Core\Model\LSR;
+use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Helper\StockHelper;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -77,6 +77,20 @@ class StockHelperPlugin
         $stockCollection             = [];
         $useManageStockItemArray     = [];
         $counter                     = 0;
+        $disableInventoryChecking    = $this->hospitalityHelper->getLSR()->isDisableInventory();
+        if ($disableInventoryChecking) {
+            $items = [];
+            $this->checkoutSession->setNoManageStock(1);
+            return [
+                $subject->getAllItemsStockInSingleStore(
+                    $storeId,
+                    $items
+                ),
+                $stockCollection
+            ];
+        } else {
+            $this->checkoutSession->setNoManageStock(0);
+        }
         foreach ($items as &$item) {
 
             $itemQty = $item->getQty();
@@ -144,7 +158,8 @@ class StockHelperPlugin
             $subject->getAllItemsStockInSingleStore(
                 $storeId,
                 $items
-            ), $stockCollection
+            ),
+            $stockCollection
         ];
     }
 

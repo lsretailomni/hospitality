@@ -114,7 +114,7 @@
                 </field>
                 <field id="dateandtime_range_validation_active"
                        translate="label"
-                       type = "select"
+                       type="select"
                        sortOrder="70"
                        showInWebsite="1"
                        showInDefault="0"
@@ -124,7 +124,7 @@
                 </field>
                 <field id="graphql_dateandtime_range_validation_active"
                        translate="label"
-                       type = "select"
+                       type="select"
                        sortOrder="80"
                        showInWebsite="1"
                        showInDefault="0"
@@ -278,6 +278,19 @@
                     <label>Enable Check Availability</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Check current availability of items.</comment>
+                </field>
+                <field id="disable_inventory_checking"
+                       sortOrder="130"
+                       type="select"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Disable inventory checking</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Disable inventory checking at checkout and create new items as no manage stock.
+                        (Note: In order to work it properly in Magento admin under LS Retail -> Click and Collect -> Checkout Setting -> Show only those stores where all cart items are available configuration
+                        should be set as Yes)
+                    </comment>
                 </field>
             </group>
         </section>

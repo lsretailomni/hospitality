@@ -35,6 +35,7 @@ class LSR extends \Ls\Core\Model\LSR
     const ANONYMOUS_REMOVE_CHECKOUT_STEPS = 'ls_mag/hospitality/remove_checkout_steps';
     const ENABLE_CHECK_AVAILABILITY = 'ls_mag/hospitality/enable_check_availability';
     const PERSIST_QRCODE_ORDERING = 'ls_mag/hospitality/persist_qrcode_ordering';
+    const DISABLE_INVENTORY_CHECKING = 'ls_mag/hospitality/disable_inventory_checking';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -265,5 +266,22 @@ class LSR extends \Ls\Core\Model\LSR
         }
 
         return $this->getStoreConfig(self::ENABLE_CHECK_AVAILABILITY, $storeId);
+    }
+
+    /**
+     * Configuration for disable inventory checking at checkout and create items as non inventory
+     *
+     * @param string $storeId
+     * @return array|string
+     * @throws NoSuchEntityException
+     */
+    public function isDisableInventory($storeId = null)
+    {
+        //If StoreID is not passed they retrieve it from the global area.
+        if ($storeId === null) {
+            $storeId = $this->getCurrentStoreId();
+        }
+
+        return $this->getStoreConfig(self::DISABLE_INVENTORY_CHECKING, $storeId);
     }
 }
