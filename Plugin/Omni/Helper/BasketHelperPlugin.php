@@ -6,12 +6,15 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
+use Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
+use Magento\Catalog\Pricing\Price\FinalPrice;
+use Magento\Catalog\Pricing\Price\RegularPrice;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
@@ -185,8 +188,13 @@ class BasketHelperPlugin
             return $proceed($oneList);
         }
 
-        if (empty($subject->getCouponCode()) && $subject->calculateBasket == 1
-            && empty($subject->getOneListCalculationFromCheckoutSession())) {
+        if ((empty($subject->getCouponCode()) && $subject->calculateBasket == 1
+                && empty($subject->getOneListCalculationFromCheckoutSession())) ||
+            !$subject->lsr->isLSR(
+                $subject->lsr->getCurrentStoreId(),
+                false,
+                (bool)$subject->lsr->getBasketCalculationOnFrontend()
+            )) {
             return null;
         }
 
@@ -287,7 +295,7 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
-        $rowTotal          = "";
+        $rowTotal   = $item->getRowTotalInclTax();
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
             $item->getSku()
@@ -370,6 +378,173 @@ class BasketHelperPlugin
             return $proceed($order);
         }
 
-        return $subject->calculateOneListFromOrder($order);
+        $orderEntity   = new Entity\OrderHosp();
+        $quote         = $subject->cartRepository->get($order->getQuoteId());
+        $websiteId     = $order->getStore()->getWebsiteId();
+        $customerEmail = $order->getCustomerEmail();
+        $webStore      = $subject->lsr->getWebsiteConfig(
+            \Ls\Core\Model\LSR::SC_SERVICE_STORE,
+            $websiteId
+        );
+        $orderEntity->setStoreId($webStore);
+
+        if (!$order->getCustomerIsGuest()) {
+            $customer = $subject->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($customerEmail);
+
+            if (!empty($customer->getData('lsr_cardid'))) {
+                $orderEntity->setCardId($customer->getData('lsr_cardid'));
+            }
+        }
+        $orderDetails            = $subject->getOrderLinesQuote($quote);
+        $orderLinesArray         = $orderDetails['orderLinesArray'];
+        $orderDiscountLinesArray = $orderDetails['orderDiscountLinesArray'];
+        $orderEntity->setOrderLines($orderLinesArray);
+        $orderEntity->setOrderDiscountLines($orderDiscountLinesArray);
+        return $orderEntity;
+    }
+
+    /**
+     * Get Order Lines and Discount Lines
+     *
+     * @param BasketHelper $subject
+     * @param callable $proceed
+     * @param Quote $quote
+     * @return array
+     * @throws InvalidEnumException
+     * @throws NoSuchEntityException
+     */
+    public function aroundGetOrderLinesQuote(
+        BasketHelper $subject,
+        callable $proceed,
+        Quote $quote
+    ) {
+        if ($subject->lsr->getCurrentIndustry($quote->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($quote);
+        }
+
+        $basketResponse  = $quote->getBasketResponse();
+        $discountsArray  = [];
+        $itemsArray      = [];
+        if (!empty($basketResponse)) {
+            // phpcs:ignore Magento2.Security.InsecureFunction.FoundWithAlternative
+            $basketData     = unserialize($basketResponse);
+            $discountsArray = $basketData->getOrderDiscountLines();
+            $itemsArray     = $basketData->getOrderLines();
+        }
+
+        $quoteItems = $quote->getAllVisibleItems();
+        $orderLinesArray = new Entity\ArrayOfOrderHospLine();
+        if (empty($itemsArray)) {
+            $websiteId     = $quote->getStore()->getWebsiteId();
+            $customerEmail = $quote->getCustomerEmail();
+            $customerGroupId = null;
+            if (!$quote->getCustomerIsGuest()) {
+                $customer = $subject->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($customerEmail);
+                $customerGroupId = $customer->getGroupId();
+            }
+            $itemsArray = [];
+
+            foreach ($quoteItems as $index => $quoteItem) {
+                ++$index;
+                list($itemId, $variantId, $uom) =
+                    $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
+                $priceIncTax         = $discountPercentage = null;
+                $product             = $subject->productRepository->get($quoteItem->getSku());
+                if ($customerGroupId) {
+                    $subject->customerSession->setCustomerGroupId($customerGroupId);
+                }
+                $displayRegularPrice = $product->getPriceInfo()->getPrice(
+                    RegularPrice::PRICE_CODE
+                )->getAmount()->getValue();
+                $displayFinalPrice   = $product->getPriceInfo()->getPrice(
+                    FinalPrice::PRICE_CODE
+                )->getAmount()->getValue();
+
+                if ($displayFinalPrice < $displayRegularPrice) {
+                    $priceIncTax        = $displayRegularPrice;
+                    $discount           = $displayRegularPrice - $displayFinalPrice;
+                    $discountPercentage = ($discount / $priceIncTax) * 100;
+                }
+
+                $product = $quoteItem->getProduct();
+
+                $oneListSubLinesArray = [];
+                $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
+                    $quoteItem,
+                    $index
+                );
+
+                if (!empty($selectedSubLines['deal'])) {
+                    foreach ($selectedSubLines['deal'] as $subLine) {
+                        $oneListSubLine         = (new Entity\OrderHospSubLine())
+                            ->setDealLineId($subLine['DealLineId'] ?? null)
+                            ->setDealModifierLineId($subLine['DealModLineId'] ?? null)
+                            ->setLineNumber($subLine['LineNumber'] ?? null)
+                            ->setUom($subLine['uom'] ?? null)
+                            ->setQuantity(1)
+                            ->setType(SubLineType::DEAL);
+                        $oneListSubLinesArray[] = $oneListSubLine;
+                    }
+                }
+
+                if (!empty($selectedSubLines['modifier'])) {
+                    foreach ($selectedSubLines['modifier'] as $subLine) {
+                        $oneListSubLine         = (new Entity\OrderHospSubLine())
+                            ->setDealLineId($subLine['DealLineId'] ?? null)
+                            ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
+                            ->setModifierGroupCode($subLine['ModifierGroupCode'])
+                            ->setModifierSubCode($subLine['ModifierSubCode'])
+                            ->setQuantity(1)
+                            ->setType(SubLineType::MODIFIER);
+                        $oneListSubLinesArray[] = $oneListSubLine;
+                    }
+                }
+
+                if (!empty($selectedSubLines['recipe'])) {
+                    foreach ($selectedSubLines['recipe'] as $subLine) {
+                        $oneListSubLine         = (new Entity\OrderHospSubLine())
+                            ->setDealLineId($subLine['DealLineId'] ?? null)
+                            ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
+                            ->setItemId($subLine['ItemId'])
+                            ->setQuantity(0)
+                            ->setType(SubLineType::MODIFIER);
+                        $oneListSubLinesArray[] = $oneListSubLine;
+                    }
+                }
+                // @codingStandardsIgnoreLine
+                $list_item    = (new Entity\OrderHospLine())
+                    ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
+                    ->setQuantity($quoteItem->getData('qty'))
+                    ->setItemId($itemId)
+                    ->setId($quoteItem->getItemId())
+                    ->setVariantId($variantId)
+                    ->setUomId($uom)
+                    ->setAmount($quoteItem->getRowTotalInclTax())
+                    ->setNetAmount($quoteItem->getRowTotal())
+                    ->setPrice($priceIncTax ?? $quoteItem->getPriceInclTax())
+                    ->setNetPrice($quoteItem->getPrice())
+                    ->setTaxAmount($quoteItem->getTaxAmount())
+                    ->setDiscountAmount(($discount ?? $quoteItem->getDiscountAmount()) * $quoteItem->getData('qty'))
+                    ->setDiscountPercent($discountPercentage ?? $quoteItem->getDiscountPercent())
+                    ->setLineType(Entity\Enum\LineType::ITEM)
+                    ->setSubLines(
+                        (new ArrayOfOrderHospSubLine())->setOrderHospSubLine($oneListSubLinesArray)
+                    );
+                $itemsArray[] = $list_item;
+                if (empty($discountsArray) && ($discountPercentage || $quoteItem->getDiscountAmount() > 0)) {
+                    $orderDiscountLine = new Entity\OrderDiscountLine();
+                    $orderDiscountLine->setDiscountAmount(($discount ?? $quoteItem->getDiscountAmount())* $quoteItem->getData('qty'));
+                    $orderDiscountLine->setDiscountPercent($discountPercentage ?? $quoteItem->getDiscountPercent());
+                    $orderDiscountLine->setDiscountType(Entity\Enum\DiscountType::PERIODIC_DISC);
+                    $discountsArray[] = $orderDiscountLine;
+                }
+            }
+        }
+        $orderLinesArray->setOrderHospLine($itemsArray);
+
+        return [
+            'orderLinesArray'         => ($basketResponse) ? $itemsArray : $orderLinesArray,
+            'orderDiscountLinesArray' => $discountsArray
+        ];
     }
 }

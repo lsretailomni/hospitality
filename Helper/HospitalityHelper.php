@@ -378,6 +378,7 @@ class HospitalityHelper extends AbstractHelper
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
                         $recipeData['DealLineId']      = $mainDealLine->getLineNo();
                         $recipeData['ParentSubLineId'] = $lineNumber;
+                        $recipeData['price'] = $option['price'] ?? null;
                         $recipe                        = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
                         $recipe = $this->getRecipe($lsrId, $optionValue);
@@ -410,7 +411,8 @@ class HospitalityHelper extends AbstractHelper
                             'ModifierSubCode'   => $subCode,
                             'DealLineId'        => $mainDealLineNo,
                             'ParentSubLineId'   => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
-                                $lineNumber : ''
+                                $lineNumber : '',
+                            'price'             => $option['price'] ?? null,
                         ];
                     }
                 }
