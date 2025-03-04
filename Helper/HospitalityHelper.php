@@ -54,6 +54,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Helper\Image as ImageHelper;
+use Magento\Framework\UrlInterface;
 use Zend_Db_Select_Exception;
 
 /**
@@ -206,6 +208,16 @@ class HospitalityHelper extends AbstractHelper
     public $customerSession;
 
     /**
+     * @var ImageHelper
+     */
+    public $imageHelper;
+
+    /**
+     * @var UrlInterface
+     */
+    public $urlInterface;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -236,6 +248,9 @@ class HospitalityHelper extends AbstractHelper
      * @param ItemHelper $itemHelper
      * @param OrderRepositoryInterface $orderRepository
      * @param QrCodeHelper $qrCodeHelper
+     * @param CustomerSession $customerSession
+     * @param ImageHelper $imageHelper
+     * @param UrlInterface $urlInterface
      */
     public function __construct(
         Context $context,
@@ -268,7 +283,9 @@ class HospitalityHelper extends AbstractHelper
         ItemHelper $itemHelper,
         OrderRepositoryInterface $orderRepository,
         QrCodeHelper $qrCodeHelper,
-        CustomerSession $customerSession
+        CustomerSession $customerSession,
+        ImageHelper $imageHelper,
+        URLInterface $urlInterface,
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -301,6 +318,8 @@ class HospitalityHelper extends AbstractHelper
         $this->orderRepository                            = $orderRepository;
         $this->qrCodeHelper                               = $qrCodeHelper;
         $this->customerSession                            = $customerSession;
+        $this->imageHelper                                = $imageHelper;
+        $this->urlInterface                               = $urlInterface;
     }
 
     /**
@@ -879,19 +898,75 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status   = $productionTime = $statusDescription = $qCounter = $kotNo = '';
-        $response = $this->getKitchenOrderStatus(
+        $status    = $productionTime = $statusDescription = $qCounter = $kotNo = '';
+        $linesData = [];
+        $response  = $this->getKitchenOrderStatus(
             $orderId,
             $storeId
         );
 
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $status   = $response->getHospOrderStatusResult()->getStatus();
-                $qCounter = $response->getHospOrderStatusResult()->getQueueCounter();
-                $kotNo    = $response->getHospOrderStatusResult()->getKotNo();
-                if ($this->lsr->displayEstimatedDeliveryTime()) {
-                    $productionTime = $response->getHospOrderStatusResult()->getProductionTime();
+                $orderStatusResult = $response->getHospOrderStatusResult();
+                $orderHospStatus   = method_exists($orderStatusResult, 'getOrderHospStatus') ?
+                    $orderStatusResult->getOrderHospStatus() : null;
+                if (is_array($orderHospStatus)) {
+                    foreach ($orderHospStatus as $resp) {
+                        $status   = $resp->getStatus();
+                        $qCounter = $resp->getQueueCounter();
+                        $kotNo    = $resp->getKotNo();
+
+                        if ($this->lsr->displayEstimatedDeliveryTime()) {
+                            $productionTime = $resp->getProductionTime();
+                        }
+                        $lines   = $resp->getLines()->getOrderHospStatusLine();
+                        $itemIds = [];
+                        foreach ($lines as $line) {
+                            $itemIds[] = $line->getNumber();
+                        }
+                        // Fetch product details once
+                        $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
+                        $productMap   = [];
+                        foreach ($productsData as $product) {
+                            $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
+                                'productName' => $product->getName(),
+                                'imageUrl'    => $this->getProductImageUrl($product),
+                                'productUrl'  => $this->urlInterface->getUrl('catalog/product/view',
+                                    ['id' => $product->getId()])
+                            ];
+                        }
+
+                        $itemCounts = [];
+                        foreach ($lines as $line) {
+                            $itemId = $line->getNumber();
+                            if (!isset($itemCounts[$itemId])) {
+                                $itemCounts[$itemId] = 1;
+                            } else {
+                                $itemCounts[$itemId]++;
+                            }
+                        }
+
+                        $linesData = [];
+                        foreach ($itemCounts as $itemId => $quantity) {
+                            $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                            $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
+                            $linesData[] = [
+                                'itemId'      => $itemId,
+                                'productName' => $productName,
+                                'imageUrl'    => $imageUrl,
+                                'quantity'    => $quantity,
+                                'productUrl'  => $productMap[$itemId]['productUrl']
+                            ];
+                        }
+                    }
+                } else {
+                    $status   = $orderStatusResult->getStatus();
+                    $qCounter = $orderStatusResult->getQueueCounter();
+                    $kotNo    = $orderStatusResult->getKotNo();
+
+                    if ($this->lsr->displayEstimatedDeliveryTime()) {
+                        $productionTime = $orderStatusResult->getProductionTime();
+                    }
                 }
             } else {
                 $status = $response->getHospOrderKotStatusResult()->getStatus();
@@ -907,7 +982,7 @@ class HospitalityHelper extends AbstractHelper
 
         }
 
-        return [$status, $statusDescription, $productionTime, $qCounter, $kotNo];
+        return [$status, $statusDescription, $productionTime, $qCounter, $kotNo, $linesData];
     }
 
     /**
@@ -1477,6 +1552,17 @@ class HospitalityHelper extends AbstractHelper
     public function qrcodeHelperObject()
     {
         return $this->qrCodeHelper;
+    }
+
+    /**
+     * Get Product Image URL
+     *
+     * @param $product
+     * @return string
+     */
+    public function getProductImageUrl($product)
+    {
+        return $this->imageHelper->init($product, 'product_small_image')->getUrl();
     }
 
     /**

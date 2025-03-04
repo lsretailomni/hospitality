@@ -180,6 +180,82 @@
                     font-weight: 300;
                 }
             }
+
+            /* Table Styling */
+            .custom-product-table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed; /* Ensures equal column width */
+            }
+
+            /* Table Borders */
+            .custom-product-table th,
+            .custom-product-table td {
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: center;
+            }
+
+            /* Table Head Styling */
+            .custom-product-table th {
+                background-color: #f4f4f4;
+                font-weight: bold;
+            }
+
+            /* Product Image */
+            .custom-product-table td.product-image img {
+                width: 70px;
+                height: auto;
+                display: block;
+                margin: auto;
+            }
+
+            /* Product Name */
+            .custom-product-table td.product-name a {
+                color: #333;
+                text-decoration: none;
+                font-weight: bold;
+                display: block;
+            }
+
+            /* Quantity */
+            .custom-product-table td.product-qty {
+                font-size: 16px;
+                font-weight: bold;
+                vertical-align: middle;
+            }
+
+            /* ✅ Responsive Design */
+            @media screen and (max-width: 768px) {
+                .custom-table-wrapper {
+                    overflow-x: auto; /* Enables horizontal scrolling */
+                }
+
+                .custom-product-table {
+                    width: 100%;
+                    min-width: 500px; /* Prevents table from shrinking too much */
+                }
+
+                /* Stacking for extra small screens */
+                @media screen and (max-width: 480px) {
+                    .custom-product-table tr {
+                        display: flex;
+                        flex-wrap: wrap;
+                        padding: 10px;
+                        justify-content: space-between;
+                    }
+
+                    .custom-product-table th,
+                    .custom-product-table td {
+                        flex: 1;
+                        text-align: center;
+                    }
+
+                    .custom-product-table td.product-image img {
+                        width: 60px;
+                    }
+                }
+            }
         }
     }
 }
