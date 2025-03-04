@@ -6,7 +6,7 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
-use Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospSubLine;
+use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Operation;
