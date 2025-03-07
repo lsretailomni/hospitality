@@ -443,28 +443,44 @@ class BasketHelperPlugin
                 $customerGroupId = $customer->getGroupId();
             }
             $itemsArray = [];
-
+            $lineNumber = 10000;
             foreach ($quoteItems as $index => $quoteItem) {
                 ++$index;
                 list($itemId, $variantId, $uom) =
                     $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
-                $priceIncTax         = $discountPercentage = null;
+                $discountPercentage = $discount = null;
                 $product             = $subject->productRepository->get($quoteItem->getSku());
                 if ($customerGroupId) {
                     $subject->customerSession->setCustomerGroupId($customerGroupId);
                 }
-                $displayRegularPrice = $product->getPriceInfo()->getPrice(
+                $regularPrice = $product->getPriceInfo()->getPrice(
                     RegularPrice::PRICE_CODE
                 )->getAmount()->getValue();
-                $displayFinalPrice   = $product->getPriceInfo()->getPrice(
+                $finalPrice   = $product->getPriceInfo()->getPrice(
                     FinalPrice::PRICE_CODE
                 )->getAmount()->getValue();
+                $priceIncTax = $regularPrice;
+                $deficit = $subject->getPriceAddingCustomOptions($quoteItem, $priceIncTax);
+                $deficit = $deficit - $priceIncTax;
+                $subject->customerSession->setCustomerGroupId(null);
 
-                if ($displayFinalPrice < $displayRegularPrice) {
-                    $priceIncTax        = $displayRegularPrice;
-                    $discount           = $displayRegularPrice - $displayFinalPrice;
-                    $discountPercentage = ($discount / $priceIncTax) * 100;
+                if ($finalPrice < $regularPrice) {
+                    $discount           = ($regularPrice - $finalPrice) * $quoteItem->getData('qty');
+                    $discountPercentage = (($regularPrice - $finalPrice) / $regularPrice) * 100;
                 }
+
+                $rowTotalInclTax = $quoteItem->getRowTotalInclTax() - $quoteItem->getDiscountAmount();
+
+                if ($deficit > 0) {
+                    $rowTotalInclTax -= $deficit;
+                }
+
+                if ($quoteItem->getDiscountAmount() > 0) {
+                    $regularPrice *= $quoteItem->getQty();
+                    $discount = $regularPrice - $rowTotalInclTax;
+                    $discountPercentage = ($discount / $regularPrice) * 100;
+                }
+
 
                 $product = $quoteItem->getProduct();
 
@@ -512,32 +528,35 @@ class BasketHelperPlugin
                     }
                 }
                 // @codingStandardsIgnoreLine
-                $list_item    = (new Entity\OrderHospLine())
+                $orderLine    = (new Entity\OrderHospLine())
                     ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                     ->setQuantity($quoteItem->getData('qty'))
                     ->setItemId($itemId)
                     ->setId($quoteItem->getItemId())
                     ->setVariantId($variantId)
                     ->setUomId($uom)
-                    ->setAmount($quoteItem->getRowTotalInclTax())
+                    ->setLineNumber($lineNumber)
+                    ->setAmount($rowTotalInclTax)
                     ->setNetAmount($quoteItem->getRowTotal())
                     ->setPrice($priceIncTax ?? $quoteItem->getPriceInclTax())
                     ->setNetPrice($quoteItem->getPrice())
                     ->setTaxAmount($quoteItem->getTaxAmount())
-                    ->setDiscountAmount(($discount ?? $quoteItem->getDiscountAmount()) * $quoteItem->getData('qty'))
-                    ->setDiscountPercent($discountPercentage ?? $quoteItem->getDiscountPercent())
+                    ->setDiscountAmount($discount)
+                    ->setDiscountPercent($discountPercentage)
                     ->setLineType(Entity\Enum\LineType::ITEM)
                     ->setSubLines(
                         (new ArrayOfOrderHospSubLine())->setOrderHospSubLine($oneListSubLinesArray)
                     );
-                $itemsArray[] = $list_item;
-                if (empty($discountsArray) && ($discountPercentage || $quoteItem->getDiscountAmount() > 0)) {
-                    $orderDiscountLine = new Entity\OrderDiscountLine();
-                    $orderDiscountLine->setDiscountAmount(($discount ?? $quoteItem->getDiscountAmount())* $quoteItem->getData('qty'));
-                    $orderDiscountLine->setDiscountPercent($discountPercentage ?? $quoteItem->getDiscountPercent());
-                    $orderDiscountLine->setDiscountType(Entity\Enum\DiscountType::PERIODIC_DISC);
+                $itemsArray[] = $orderLine;
+                if ($discountPercentage && $discount) {
+                    $orderDiscountLine = (new Entity\OrderDiscountLine())
+                        ->setDiscountAmount($discount)
+                        ->setDiscountPercent($discountPercentage)
+                        ->setDiscountType(Entity\Enum\DiscountType::LINE)
+                        ->setLineNumber($lineNumber);
                     $discountsArray[] = $orderDiscountLine;
                 }
+                $lineNumber += 10000;
             }
         }
         $orderLinesArray->setOrderHospLine($itemsArray);
