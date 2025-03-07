@@ -1,12 +1,23 @@
 <?php
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
-list(, $status, $productionTime, $qCounter, $kotNo, $lines, $pickupOrderTime) = $block->getData('data');
+list(, $status, $productionTime, $qCounter, $kotNo, $lines, $tableNo, $pickupOrderTime) = $block->getData('data');
 if (empty($status)) {
     $status = __('Kitchen status service is down. Please try again by refreshing the page.');
 }
 ?>
 <div class="hosp-info-container">
+    <?php if ($tableNo): ?>
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Table No:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */
+                    $tableNo; ?></span>
+            </div>
+        </div>
+    <?php endif; ?>
     <div class="block-content">
         <div class="custom-box">
             <strong class="box-title"><span><?= /* @escapeNotVerified */
@@ -15,7 +26,6 @@ if (empty($status)) {
                 $status; ?></span>
         </div>
     </div>
-    <br/>
     <?php if ($productionTime > 0): ?>
         <div class="block-content">
             <div class="custom-box">
@@ -91,7 +101,7 @@ if (empty($status)) {
                                         </a>
                                     </div>
                                 </td>
-                                <td style="vertical-align: middle" class="product-qty"><?= $line['quantity'] ?></td>
+                                <td class="product-qty"><?= $line['quantity'] ?></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>
