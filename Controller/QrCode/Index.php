@@ -64,7 +64,7 @@ class Index implements HttpGetActionInterface
         if (!empty($storeId) && $this->qrCodeHelper->validateStoreId($storeId)) {
             $this->qrCodeHelper->setQrCodeOrderingInSession($params);
             $quote = $this->qrCodeHelper->getCheckoutSessionObject()->getQuote();
-            if ($quote) {
+            if ($quote !== null && $quote->getId()) {
                 $this->qrCodeHelper->saveQrCodeParams($quote->getId(), $params);
             }
             if ($quote !== null && !$quote->getData('is_virtual')) {

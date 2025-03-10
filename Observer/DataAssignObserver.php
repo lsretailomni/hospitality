@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Observer;
 
 use Carbon\Carbon;
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
@@ -38,21 +39,29 @@ class DataAssignObserver implements ObserverInterface
     private $checkAvailability;
 
     /**
+     * @var QrCodeHelper
+     */
+    private $qrCodeHelper;
+
+    /**
      * @param StoreHelper $storeHelper
      * @param CheckAvailability $checkAvailability
      * @param Http $request
      * @param LSR $lsr
+     * @param QrCodeHelper $qrCodeHelper
      */
     public function __construct(
         StoreHelper $storeHelper,
         CheckAvailability $checkAvailability,
         Http $request,
-        LSR $lsr
+        LSR $lsr,
+        QrCodeHelper $qrCodeHelper
     ) {
         $this->storeHelper       = $storeHelper;
         $this->checkAvailability = $checkAvailability;
         $this->request           = $request;
         $this->lsr               = $lsr;
+        $this->qrCodeHelper      = $qrCodeHelper;
     }
 
     /**
@@ -68,15 +77,21 @@ class DataAssignObserver implements ObserverInterface
     {
         $quote                      = $observer->getQuote();
         $order                      = $observer->getOrder();
-        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+        $shippingMethod             = $quote->getShippingAddress()->getShippingMethod();
         $validatePickupDateRangeMsg = "";
-        $pickupStore = "";
+        $pickupStore                = "";
         if ($quote->getServiceMode()) {
             $order->setServiceMode($quote->getServiceMode());
         }
 
         if ($quote->getData(LSR::LS_ORDER_COMMENT)) {
             $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
+        }
+
+        if (empty($quote->getData(LSR::LS_QR_CODE_ORDERING))) {
+            $qrCodeParams          = $this->qrCodeHelper->getQrCodeOrderingInSession();
+            $serializeQrCodeParams = $this->qrCodeHelper->getSerializeJsonObject()->serialize($qrCodeParams);
+            $quote->setData(LSR::LS_QR_CODE_ORDERING, $serializeQrCodeParams);
         }
 
         if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
