@@ -1366,18 +1366,95 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
-     * Get order by document id
+     * Fix lines order status webhook for group ordering
      *
-     * @param string $documentId
-     * @return false|OrderSearchResultInterface|mixed
+     * @param $data
+     * @param $magentoOrder
+     * @return array
+     * @throws NoSuchEntityException
      */
-    public function getOrderByDocumentId($documentId)
+    public function fixOrderLinesStatusWebhookGroupOrdering($data, $magentoOrder)
+    {
+        $itemLines = [];
+        if (!empty($magentoOrder) && $this->lsr->isHospitalityStore($magentoOrder->getStoreId())) {
+            $lineNo     = 10000;
+            $index      = 1;
+            $qtyOrdered = 0;
+            $status     = $data['HeaderStatus'];
+            foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
+
+                [$itemId, $variantId, $uom] = $this->itemHelper->getComparisonValues(
+                    $orderItem->getSku(),
+                    $orderItem->getProductId()
+                );
+                $totalQtyOrdered = $orderItem->getQtyOrdered();
+                foreach ($data['Lines'] as &$line) {
+                    if ($line['ItemId'] == $itemId && $totalQtyOrdered <= $index) {
+                        $line['Quantity']  = 1;
+                        $line['Amount']    = $orderItem->getQtyOrdered() > 0
+                            ? $orderItem->getPrice() / $orderItem->getQtyOrdered() : 0;
+                        $line['NewStatus'] = $status;
+                        $line['UnitOfMeasureId'] = $uom;
+                        $index++;
+                        $lineNo       += 10000;
+                        $itemLines [] = $line;
+                    }
+                }
+            }
+            $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
+            if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
+                $data['Lines'][] = $this->getLine(
+                    $magentoOrder->getShippingAmount(),
+                    $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $magentoOrder->getStoreId()),
+                    '',
+                    '',
+                    $status,
+                    $qtyOrdered,
+                    '',
+                    '',
+                    ($lineNo + 10000)
+                );
+            }
+        }
+
+        return $itemLines;
+    }
+
+
+    /**
+     * Fix order lines status
+     *
+     * @param $data
+     * @return void
+     */
+    public function fixOrderLinesStatus(&$data)
+    {
+        $status = $data['HeaderStatus'];
+        foreach ($data['Lines'] as &$line) {
+            if ($line['Quantity'] == 0 || $line['NewStatus'] == null) {
+                $line['Quantity']  = 1;
+                $line['NewStatus'] = $status;
+            }
+        }
+    }
+
+    /**
+     * Get orders by document id
+     *
+     * @param $documentId
+     * @param $all
+     * @return false|\Magento\Sales\Api\Data\OrderInterface|OrderSearchResultInterface | \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrderByDocumentId($documentId, $all = false)
     {
         try {
             $order = false;
             $order = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
             );
+            if ($all) {
+                return $order->getItems();
+            }
             $order = current($order->getItems());
         } catch (\Exception $e) {
             $this->_logger->error($e->getMessage());
