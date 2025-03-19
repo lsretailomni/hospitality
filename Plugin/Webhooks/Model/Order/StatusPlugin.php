@@ -83,13 +83,10 @@ class StatusPlugin
                     LSR::SC_INVOICE_KOTSTATUS,
                     $storeId
                 );
-                $invoiceKotStatus       = 'Served';
                 $shipmentKotStatus      = $this->lsr->getStoreConfig(
                     LSR::SC_SHIPMENT_KOTSTATUS,
                     $storeId
                 );
-                $shipmentKotStatus      = 'Served';
-
                 if (!$isClickAndCollectOrder) {
                     if (isset($data['orderKOTStatus']) && $shipmentKotStatus == $data['orderKOTStatus']
                         && $magOrder->canShip()) {
