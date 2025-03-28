@@ -46,7 +46,8 @@ steps:
       CORE_MODULE_REST_API_URL=$(CORE_MODULE_REST_API_URL)
       PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
       B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
-      response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" "${CORE_MODULE_REST_API_URL}")
+      curl -V
+      response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" -H "Accept: application/json" "${CORE_MODULE_REST_API_URL}")
       count=0
       for k in $(jq '.value[].name' <<< "$response"); do
        if [ "${k:1:-1}" == $BRANCH_NAME ]; then
@@ -74,8 +75,6 @@ steps:
       cd /home/vsts/work/1/repos/
       CORE_MODULE_REPO_URL=$(CORE_MODULE_REPO_URL)
       AUTH=$(echo -n ":$(PERSONAL_ACCESS_TOKEN)" | openssl base64 | tr -d '\n')
-      echo $CORE_MODULE_REPO_URL
-      echo $AUTH
       git -c http.$CORE_MODULE_REPO_URL.extraheader="AUTHORIZATION: basic $AUTH" clone $CORE_MODULE_REPO_URL --branch master lsmag-two
     condition: eq(variables['BRANCH_EXISTS'], 'false')
     displayName: 'Checkout core module master branch'
