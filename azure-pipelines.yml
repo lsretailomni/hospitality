@@ -45,9 +45,10 @@ steps:
   - script: |
       CORE_MODULE_REST_API_URL=$(CORE_MODULE_REST_API_URL)
       PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
+      echo $PERSONAL_ACCESS_TOKEN
       B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
-      curl -V
-      response=$(curl --http1.1 -s -X GET -H "Authorization: Basic ${B64_PAT}" "${CORE_MODULE_REST_API_URL}")
+      echo $B64_PAT
+      response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" "${CORE_MODULE_REST_API_URL}")
       echo "$response"
       count=0
       for k in $(jq '.value[].name' <<< "$response"); do
