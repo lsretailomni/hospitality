@@ -48,7 +48,7 @@ steps:
       echo $PERSONAL_ACCESS_TOKEN
       B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64)
       echo $B64_PAT
-      response=$(curl -X GET -H "Authorization: Basic ${B64_PAT}" "${CORE_MODULE_REST_API_URL}")
+      response=$(curl --http1.1 -X GET -H "Authorization: Basic ${B64_PAT}" "${CORE_MODULE_REST_API_URL}")
       echo "$response"
       count=0
       for k in $(jq '.value[].name' <<< "$response"); do
