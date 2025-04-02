@@ -33,7 +33,7 @@ class StatusPlugin
         Shipment $shipment
     ) {
         $this->hospitalityHelper = $hospitalityHelper;
-        $this->lsr = $lsr;
+        $this->lsr               = $lsr;
     }
 
     /**
@@ -48,8 +48,9 @@ class StatusPlugin
     {
         if (!empty($data) && !empty($data['OrderId']) && !empty($data['HeaderStatus'] && empty($data['Lines']))) {
             $this->hospitalityHelper->fakeOrderLinesStatusWebhook($data);
+        } elseif (!empty($data['orderKOTStatus'])) {
+            $this->hospitalityHelper->fixOrderLinesStatus($data);
         }
-
         return [$data];
     }
 
@@ -59,37 +60,47 @@ class StatusPlugin
      * @param Status $subject
      * @param $status
      * @param $itemsInfo
-     * @param $magOrder
+     * @param $magentoOrder
      * @param $data
      * @return array
      * @throws NoSuchEntityException|LocalizedException
      */
-    public function beforeCheckAndProcessStatus(Status $subject, $status, $itemsInfo, $magOrder, $data)
+    public function beforeCheckAndProcessStatus(Status $subject, $status, $itemsInfo, $magentoOrder, $data)
     {
-        $magentoOrder           = $this->hospitalityHelper->getOrderByDocumentId($data['OrderId']);
-        $isClickAndCollectOrder = $subject->helper->isClickAndcollectOrder($magOrder);
-        if (!empty($magentoOrder) && $this->lsr->isHospitalityStore($magentoOrder->getStoreId())) {
-            $storeId           = $magOrder->getStoreId();
-            $invoiceKotStatus  = $this->lsr->getStoreConfig(
-                LSR::SC_INVOICE_KOTSTATUS,
-                $storeId
-            );
-            $shipmentKotStatus = $this->lsr->getStoreConfig(
-                LSR::SC_SHIPMENT_KOTSTATUS,
-                $storeId
-            );
-
-            if (!$isClickAndCollectOrder) {
-                if (isset($data['orderKOTStatus']) && $shipmentKotStatus == $data['orderKOTStatus'] && $magentoOrder->canShip()) {
-                    $subject->payment->createShipment($magentoOrder, $data['Lines']);
+        $mgOrder       = $this->hospitalityHelper->getOrderByDocumentId($data['OrderId'], true);
+        $magentoOrders = is_array($mgOrder) ? $mgOrder : [$mgOrder];
+        $dataInfo = $data;
+        foreach ($magentoOrders as $magOrder) {
+            if (!empty($magOrder) && $this->lsr->isHospitalityStore($magOrder->getStoreId())) {
+                if (count($magentoOrders) > 1) {
+                    $lines         = $this->hospitalityHelper->fixOrderLinesStatusWebhookGroupOrdering($dataInfo,
+                        $magOrder);
+                    $data['Lines'] = $lines;
                 }
-            }
+                $isClickAndCollectOrder = $subject->helper->isClickAndcollectOrder($magOrder);
+                $storeId                = $magOrder->getStoreId();
+                $invoiceKotStatus       = $this->lsr->getStoreConfig(
+                    LSR::SC_INVOICE_KOTSTATUS,
+                    $storeId
+                );
+                $shipmentKotStatus      = $this->lsr->getStoreConfig(
+                    LSR::SC_SHIPMENT_KOTSTATUS,
+                    $storeId
+                );
+                if (!$isClickAndCollectOrder) {
+                    if (isset($data['orderKOTStatus']) && $shipmentKotStatus == $data['orderKOTStatus']
+                        && $magOrder->canShip()) {
+                        $subject->payment->createShipment($magOrder, $data['Lines']);
+                    }
+                }
 
-            if (isset($data['orderKOTStatus']) && $invoiceKotStatus == $data['orderKOTStatus'] && $magentoOrder->canInvoice()) {
-                $subject->payment->generateInvoice($data);
+                if (isset($data['orderKOTStatus']) && $invoiceKotStatus == $data['orderKOTStatus']
+                    && $magOrder->canInvoice()) {
+                    $subject->payment->generateInvoice($data, true, $magOrder);
+                }
             }
         }
 
-        return [$status, $itemsInfo, $magOrder, $data];
+        return [$status, $itemsInfo, $magentoOrders, $data];
     }
 }
