@@ -362,7 +362,9 @@ class ProcessItemModifier
 
                                             if ($existingOptionValue->getSku() ==
                                                 $optionValueData->getSubCode()) {
-                                                $existingOptionValue->setTitle($optionValueData->getDescription());
+                                                $existingOptionValue
+                                                    ->setTitle($optionValueData->getDescription())
+                                                    ->setPrice($optionValueData->getAmountPercent());
                                                 $isOptionValueExist = true;
                                             }
                                             $optionData['values'][$finalCode] = $existingOptionValue;
