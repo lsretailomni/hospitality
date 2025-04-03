@@ -193,7 +193,7 @@ class BasketHelperPlugin
             !$subject->lsr->isLSR(
                 $subject->lsr->getCurrentStoreId(),
                 false,
-                (bool)$subject->lsr->getBasketCalculationOnFrontend()
+                (bool)$subject->lsr->getBasketIntegrationOnFrontend()
             )) {
             return null;
         }
