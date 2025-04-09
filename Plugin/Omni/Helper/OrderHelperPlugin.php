@@ -133,6 +133,8 @@ class OrderHelperPlugin
                         $salesType = $qrCodeParams['sales_type'];
                     }
                     $oneListCalculateResponse->setSalesType($salesType);
+                } else {
+                    $oneListCalculateResponse->setSalesType($this->hospitalityHelper->getLSR()->getDeliverySalesType());
                 }
             }
 

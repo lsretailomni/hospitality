@@ -78,6 +78,20 @@ class ConfigurationPlugin
                         }
                     }
 
+                    // Get option price
+                    $optionPrice = 0;
+                    if ($itemOption) {
+                        $optionValue = $itemOption->getValue();
+                        $values = explode(',', $optionValue); // Handle multiple values
+
+                        foreach ($values as $valueId) {
+                            $value = $option->getValueById($valueId);
+                            if ($value) {
+                                $optionPrice += $value->getPrice();
+                            }
+                        }
+                    }
+
                     $options[] = [
                         'label'                 => $option->getTitle(),
                         'value'                 => $group->getFormattedOptionValue($itemOption->getValue()),
@@ -85,7 +99,8 @@ class ConfigurationPlugin
                         'option_id'             => $option->getId(),
                         'option_type'           => $option->getType(),
                         'custom_view'           => $group->isCustomizedView(),
-                        'ls_modifier_recipe_id' => $option->getData('ls_modifier_recipe_id')
+                        'ls_modifier_recipe_id' => $option->getData('ls_modifier_recipe_id'),
+                        'price'                 => $optionPrice
                     ];
                 }
             }
