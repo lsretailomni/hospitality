@@ -89,7 +89,7 @@ class DataAssignObserver implements ObserverInterface
             $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
         }
 
-        if ($qrCodeParams = $this->qrCodeHelper->getQrCode($quote->getId())) {
+        if ($qrCodeParams = $this->qrCodeHelper->getQrCode($quote->getId(), false)) {
             $order->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
         }
 

@@ -225,7 +225,7 @@ class QrCodeHelper extends AbstractHelper
         $qrCodeParams = null;
         try {
             $quote              = $this->quoteRepository->getActive($cartId);
-            $qrCodeOrderingData = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+            $qrCodeOrderingData = $quote->getData(LSR::LS_QR_CODE_ORDERING) ? $this->serializerJson->unserialize($quote->getData(LSR::LS_QR_CODE_ORDERING)) : '';
 
             if (empty($qrCodeOrderingData)) {
                 $qrCodeOrderingData = $this->getQrCodeOrderingInSession();
