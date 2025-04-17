@@ -3,6 +3,7 @@
 namespace Ls\Hospitality\Observer;
 
 use Carbon\Carbon;
+use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
 use \Ls\Omni\Helper\StoreHelper;
@@ -10,9 +11,11 @@ use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Phrase;
+use Zend_Log_Exception;
 
 /**
  * Class DataAssignObserver for assigning service mode value to order
@@ -38,21 +41,29 @@ class DataAssignObserver implements ObserverInterface
     private $checkAvailability;
 
     /**
+     * @var QrCodeHelper
+     */
+    private $qrCodeHelper;
+
+    /**
      * @param StoreHelper $storeHelper
      * @param CheckAvailability $checkAvailability
      * @param Http $request
      * @param LSR $lsr
+     * @param QrCodeHelper $qrCodeHelper
      */
     public function __construct(
         StoreHelper $storeHelper,
         CheckAvailability $checkAvailability,
         Http $request,
-        LSR $lsr
+        LSR $lsr,
+        QrCodeHelper $qrCodeHelper
     ) {
         $this->storeHelper       = $storeHelper;
         $this->checkAvailability = $checkAvailability;
         $this->request           = $request;
         $this->lsr               = $lsr;
+        $this->qrCodeHelper      = $qrCodeHelper;
     }
 
     /**
@@ -62,7 +73,7 @@ class DataAssignObserver implements ObserverInterface
      * @return DataAssignObserver
      * @throws NoSuchEntityException
      * @throws ValidatorException
-     * @throws \Zend_Log_Exception
+     * @throws Zend_Log_Exception|LocalizedException
      */
     public function execute(Observer $observer)
     {
@@ -70,7 +81,6 @@ class DataAssignObserver implements ObserverInterface
         $order                      = $observer->getOrder();
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
         $validatePickupDateRangeMsg = "";
-        $pickupStore = "";
         if ($quote->getServiceMode()) {
             $order->setServiceMode($quote->getServiceMode());
         }
@@ -79,8 +89,8 @@ class DataAssignObserver implements ObserverInterface
             $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
         }
 
-        if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
-            $order->setData(LSR::LS_QR_CODE_ORDERING, $quote->getData(LSR::LS_QR_CODE_ORDERING));
+        if ($qrCodeParams = $this->qrCodeHelper->getQrCode($quote->getId(), false)) {
+            $order->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
         }
 
         if ($this->lsr->isHospitalityStore()) {

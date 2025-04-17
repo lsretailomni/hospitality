@@ -193,7 +193,7 @@ class BasketHelperPlugin
             !$subject->lsr->isLSR(
                 $subject->lsr->getCurrentStoreId(),
                 false,
-                (bool)$subject->lsr->getBasketCalculationOnFrontend()
+                $subject->lsr->getBasketIntegrationOnFrontend()
             )) {
             return null;
         }
@@ -391,9 +391,12 @@ class BasketHelperPlugin
         if (!$order->getCustomerIsGuest()) {
             $customer = $subject->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($customerEmail);
 
-            if (!empty($customer->getData('lsr_cardid'))) {
-                $orderEntity->setCardId($customer->getData('lsr_cardid'));
+            if (empty($customer->getData('lsr_cardid'))) {
+                $subject->contactHelper->syncCustomerAndAddress($customer);
+                $customer = $subject->contactHelper->loadCustomerByEmailAndWebsiteId($customerEmail, $websiteId);
             }
+
+            $orderEntity->setCardId($customer->getData('lsr_cardid'));
         }
         $orderDetails            = $subject->getOrderLinesQuote($quote);
         $orderLinesArray         = $orderDetails['orderLinesArray'];
