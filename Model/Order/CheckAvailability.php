@@ -183,6 +183,9 @@ class CheckAvailability
                     && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX) {
                     $qty            = 1;
                     $modifier       = current($this->hospitalityHelper->getModifierByDescription($option['value']));
+                    if(!$modifier) {
+                        return;
+                    }
                     $modifierItemId = $modifier->getTriggerCode();
                     $code           = $modifier->getCode();
                     $unitOfMeasure  = $modifier->getUnitOfMeasure();
