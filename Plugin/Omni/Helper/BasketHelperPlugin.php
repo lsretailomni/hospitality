@@ -193,7 +193,7 @@ class BasketHelperPlugin
             !$subject->lsr->isLSR(
                 $subject->lsr->getCurrentStoreId(),
                 false,
-                (bool)$subject->lsr->getBasketCalculationOnFrontend()
+                $subject->lsr->getBasketIntegrationOnFrontend()
             )) {
             return null;
         }
@@ -391,9 +391,12 @@ class BasketHelperPlugin
         if (!$order->getCustomerIsGuest()) {
             $customer = $subject->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($customerEmail);
 
-            if (!empty($customer->getData('lsr_cardid'))) {
-                $orderEntity->setCardId($customer->getData('lsr_cardid'));
+            if (empty($customer->getData('lsr_cardid'))) {
+                $subject->contactHelper->syncCustomerAndAddress($customer);
+                $customer = $subject->contactHelper->loadCustomerByEmailAndWebsiteId($customerEmail, $websiteId);
             }
+
+            $orderEntity->setCardId($customer->getData('lsr_cardid'));
         }
         $orderDetails            = $subject->getOrderLinesQuote($quote);
         $orderLinesArray         = $orderDetails['orderLinesArray'];
@@ -435,13 +438,6 @@ class BasketHelperPlugin
         $quoteItems = $quote->getAllVisibleItems();
         $orderLinesArray = new Entity\ArrayOfOrderHospLine();
         if (empty($itemsArray)) {
-            $websiteId     = $quote->getStore()->getWebsiteId();
-            $customerEmail = $quote->getCustomerEmail();
-            $customerGroupId = null;
-            if (!$quote->getCustomerIsGuest()) {
-                $customer = $subject->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($customerEmail);
-                $customerGroupId = $customer->getGroupId();
-            }
             $itemsArray = [];
             $lineNumber = 10000;
             foreach ($quoteItems as $index => $quoteItem) {
@@ -449,33 +445,30 @@ class BasketHelperPlugin
                 list($itemId, $variantId, $uom) =
                     $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
                 $discountPercentage = $discount = null;
-                $product             = $subject->productRepository->get($quoteItem->getSku());
-                if ($customerGroupId) {
-                    $subject->customerSession->setCustomerGroupId($customerGroupId);
-                }
-                $regularPrice = $product->getPriceInfo()->getPrice(
-                    RegularPrice::PRICE_CODE
-                )->getAmount()->getValue();
-                $finalPrice   = $product->getPriceInfo()->getPrice(
-                    FinalPrice::PRICE_CODE
-                )->getAmount()->getValue();
+                $regularPrice = $quoteItem->getOriginalPrice();
+                $finalPrice   = $quoteItem->getPriceInclTax();
                 $priceIncTax = $regularPrice;
                 $deficit = $subject->getPriceAddingCustomOptions($quoteItem, $priceIncTax);
                 $deficit = $deficit - $priceIncTax;
-                $subject->customerSession->setCustomerGroupId(null);
+                $finalPrice   = $finalPrice - ($deficit / $quoteItem->getQty());
 
                 if ($finalPrice < $regularPrice) {
                     $discount           = ($regularPrice - $finalPrice) * $quoteItem->getData('qty');
                     $discountPercentage = (($regularPrice - $finalPrice) / $regularPrice) * 100;
                 }
+                $cartRuleDiscount = 0;
+                $rowTotalInclTax = $quoteItem->getRowTotalInclTax();
+                if ($quoteItem->getDiscountPercent() > 0) {
+                    $cartRuleDiscount = ($finalPrice * $quoteItem->getQty()) * ($quoteItem->getDiscountPercent() / 100);
+                    $rowTotalInclTax = $rowTotalInclTax - $cartRuleDiscount;
+                }
 
-                $rowTotalInclTax = $quoteItem->getRowTotalInclTax() - $quoteItem->getDiscountAmount();
 
                 if ($deficit > 0) {
                     $rowTotalInclTax -= $deficit;
                 }
 
-                if ($quoteItem->getDiscountAmount() > 0) {
+                if ($cartRuleDiscount > 0) {
                     $regularPrice *= $quoteItem->getQty();
                     $discount = $regularPrice - $rowTotalInclTax;
                     $discountPercentage = ($discount / $regularPrice) * 100;
