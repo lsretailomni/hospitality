@@ -1,12 +1,23 @@
 <?php
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
-list(, $status, $productionTime, $qCounter, $kotNo, $pickupOrderTime) = $block->getData('data');
+list(, $status, $productionTime, $qCounter, $kotNo, $lines, $tableNo, $pickupOrderTime) = $block->getData('data');
 if (empty($status)) {
     $status = __('Kitchen status service is down. Please try again by refreshing the page.');
 }
 ?>
 <div class="hosp-info-container">
+    <?php if ($tableNo): ?>
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Table No:') ?></span></strong>
+                <span><?= /* @escapeNotVerified */
+                    $tableNo; ?></span>
+            </div>
+        </div>
+    <?php endif; ?>
     <div class="block-content">
         <div class="custom-box">
             <strong class="box-title"><span><?= /* @escapeNotVerified */
@@ -15,7 +26,6 @@ if (empty($status)) {
                 $status; ?></span>
         </div>
     </div>
-    <br/>
     <?php if ($productionTime > 0): ?>
         <div class="block-content">
             <div class="custom-box">
@@ -58,6 +68,45 @@ if (empty($status)) {
                 __('Queue Counter:') ?></span></strong>
                 <span><?= /* @escapeNotVerified */
                     $qCounter; ?></span>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($lines): ?>
+        <div class="block-content">
+            <div class="custom-box">
+                <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Items Ordered:') ?></span></strong>
+                <div class="custom-table-wrapper">
+                    <table class="custom-product-table cart items data table">
+                        <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($lines as $line): ?>
+                            <tr>
+                                <td class="product-image">
+                                    <span class="product-image-container">
+                                            <a href="<?= $line['productUrl'] ?>" target="_blank">
+                                                <img src="<?= $line['imageUrl'] ?>"
+                                                     alt="<?= $block->escapeHtml($line['productName']) ?>">
+                                            </a>
+                                    </span>
+                                    <div class="product-item-details">
+                                        <a href="<?= $line['productUrl'] ?>" target="_blank">
+                                            <?= $block->escapeHtml($line['productName']) ?>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td class="product-qty"><?= $line['quantity'] ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     <?php endif; ?>

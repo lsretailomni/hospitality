@@ -79,8 +79,9 @@ class DataAssignObserver implements ObserverInterface
     {
         $quote                      = $observer->getQuote();
         $order                      = $observer->getOrder();
-        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+        $shippingMethod             = $quote->getShippingAddress()->getShippingMethod();
         $validatePickupDateRangeMsg = "";
+        $pickupStore                = "";
         if ($quote->getServiceMode()) {
             $order->setServiceMode($quote->getServiceMode());
         }
@@ -89,8 +90,14 @@ class DataAssignObserver implements ObserverInterface
             $order->setData(LSR::LS_ORDER_COMMENT, $quote->getData(LSR::LS_ORDER_COMMENT));
         }
 
-        if ($qrCodeParams = $this->qrCodeHelper->getQrCode($quote->getId(), false)) {
-            $order->setData(LSR::LS_QR_CODE_ORDERING, $qrCodeParams);
+        if (empty($quote->getData(LSR::LS_QR_CODE_ORDERING))) {
+            $qrCodeParams          = $this->qrCodeHelper->getQrCodeOrderingInSession();
+            $serializeQrCodeParams = $this->qrCodeHelper->getSerializeJsonObject()->serialize($qrCodeParams);
+            $quote->setData(LSR::LS_QR_CODE_ORDERING, $serializeQrCodeParams);
+        }
+
+        if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
+            $order->setData(LSR::LS_QR_CODE_ORDERING, $quote->getData(LSR::LS_QR_CODE_ORDERING));
         }
 
         if ($this->lsr->isHospitalityStore()) {

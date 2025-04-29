@@ -54,6 +54,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Helper\Image as ImageHelper;
+use Magento\Catalog\Model\Product\Url;
 use Zend_Db_Select_Exception;
 
 /**
@@ -206,6 +208,16 @@ class HospitalityHelper extends AbstractHelper
     public $customerSession;
 
     /**
+     * @var ImageHelper
+     */
+    public $imageHelper;
+
+    /**
+     * @var Url
+     */
+    public $productUrlBuilder;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -236,6 +248,9 @@ class HospitalityHelper extends AbstractHelper
      * @param ItemHelper $itemHelper
      * @param OrderRepositoryInterface $orderRepository
      * @param QrCodeHelper $qrCodeHelper
+     * @param CustomerSession $customerSession
+     * @param ImageHelper $imageHelper
+     * @param Url $productUrlBuilder
      */
     public function __construct(
         Context $context,
@@ -268,7 +283,9 @@ class HospitalityHelper extends AbstractHelper
         ItemHelper $itemHelper,
         OrderRepositoryInterface $orderRepository,
         QrCodeHelper $qrCodeHelper,
-        CustomerSession $customerSession
+        CustomerSession $customerSession,
+        ImageHelper $imageHelper,
+        Url $productUrlBuilder,
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -301,6 +318,8 @@ class HospitalityHelper extends AbstractHelper
         $this->orderRepository                            = $orderRepository;
         $this->qrCodeHelper                               = $qrCodeHelper;
         $this->customerSession                            = $customerSession;
+        $this->imageHelper                                = $imageHelper;
+        $this->productUrlBuilder                          = $productUrlBuilder;
     }
 
     /**
@@ -881,7 +900,15 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status   = $productionTime = $statusDescription = $qCounter = $kotNo = '';
+        $status     = $productionTime = $statusDescription = $qCounter = $kotNo = '';
+        $linesData  = [];
+        $order      = $this->getOrderByDocumentId($orderId);
+        $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
+        $tableNo    = '';
+        if ($qrcodeInfo) {
+            $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
+            $tableNo      = $qrcodeParams['table_no'];
+        }
         $response = $this->getKitchenOrderStatus(
             $orderId,
             $storeId
@@ -889,11 +916,65 @@ class HospitalityHelper extends AbstractHelper
 
         if (!empty($response)) {
             if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $status   = $response->getHospOrderStatusResult()->getStatus();
-                $qCounter = $response->getHospOrderStatusResult()->getQueueCounter();
-                $kotNo    = $response->getHospOrderStatusResult()->getKotNo();
-                if ($this->lsr->displayEstimatedDeliveryTime()) {
-                    $productionTime = $response->getHospOrderStatusResult()->getProductionTime();
+                $orderStatusResult = $response->getHospOrderStatusResult();
+                $orderHospStatus   = method_exists($orderStatusResult, 'getOrderHospStatus') ?
+                    $orderStatusResult->getOrderHospStatus() : null;
+                if (is_array($orderHospStatus)) {
+                    foreach ($orderHospStatus as $resp) {
+                        $status   = $resp->getStatus();
+                        $qCounter = $resp->getQueueCounter();
+                        $kotNo    = $resp->getKotNo();
+
+                        if ($this->lsr->displayEstimatedDeliveryTime()) {
+                            $productionTime = $resp->getProductionTime();
+                        }
+                        $lines   = $resp->getLines()->getOrderHospStatusLine();
+                        $itemIds = [];
+                        foreach ($lines as $line) {
+                            $itemIds[] = $line->getNumber();
+                        }
+                        // Fetch product details once
+                        $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
+                        $productMap   = [];
+                        foreach ($productsData as $product) {
+                            $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
+                                'productName' => $product->getName(),
+                                'imageUrl'    => $this->getProductImageUrl($product),
+                                'productUrl'  => $this->productUrlBuilder->getUrl($product)
+                            ];
+                        }
+
+                        $itemCounts = [];
+                        foreach ($lines as $line) {
+                            $itemId = $line->getNumber();
+                            if (!isset($itemCounts[$itemId])) {
+                                $itemCounts[$itemId] = 1;
+                            } else {
+                                $itemCounts[$itemId]++;
+                            }
+                        }
+
+                        $linesData = [];
+                        foreach ($itemCounts as $itemId => $quantity) {
+                            $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                            $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
+                            $linesData[] = [
+                                'itemId'      => $itemId,
+                                'productName' => $productName,
+                                'imageUrl'    => $imageUrl,
+                                'quantity'    => $quantity,
+                                'productUrl'  => $productMap[$itemId]['productUrl']
+                            ];
+                        }
+                    }
+                } else {
+                    $status   = $orderStatusResult->getStatus();
+                    $qCounter = $orderStatusResult->getQueueCounter();
+                    $kotNo    = $orderStatusResult->getKotNo();
+
+                    if ($this->lsr->displayEstimatedDeliveryTime()) {
+                        $productionTime = $orderStatusResult->getProductionTime();
+                    }
                 }
             } else {
                 $status = $response->getHospOrderKotStatusResult()->getStatus();
@@ -909,7 +990,7 @@ class HospitalityHelper extends AbstractHelper
 
         }
 
-        return [$status, $statusDescription, $productionTime, $qCounter, $kotNo];
+        return [$status, $statusDescription, $productionTime, $qCounter, $kotNo, $linesData, $tableNo];
     }
 
     /**
@@ -1450,10 +1531,13 @@ class HospitalityHelper extends AbstractHelper
     public function getOrderByDocumentId($documentId, $all = false)
     {
         try {
-            $order = false;
-            $order = $this->orderRepository->getList(
+            $order      = false;
+            $order      = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
             );
+
+            $orderArray = $order->getItems();
+            $order      = end($orderArray);
             if ($all) {
                 return $order->getItems();
             }
@@ -1556,6 +1640,164 @@ class HospitalityHelper extends AbstractHelper
     public function qrcodeHelperObject()
     {
         return $this->qrCodeHelper;
+    }
+
+    /**
+     * Get Product Image URL
+     *
+     * @param $product
+     * @return string
+     */
+    public function getProductImageUrl($product)
+    {
+        return $this->imageHelper->init($product, 'product_small_image')->getUrl();
+    }
+
+
+    /**
+     * Format items for sales entries
+     *
+     * @param $subject
+     * @param $items
+     * @param $magOrder
+     * @return array
+     */
+    public function getItems($subject, $items, $magOrder)
+    {
+        $itemsArray  = [];
+        $childrenKey = 'subitems';
+        foreach ($items as $item) {
+            $data = [
+                'amount'                 => $item->getAmount(),
+                'click_and_collect_line' => $item->getClickAndCollectLine(),
+                'discount_amount'        => $item->getDiscountAmount(),
+                'discount_percent'       => $item->getDiscountPercent(),
+                'item_description'       => $item->getItemDescription(),
+                'item_id'                => $item->getItemId(),
+                'item_image_id'          => $item->getItemImageId(),
+                'line_number'            => $item->getLineNumber(),
+                'line_type'              => $item->getLineType(),
+                'net_amount'             => $item->getNetAmount(),
+                'net_price'              => $item->getNetPrice(),
+                'parent_line'            => $item->getParentLine(),
+                'price'                  => $item->getPrice(),
+                'quantity'               => $item->getQuantity(),
+                'store_id'               => $item->getStoreId(),
+                'tax_amount'             => $item->getTaxAmount(),
+                'uom_id'                 => $item->getUomId(),
+                'variant_description'    => $item->getVariantDescription(),
+                'variant_id'             => $item->getVariantId(),
+            ];
+            if ($magOrder) {
+                $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getItemId(), $subject);
+            }
+            $lineNumber = $item->getLineNumber();
+            $parentLine = $item->getParentLine();
+            if (empty($parentLine) || $lineNumber == $parentLine) {
+                if (!empty($itemsArray) && array_key_exists($lineNumber, $itemsArray)) {
+                    $tempArray[$lineNumber]                = $data;
+                    $tempArray [$lineNumber][$childrenKey] = $itemsArray[$lineNumber][$childrenKey];
+                    $itemsArray[$lineNumber]               = $tempArray[$lineNumber];
+                    $tempArray                             = null;
+                } else {
+                    $itemsArray [$lineNumber] = $data;
+                }
+            } else {
+                $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
+            }
+        }
+
+        $itemsArray = $this->sortItemsAsParentChild($itemsArray, $childrenKey);
+
+        return $this->sumTotalItemsAmount($itemsArray, $childrenKey);
+    }
+
+    /**
+     * Adding up prices for subitems
+     *
+     * @param $itemsArray
+     * @param $childrenKey
+     * @return array
+     */
+    public function sumTotalItemsAmount($itemsArray, $childrenKey)
+    {
+        foreach ($itemsArray as $mainKey => $arrayData) {
+            $lineType = $arrayData['line_type'];
+            $amount   = $arrayData['amount'];
+            if (array_key_exists($childrenKey, $arrayData)) {
+                foreach ($arrayData[$childrenKey] as $key => $value) {
+                    if ($lineType == Entity\Enum\LineType::DEAL) {
+                        if (array_key_exists($childrenKey, $value)) {
+                            foreach ($value[$childrenKey] as $subitems) {
+                                $amount += $subitems['amount'];
+                            }
+                        }
+                    } else {
+                        $amount += $value['amount'];
+                    }
+                }
+            }
+            $itemsArray[$mainKey]['amount'] = $amount;
+        }
+
+        return $itemsArray;
+    }
+
+    /**
+     * Sorting items
+     *
+     * @param $itemsArray
+     * @param $childrenKey
+     * @return array
+     */
+    public function sortItemsAsParentChild($itemsArray, $childrenKey)
+    {
+        foreach ($itemsArray as $mainKey => $arrayData) {
+            if (array_key_exists($childrenKey, $arrayData)) {
+                foreach ($arrayData[$childrenKey] as $key => $value) {
+                    if (array_key_exists($key, $itemsArray)) {
+                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
+                        unset($itemsArray[$key]);
+                    }
+                }
+            }
+        }
+
+        return $itemsArray;
+    }
+
+    /**
+     * Get custom options from magento
+     *
+     * @param $magOrder
+     * @param $id
+     * @param $subject
+     * @return array
+     */
+    public function formatCustomOptions($magOrder, $id, $subject)
+    {
+        $outputOptions = [];
+        if (!empty($magOrder)) {
+            $items   = $magOrder->getAllVisibleItems();
+            $counter = 0;
+            foreach ($items as $item) {
+                list($itemId) = $subject->itemHelper->getComparisonValues(
+                    $item->getSku()
+                );
+                if ($itemId == $id) {
+                    $options = $item->getProductOptions();
+                    if (isset($options['options']) && !empty($options['options'])) {
+                        foreach ($options['options'] as $option) {
+                            $outputOptions[$counter]['label'] = $option['label'];
+                            $outputOptions[$counter]['value'] = $option['value'];
+                            $counter++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $outputOptions;
     }
 
     /**

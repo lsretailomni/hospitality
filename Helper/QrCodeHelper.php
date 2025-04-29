@@ -305,13 +305,23 @@ class QrCodeHelper extends AbstractHelper
         $this->checkoutSession->setData(LSR::LS_QR_CODE_ORDERING, null);
     }
 
-   /**
-    * Get checkout session qr code ordering
-    *
-    * @return mixed
-    */
+    /**
+     * Get checkout session qr code ordering
+     *
+     * @return mixed
+     */
     public function getCheckoutSessionObject()
     {
         return $this->checkoutSession;
+    }
+
+    /**
+     * Get serialize json
+     *
+     * @return mixed
+     */
+    public function getSerializeJsonObject()
+    {
+        return $this->serializerJson;
     }
 }
