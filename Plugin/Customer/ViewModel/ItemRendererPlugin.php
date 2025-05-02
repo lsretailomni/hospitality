@@ -1,16 +1,16 @@
 <?php
 
-namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
+namespace Ls\Hospitality\Plugin\Customer\ViewModel;
 
-use \Ls\CustomerGraphQl\Helper\DataHelper;
+use \Ls\Customer\ViewModel\ItemRenderer;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
- * DataHelper plugin for sales entries
+ * Format items for hospitality
  */
-class DataHelperPlugin
+class ItemRendererPlugin
 {
 
     /**
@@ -46,16 +46,14 @@ class DataHelperPlugin
      * @throws NoSuchEntityException
      */
     public function aroundGetItems(
-        DataHelper $subject,
+        ItemRenderer $subject,
         callable $proceed,
-        $items,
-        $magOrder
+        $item
     ) {
         if (!$this->lsr->isHospitalityStore()) {
-            return $proceed($items);
+            return $proceed($item);
         }
-
-        return $this->hospitalityHelper->getItems($subject, $items->getSalesEntryLine(), $magOrder);
+        $items = $subject->getOrder()->getLines()->getSalesEntryLine();
+        return $this->hospitalityHelper->getItems($subject, $items, null);
     }
-
 }

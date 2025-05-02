@@ -44,4 +44,7 @@
         <plugin name="save_quote_as_virtual"
                 type="Ls\Hospitality\Plugin\Quote\Model\QuotePlugin"/>
     </type>
+    <type name="Ls\Customer\ViewModel\ItemRenderer">
+        <plugin name="ls_hospitality_customer_viewmodel_itemrenderer" type="Ls\Hospitality\Plugin\Customer\ViewModel\ItemRendererPlugin"/>
+    </type>
 </config>
