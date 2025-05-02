@@ -100,6 +100,15 @@ type KitchenInformation {
     pickup_time: String @doc(description: "Order pickup time.")
     queue_counter: String @doc(description: "Queue Counter.")
     kot_no: String @doc(description: "Kitchen Order Number.")
+    order_items : [OrderItems] @doc(description : "Order Items.")
+}
+
+type OrderItems {
+    itemId: String @doc(description: "Order Item Id")
+    productName: String @doc(description: "Order Item Name")
+    imageUrl: String @doc(description: "Order Item Image Url")
+    quantity: Int @doc(description: "Order Item Quantity")
+    productUrl: String @doc(description: "Order Item Url")
 }
 
 type SalesEntryLine {
