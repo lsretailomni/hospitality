@@ -107,8 +107,10 @@ type OrderItems {
     itemId: String @doc(description: "Order Item Id")
     productName: String @doc(description: "Order Item Name")
     imageUrl: String @doc(description: "Order Item Image Url")
+    imagePath: String @doc(description: "Order Item Image Path")
     quantity: Int @doc(description: "Order Item Quantity")
     productUrl: String @doc(description: "Order Item Url")
+    productUrlKey: String @doc(description: "Order Item Url Key")
 }
 
 type SalesEntryLine {

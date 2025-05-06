@@ -60,6 +60,7 @@ class KitchenInformation implements ResolverInterface
             'queue_counter'           => $qCounter,
             'kot_no'                  => $kotNo,
             'order_items'             => $linesData,
+            'order_items_count'       => count($linesData) ." "
         ];
     }
 }
