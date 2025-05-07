@@ -28,6 +28,7 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
+use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Api\AddressMetadataInterface;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -937,13 +938,16 @@ class HospitalityHelper extends AbstractHelper
                         $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
                         $productMap   = [];
                         foreach ($productsData as $product) {
+                            if($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+                                continue;
+                            }
                             $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
                                 'productName' => $product->getName(),
                                 'imageUrl'    => $this->getProductImageUrl($product),
                                 'imagePath'   => $product->getImage(),
                                 'productUrl'  => $this->productUrlBuilder->getUrl($product),
                                 'productUrlKey' => $product->getUrlKey()
-                            ];
+                            ];    
                         }
 
                         $itemCounts = [];
