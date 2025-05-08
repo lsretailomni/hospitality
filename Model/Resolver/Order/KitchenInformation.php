@@ -47,18 +47,20 @@ class KitchenInformation implements ResolverInterface
         }
         $orderId  = $args['order_id'];
         $webStore = $this->hospitalityLsr->getActiveWebStore();
-        list ($status, $statusDescription, $productionTime, $qCounter, $kotNo)
+        list ($status, $statusDescription, $productionTime, $qCounter, $kotNo, $linesData)
             = $this->hospitalityHelper->getKitchenOrderStatusDetails($orderId, $webStore);
 
         return [
-            'status_code'            => $status,
-            'status_description'     => $statusDescription,
-            'display_estimated_time' => $this->hospitalityLsr->displayEstimatedDeliveryTime(),
-            'estimated_time'         => $productionTime . ' Minutes',
-            'pickup_date'            => $this->hospitalityHelper->getOrderPickupDate($orderId),
-            'pickup_time'            => $this->hospitalityHelper->getOrderPickupTime($orderId),
-            'queue_counter'          => $qCounter,
-            'kot_no'                 => $kotNo
+            'status_code'             => $status,
+            'status_description'      => $statusDescription,
+            'display_estimated_time'  => $this->hospitalityLsr->displayEstimatedDeliveryTime(),
+            'estimated_time'          => $productionTime . ' Minutes',
+            'pickup_date'             => $this->hospitalityHelper->getOrderPickupDate($orderId),
+            'pickup_time'             => $this->hospitalityHelper->getOrderPickupTime($orderId),
+            'queue_counter'           => $qCounter,
+            'kot_no'                  => $kotNo,
+            'order_items'             => $linesData,
+            'order_items_count'       => count($linesData) ." "
         ];
     }
 }
