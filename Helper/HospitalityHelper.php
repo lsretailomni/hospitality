@@ -28,6 +28,7 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
 use Magento\Catalog\Model\Product\Interceptor;
+use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Api\AddressMetadataInterface;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -937,11 +938,16 @@ class HospitalityHelper extends AbstractHelper
                         $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
                         $productMap   = [];
                         foreach ($productsData as $product) {
+                            if($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+                                continue;
+                            }
                             $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
                                 'productName' => $product->getName(),
                                 'imageUrl'    => $this->getProductImageUrl($product),
-                                'productUrl'  => $this->productUrlBuilder->getUrl($product)
-                            ];
+                                'imagePath'   => $product->getImage(),
+                                'productUrl'  => $this->productUrlBuilder->getUrl($product),
+                                'productUrlKey' => $product->getUrlKey()
+                            ];    
                         }
 
                         $itemCounts = [];
@@ -956,15 +962,20 @@ class HospitalityHelper extends AbstractHelper
 
                         $linesData = [];
                         foreach ($itemCounts as $itemId => $quantity) {
-                            $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
-                            $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
-                            $linesData[] = [
-                                'itemId'      => $itemId,
-                                'productName' => $productName,
-                                'imageUrl'    => $imageUrl,
-                                'quantity'    => $quantity,
-                                'productUrl'  => $productMap[$itemId]['productUrl']
-                            ];
+                            if($itemId) {
+                                $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                                $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
+                                $imagePath    = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
+                                $linesData[] = [
+                                    'itemId'      => $itemId,
+                                    'productName' => $productName,
+                                    'imageUrl'    => $imageUrl,
+                                    'imagePath'   => $imagePath,
+                                    'quantity'    => $quantity,
+                                    'productUrl'  => $productMap[$itemId]['productUrl'],
+                                    'productUrlKey'  => $productMap[$itemId]['productUrlKey'].".html"
+                                ];    
+                            }                            
                         }
                     }
                 } else {
@@ -984,7 +995,6 @@ class HospitalityHelper extends AbstractHelper
                 if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                     $productionTime = 0;
                 }
-
                 $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
             }
 
@@ -1650,7 +1660,9 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getProductImageUrl($product)
     {
-        return $this->imageHelper->init($product, 'product_small_image')->getUrl();
+        return $this->imageHelper->init($product, 'product_small_image')
+            ->setImageFile($product->getSmallImage())
+            ->getUrl();
     }
 
 
