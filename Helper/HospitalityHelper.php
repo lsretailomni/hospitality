@@ -398,7 +398,7 @@ class HospitalityHelper extends AbstractHelper
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
                         $recipeData['DealLineId']      = $mainDealLine->getLineNo();
                         $recipeData['ParentSubLineId'] = $lineNumber;
-                        $recipeData['price'] = $option['price'] ?? null;
+                        $recipeData['price']           = $option['price'] ?? null;
                         $recipe                        = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
                         $recipe = $this->getRecipe($lsrId, $optionValue);
@@ -938,16 +938,16 @@ class HospitalityHelper extends AbstractHelper
                         $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
                         $productMap   = [];
                         foreach ($productsData as $product) {
-                            if($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+                            if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
                                 continue;
                             }
                             $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
-                                'productName' => $product->getName(),
-                                'imageUrl'    => $this->getProductImageUrl($product),
-                                'imagePath'   => $product->getImage(),
-                                'productUrl'  => $this->productUrlBuilder->getUrl($product),
+                                'productName'   => $product->getName(),
+                                'imageUrl'      => $this->getProductImageUrl($product),
+                                'imagePath'     => $product->getImage(),
+                                'productUrl'    => $this->productUrlBuilder->getUrl($product),
                                 'productUrlKey' => $product->getUrlKey()
-                            ];    
+                            ];
                         }
 
                         $itemCounts = [];
@@ -962,20 +962,20 @@ class HospitalityHelper extends AbstractHelper
 
                         $linesData = [];
                         foreach ($itemCounts as $itemId => $quantity) {
-                            if($itemId) {
+                            if ($itemId) {
                                 $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
                                 $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
-                                $imagePath    = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
+                                $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
                                 $linesData[] = [
-                                    'itemId'      => $itemId,
-                                    'productName' => $productName,
-                                    'imageUrl'    => $imageUrl,
-                                    'imagePath'   => $imagePath,
-                                    'quantity'    => $quantity,
-                                    'productUrl'  => $productMap[$itemId]['productUrl'],
-                                    'productUrlKey'  => $productMap[$itemId]['productUrlKey'].".html"
-                                ];    
-                            }                            
+                                    'itemId'        => $itemId,
+                                    'productName'   => $productName,
+                                    'imageUrl'      => $imageUrl,
+                                    'imagePath'     => $imagePath,
+                                    'quantity'      => $quantity,
+                                    'productUrl'    => $productMap[$itemId]['productUrl'],
+                                    'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                                ];
+                            }
                         }
                     }
                 } else {
@@ -1483,10 +1483,10 @@ class HospitalityHelper extends AbstractHelper
                 $totalQtyOrdered = $orderItem->getQtyOrdered();
                 foreach ($data['Lines'] as &$line) {
                     if ($line['ItemId'] == $itemId && $totalQtyOrdered <= $index) {
-                        $line['Quantity']  = 1;
-                        $line['Amount']    = $orderItem->getQtyOrdered() > 0
+                        $line['Quantity']        = 1;
+                        $line['Amount']          = $orderItem->getQtyOrdered() > 0
                             ? $orderItem->getPrice() / $orderItem->getQtyOrdered() : 0;
-                        $line['NewStatus'] = $status;
+                        $line['NewStatus']       = $status;
                         $line['UnitOfMeasureId'] = $uom;
                         $index++;
                         $lineNo       += 10000;
@@ -1538,20 +1538,15 @@ class HospitalityHelper extends AbstractHelper
      * @param $all
      * @return false|\Magento\Sales\Api\Data\OrderInterface|OrderSearchResultInterface | \Magento\Sales\Api\Data\OrderInterface[]
      */
-    public function getOrderByDocumentId($documentId, $all = false)
+    public function getOrderByDocumentId($documentId)
     {
         try {
             $order      = false;
             $order      = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
             );
-
             $orderArray = $order->getItems();
             $order      = end($orderArray);
-            if ($all) {
-                return $order->getItems();
-            }
-            $order = current($order->getItems());
         } catch (\Exception $e) {
             $this->_logger->error($e->getMessage());
         }
