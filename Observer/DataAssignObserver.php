@@ -91,9 +91,11 @@ class DataAssignObserver implements ObserverInterface
         }
 
         if (empty($quote->getData(LSR::LS_QR_CODE_ORDERING))) {
-            $qrCodeParams          = $this->qrCodeHelper->getQrCodeOrderingInSession();
-            $serializeQrCodeParams = $this->qrCodeHelper->getSerializeJsonObject()->serialize($qrCodeParams);
-            $quote->setData(LSR::LS_QR_CODE_ORDERING, $serializeQrCodeParams);
+            $qrCodeParams = $this->qrCodeHelper->getQrCodeOrderingInSession();
+            if (!empty($qrCodeParams)) {
+                $serializeQrCodeParams = $this->qrCodeHelper->getSerializeJsonObject()->serialize($qrCodeParams);
+                $quote->setData(LSR::LS_QR_CODE_ORDERING, $serializeQrCodeParams);
+            }
         }
 
         if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
