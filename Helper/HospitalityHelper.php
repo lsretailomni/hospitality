@@ -1439,7 +1439,6 @@ class HospitalityHelper extends AbstractHelper
                 }
             }
 
-            $data['Amount']         = $magentoOrder->getGrandTotal();
             $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
 
             if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
