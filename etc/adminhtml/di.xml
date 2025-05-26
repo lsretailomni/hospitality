@@ -1,41 +1,41 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\Grid\Collection"
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchydealview\Grid\Collection"
                  type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
-            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchy_hosp_deal</argument>
-            <argument name="resourceModel" xsi:type="string">Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchydealview</argument>
+            <argument name="resourceModel" xsi:type="string">Ls\Replication\Model\ResourceModel\ReplHierarchydealview
             </argument>
         </arguments>
     </virtualType>
 
-    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\Grid\Collection"
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview\Grid\Collection"
                  type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
-            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchy_hosp_deal_line</argument>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_hierarchydeallineview</argument>
             <argument name="resourceModel" xsi:type="string">
-                Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine
+                Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview
             </argument>
         </arguments>
     </virtualType>
 
-    <virtualType name="Ls\Replication\Model\ResourceModel\ReplItemRecipe\Grid\Collection"
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplLscWiItemRecipeBuffer\Grid\Collection"
                  type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
-            <argument name="mainTable" xsi:type="string">ls_replication_repl_item_recipe</argument>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_lsc_wi_item_recipe_buffer</argument>
             <argument name="resourceModel" xsi:type="string">
-                Ls\Replication\Model\ResourceModel\ReplItemRecipe
+                Ls\Replication\Model\ResourceModel\ReplLscWiItemRecipeBuffer
             </argument>
         </arguments>
     </virtualType>
 
-    <virtualType name="Ls\Replication\Model\ResourceModel\ReplItemModifier\Grid\Collection"
+    <virtualType name="Ls\Replication\Model\ResourceModel\ReplLscWiItemModifier\Grid\Collection"
                  type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
-            <argument name="mainTable" xsi:type="string">ls_replication_repl_item_modifier</argument>
+            <argument name="mainTable" xsi:type="string">ls_replication_repl_lsc_wi_item_modifier</argument>
             <argument name="resourceModel" xsi:type="string">
-                Ls\Replication\Model\ResourceModel\ReplItemModifier
+                Ls\Replication\Model\ResourceModel\ReplLscWiItemModifier
             </argument>
         </arguments>
     </virtualType>
