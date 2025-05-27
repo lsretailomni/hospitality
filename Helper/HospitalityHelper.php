@@ -1438,7 +1438,10 @@ class HospitalityHelper extends AbstractHelper
                     $index++;
                 }
             }
-
+            $isOffline = $magentoOrder->getPayment()->getMethodInstance()->isOffline();
+            if (!$isOffline) {
+                $data['Amount'] = $magentoOrder->getGrandTotal();
+            }
             $isClickAndCollectOrder = $this->isClickAndcollectOrder($magentoOrder);
 
             if (!$isClickAndCollectOrder && $magentoOrder->getShippingAmount() > 0) {
