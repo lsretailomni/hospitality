@@ -5,8 +5,8 @@
 $viewModel = $block->getData("view_model");
 if ($viewModel->isHospitalityEnabled() == "1") :
     $ajaxUrl         = $block->getUrl('hospitality/ajax/OrderInfo');
-    $statusInfo      = $viewModel->getOrderStatusInfo();
     $order           = $block->getOrder();
+    $statusInfo      = $viewModel->getOrderStatusInfo($order);
     $magOrder        = $block->getMagOrder();
     $orderId         = null;
     $pickupOrderTime = '';
