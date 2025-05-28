@@ -87,17 +87,17 @@ class StatusPlugin
                     LSR::SC_SHIPMENT_KOTSTATUS,
                     $storeId
                 );
-                if (!$isClickAndCollectOrder) {
-                    if (isset($data['orderKOTStatus']) && $shipmentKotStatus == $data['orderKOTStatus']
-                        && $magOrder->canShip()) {
-                        $subject->payment->createShipment($magOrder, $data['Lines']);
-                    }
-                }
 
                 if (isset($data['orderKOTStatus']) && $invoiceKotStatus == $data['orderKOTStatus']
                     && $magOrder->canInvoice()) {
                     $subject->payment->generateInvoice($data, true, $magOrder);
                 }
+
+                if (isset($data['orderKOTStatus']) && $shipmentKotStatus == $data['orderKOTStatus']
+                    && $magOrder->canShip()) {
+                    $subject->payment->createShipment($magOrder, $data['Lines']);
+                }
+
             }
         }
 
