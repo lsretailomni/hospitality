@@ -901,103 +901,104 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status     = $productionTime = $statusDescription = $qCounter = $kotNo = '';
-        $linesData  = [];
-        $order      = $this->getOrderByDocumentId($orderId);
-        $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
-        $tableNo    = '';
-        if ($qrcodeInfo) {
-            $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
-            $tableNo      = $qrcodeParams['table_no'];
-        }
-        $response = $this->getKitchenOrderStatus(
-            $orderId,
-            $storeId
-        );
+        $status    = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = '';
+        $linesData = [];
+        $order     = $this->getOrderByDocumentId($orderId);
+        if ($order) {
+            $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
+            if ($qrcodeInfo) {
+                $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
+                $tableNo      = $qrcodeParams['table_no'];
+            }
+            $response = $this->getKitchenOrderStatus(
+                $orderId,
+                $storeId
+            );
 
-        if (!empty($response)) {
-            if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $orderStatusResult = $response->getHospOrderStatusResult();
-                $orderHospStatus   = method_exists($orderStatusResult, 'getOrderHospStatus') ?
-                    $orderStatusResult->getOrderHospStatus() : null;
-                if (is_array($orderHospStatus)) {
-                    foreach ($orderHospStatus as $resp) {
-                        $status   = $resp->getStatus();
-                        $qCounter = $resp->getQueueCounter();
-                        $kotNo    = $resp->getKotNo();
+            if (!empty($response)) {
+                if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
+                    $orderStatusResult = $response->getHospOrderStatusResult();
+                    $orderHospStatus   = method_exists($orderStatusResult, 'getOrderHospStatus') ?
+                        $orderStatusResult->getOrderHospStatus() : null;
+                    if (is_array($orderHospStatus)) {
+                        foreach ($orderHospStatus as $resp) {
+                            $status   = $resp->getStatus();
+                            $qCounter = $resp->getQueueCounter();
+                            $kotNo    = $resp->getKotNo();
 
-                        if ($this->lsr->displayEstimatedDeliveryTime()) {
-                            $productionTime = $resp->getProductionTime();
-                        }
-                        $lines   = $resp->getLines()->getOrderHospStatusLine();
-                        $itemIds = [];
-                        foreach ($lines as $line) {
-                            $itemIds[] = $line->getNumber();
-                        }
-                        // Fetch product details once
-                        $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
-                        $productMap   = [];
-                        foreach ($productsData as $product) {
-                            if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
-                                continue;
+                            if ($this->lsr->displayEstimatedDeliveryTime()) {
+                                $productionTime = $resp->getProductionTime();
                             }
-                            $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
-                                'productName'   => $product->getName(),
-                                'imageUrl'      => $this->getProductImageUrl($product),
-                                'imagePath'     => $product->getImage(),
-                                'productUrl'    => $this->productUrlBuilder->getUrl($product),
-                                'productUrlKey' => $product->getUrlKey()
-                            ];
-                        }
-
-                        $itemCounts = [];
-                        foreach ($lines as $line) {
-                            $itemId = $line->getNumber();
-                            if (!isset($itemCounts[$itemId])) {
-                                $itemCounts[$itemId] = 1;
-                            } else {
-                                $itemCounts[$itemId]++;
+                            $lines   = $resp->getLines()->getOrderHospStatusLine();
+                            $itemIds = [];
+                            foreach ($lines as $line) {
+                                $itemIds[] = $line->getNumber();
                             }
-                        }
-
-                        $linesData = [];
-                        foreach ($itemCounts as $itemId => $quantity) {
-                            if ($itemId) {
-                                $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
-                                $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
-                                $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
-                                $linesData[] = [
-                                    'itemId'        => $itemId,
-                                    'productName'   => $productName,
-                                    'imageUrl'      => $imageUrl,
-                                    'imagePath'     => $imagePath,
-                                    'quantity'      => $quantity,
-                                    'productUrl'    => $productMap[$itemId]['productUrl'],
-                                    'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                            // Fetch product details once
+                            $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
+                            $productMap   = [];
+                            foreach ($productsData as $product) {
+                                if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+                                    continue;
+                                }
+                                $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
+                                    'productName'   => $product->getName(),
+                                    'imageUrl'      => $this->getProductImageUrl($product),
+                                    'imagePath'     => $product->getImage(),
+                                    'productUrl'    => $this->productUrlBuilder->getUrl($product),
+                                    'productUrlKey' => $product->getUrlKey()
                                 ];
                             }
+
+                            $itemCounts = [];
+                            foreach ($lines as $line) {
+                                $itemId = $line->getNumber();
+                                if (!isset($itemCounts[$itemId])) {
+                                    $itemCounts[$itemId] = 1;
+                                } else {
+                                    $itemCounts[$itemId]++;
+                                }
+                            }
+
+                            $linesData = [];
+                            foreach ($itemCounts as $itemId => $quantity) {
+                                if ($itemId) {
+                                    $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                                    $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
+                                    $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
+                                    $linesData[] = [
+                                        'itemId'        => $itemId,
+                                        'productName'   => $productName,
+                                        'imageUrl'      => $imageUrl,
+                                        'imagePath'     => $imagePath,
+                                        'quantity'      => $quantity,
+                                        'productUrl'    => $productMap[$itemId]['productUrl'],
+                                        'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                                    ];
+                                }
+                            }
+                        }
+                    } else {
+                        $status   = $orderStatusResult->getStatus();
+                        $qCounter = $orderStatusResult->getQueueCounter();
+                        $kotNo    = $orderStatusResult->getKotNo();
+
+                        if ($this->lsr->displayEstimatedDeliveryTime()) {
+                            $productionTime = $orderStatusResult->getProductionTime();
                         }
                     }
                 } else {
-                    $status   = $orderStatusResult->getStatus();
-                    $qCounter = $orderStatusResult->getQueueCounter();
-                    $kotNo    = $orderStatusResult->getKotNo();
+                    $status = $response->getHospOrderKotStatusResult()->getStatus();
+                }
 
-                    if ($this->lsr->displayEstimatedDeliveryTime()) {
-                        $productionTime = $orderStatusResult->getProductionTime();
+                if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                    if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                        $productionTime = 0;
                     }
+                    $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                 }
-            } else {
-                $status = $response->getHospOrderKotStatusResult()->getStatus();
-            }
 
-            if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
-                    $productionTime = 0;
-                }
-                $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
             }
-
         }
 
         return [$status, $statusDescription, $productionTime, $qCounter, $kotNo, $linesData, $tableNo];
