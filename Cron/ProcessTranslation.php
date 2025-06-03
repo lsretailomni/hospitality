@@ -293,9 +293,6 @@ class ProcessTranslation
                 if ($productCollection) {
                     foreach ($productCollection as $productObj) {
                         $product = $this->productRepository->getById($productObj->getId(), false, $storeId);
-                        if ($product->getSku() != "R0024") {
-                            continue;
-                        }
                         $customOptionsArr = [];
                         foreach ($product->getOptions() as $customOption) {
                             $optionKey = str_replace("ls_mod_", "", $customOption->getLsModifierRecipeId());
