@@ -85,7 +85,7 @@
                     <depends>
                         <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
                     </depends>
-                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
+                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SourceModel\SalesType</source_model>
                 </field>
                 <field id="takeaway_sales_type"
                        translate="label comment"
@@ -100,7 +100,7 @@
                     <depends>
                         <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
                     </depends>
-                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
+                    <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SourceModel\SalesType</source_model>
                 </field>
                 <field id="show_in_checkout"
                        sortOrder="60"

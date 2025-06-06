@@ -17,14 +17,14 @@
                 Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider
             </argument>
             <argument name="name" xsi:type="string">ls_repl_grids_dealline_data_source</argument>
-            <argument name="primaryFieldName" xsi:type="string">repl_hierarchy_hosp_deal_line_id</argument>
+            <argument name="primaryFieldName" xsi:type="string">repl_hierarchydeallineview_id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
                     <item name="update_url" xsi:type="url" path="mui/index/render"/>
                     <item name="storageConfig" xsi:type="array">
-                        <item name="indexField" xsi:type="string">repl_hierarchy_hosp_deal_line_id</item>
+                        <item name="indexField" xsi:type="string">repl_hierarchydeallineview_id</item>
                     </item>
                 </item>
             </argument>
@@ -100,7 +100,7 @@
                 </item>
             </argument>
         </column>
-        <column name="DealNo">
+        <column name="offer_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -111,7 +111,7 @@
                 </item>
             </argument>
         </column>
-        <column name="DealLineNo">
+        <column name="offer_line_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -169,7 +169,7 @@
                 </item>
             </argument>
         </column>
-        <column name="DealLineCode">
+        <column name="deal_modifier_code">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -180,7 +180,7 @@
                 </item>
             </argument>
         </column>
-        <column name="Description">
+        <column name="description">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -191,7 +191,7 @@
                 </item>
             </argument>
         </column>
-        <column name="HierarchyCode">
+        <column name="hierarchy_code">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -202,7 +202,7 @@
                 </item>
             </argument>
         </column>
-        <column name="ParentNode">
+        <column name="node_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -213,7 +213,7 @@
                 </item>
             </argument>
         </column>
-        <column name="ImageId">
+        <column name="retail_image_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -225,7 +225,7 @@
             </argument>
         </column>
 
-        <column name="ItemNo">
+        <column name="item_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -236,7 +236,7 @@
                 </item>
             </argument>
         </column>
-        <column name="LineNo">
+        <column name="deal_modifier_line_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -247,7 +247,7 @@
                 </item>
             </argument>
         </column>
-        <column name="MinSelection">
+        <column name="min_selection">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -258,7 +258,7 @@
                 </item>
             </argument>
         </column>
-        <column name="MaxSelection">
+        <column name="max_item_selection">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -269,7 +269,7 @@
                 </item>
             </argument>
         </column>
-        <column name="UnitOfMeasure">
+        <column name="unit_of_measure">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -280,7 +280,7 @@
                 </item>
             </argument>
         </column>
-        <column name="VariantCode">
+        <column name="variant_code">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -291,7 +291,7 @@
                 </item>
             </argument>
         </column>
-        <column name="AddedAmount">
+        <column name="added_amount">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>

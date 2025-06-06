@@ -16,14 +16,14 @@
                 Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider
             </argument>
             <argument name="name" xsi:type="string">ls_repl_grids_recipe_data_source</argument>
-            <argument name="primaryFieldName" xsi:type="string">repl_item_recipe_id</argument>
+            <argument name="primaryFieldName" xsi:type="string">repl_lsc_wi_item_recipe_buffer_id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
                     <item name="update_url" xsi:type="url" path="mui/index/render"/>
                     <item name="storageConfig" xsi:type="array">
-                        <item name="indexField" xsi:type="string">repl_item_recipe_id</item>
+                        <item name="indexField" xsi:type="string">repl_lsc_wi_item_recipe_buffer_id</item>
                     </item>
                 </item>
             </argument>
@@ -99,7 +99,7 @@
                 </item>
             </argument>
         </column>
-        <column name="RecipeNo">
+        <column name="parent_item_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -110,7 +110,7 @@
                 </item>
             </argument>
         </column>
-        <column name="Description">
+        <column name="description">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -121,7 +121,7 @@
                 </item>
             </argument>
         </column>
-        <column name="Exclusion">
+        <column name="lsc_exclusion">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -179,7 +179,7 @@
                 </item>
             </argument>
         </column>
-        <column name="ExclusionPrice">
+        <column name="lsc_price_on_exclusion">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -190,7 +190,7 @@
                 </item>
             </argument>
         </column>
-        <column name="ImageId">
+        <column name="retail_image_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -201,7 +201,7 @@
                 </item>
             </argument>
         </column>
-        <column name="ItemNo">
+        <column name="lsc_item_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -212,7 +212,7 @@
                 </item>
             </argument>
         </column>
-        <column name="LineNo">
+        <column name="line_no">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -223,7 +223,7 @@
                 </item>
             </argument>
         </column>
-        <column name="QuantityPer">
+        <column name="quantity_per">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -234,7 +234,7 @@
                 </item>
             </argument>
         </column>
-        <column name="UnitOfMeasure">
+        <column name="unit_of_measure_code">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>

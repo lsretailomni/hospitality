@@ -4,7 +4,10 @@
     <body>
         <referenceContainer name="footer">
             <container name="sales_type_load_js" htmlTag="div">
-                <block name="ls.hosp.sales.type.js" template="Ls_Hospitality::system/config/salestype.phtml"></block>
+                <block class="Ls\Hospitality\Block\Adminhtml\System\Config\SalesType"
+                       name="ls.hosp.sales.type.js"
+                       template="Ls_Hospitality::system/config/salestype.phtml"
+                />
             </container>
         </referenceContainer>
     </body>

@@ -2,69 +2,17 @@
 
 namespace Ls\Hospitality\Block\Adminhtml\System\Config;
 
-use \Ls\Core\Model\LSR;
-use \Ls\Omni\Helper\StoreHelper;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Data\OptionSourceInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\ScopeInterface;
+use Ls\Omni\Block\Adminhtml\System\Config\Stores;
 
-/**
- * For getting salestype
- */
-class SalesType implements OptionSourceInterface
+class SalesType extends Stores
 {
-    /** @var StoreHelper */
-    public $storeHelper;
-
-    /** @var LSR */
-    public $lsr;
-
-    /** @var RequestInterface */
-    public $request;
-
     /**
-     * @param StoreHelper $storeHelper
-     * @param LSR $lsr
-     * @param RequestInterface $request
-     */
-    public function __construct(
-        StoreHelper $storeHelper,
-        LSR $lsr,
-        RequestInterface $request
-    ) {
-        $this->storeHelper = $storeHelper;
-        $this->lsr         = $lsr;
-        $this->request     = $request;
-    }
-
-    /**
-     * Loading sales type information for particular store
+     * Get ajax url
      *
-     * @return array
-     * @throws NoSuchEntityException
+     * @return string
      */
-    public function toOptionArray()
+    public function getAjaxUrl()
     {
-        $salesTypeArray[] = [
-            'value' => '',
-            'label' => __('Please select sales type')
-        ];
-        // Get current Website Id.
-        $websiteId = (int)$this->request->getParam('website');
-        if ($this->lsr->isLSR($websiteId, ScopeInterface::SCOPE_WEBSITE)) {
-            $salesType = $this->storeHelper->getSalesType($websiteId);
-            if ($salesType) {
-                $data = $salesType->getHospSalesTypes();
-                foreach ($data as $item) {
-                    $salesTypeArray[] = [
-                        'value' => $item->getCode(),
-                        'label' => __($item->getDescription())
-                    ];
-                }
-            }
-        }
-
-        return $salesTypeArray;
+        return $this->getUrl('ls_repl/system_config/getSalestype');
     }
 }

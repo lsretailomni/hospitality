@@ -2,16 +2,17 @@
 /**
  * For loading sales type
  *
- * @var \Magento\Framework\View\Element\Template $block
+ * @var \Ls\Hospitality\Block\Adminhtml\System\Config\SalesType $block
  * @var \Magento\Framework\Escaper $escaper
  */
-$ajaxUrl = $block->getUrl('ls_repl/system_config/getSalestype');
+$ajaxUrl = $block->getAjaxUrl();
 ?>
 <script type="text/x-magento-init">
 {
     "*": {
         "loadsalestype": {
-            "ajaxUrl": "<?= $escaper->escapeUrl($ajaxUrl) ?>"
+            "ajaxUrl": "<?= $escaper->escapeUrl($ajaxUrl) ?>",
+            "websiteId": "<?= $block->getWebsiteId(); ?>"
         }
     }
 }

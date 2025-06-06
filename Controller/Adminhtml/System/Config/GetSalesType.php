@@ -3,7 +3,10 @@
 namespace Ls\Hospitality\Controller\Adminhtml\System\Config;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Core\Model\LSR;
+use \Ls\Omni\Client\Ecommerce\Operation\GetStores_GetStores;
+use \Ls\Omni\Helper\Data;
 use \Ls\Omni\Helper\StoreHelper;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -11,51 +14,24 @@ use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Psr\Log\LoggerInterface;
 
-/**
- * Get sales type controller
- */
 class GetSalesType extends Action
 {
-
     /**
-     * @var JsonFactory
-     */
-    public $resultJsonFactory;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
-     * @var LoggerInterface
-     */
-    public $logger;
-
-    /**
-     * @var StoreHelper
-     */
-    public $storeHelper;
-
-    /**
-     * GetSalesType constructor.
      * @param Context $context
      * @param JsonFactory $resultJsonFactory
      * @param LSR $lsr
      * @param StoreHelper $storeHelper
      * @param LoggerInterface $logger
+     * @param Data $helper
      */
     public function __construct(
-        Context $context,
-        JsonFactory $resultJsonFactory,
-        LSR $lsr,
-        StoreHelper $storeHelper,
-        LoggerInterface $logger
+        public Context         $context,
+        public JsonFactory     $resultJsonFactory,
+        public LSR             $lsr,
+        public StoreHelper     $storeHelper,
+        public LoggerInterface $logger,
+        public Data            $helper,
     ) {
-        $this->resultJsonFactory = $resultJsonFactory;
-        $this->lsr               = $lsr;
-        $this->storeHelper       = $storeHelper;
-        $this->logger            = $logger;
         parent::__construct($context);
     }
 
@@ -63,33 +39,60 @@ class GetSalesType extends Action
      * Collect sales type data for web store
      *
      * @return Json
+     * @throws GuzzleException
      */
     public function execute()
     {
-        $option_array = [];
+        $options = [];
         try {
-            $baseUrl    = $this->getRequest()->getParam('baseUrl');
-            $storeId    = $this->getRequest()->getParam('storeId');
-            $lsKey      = $this->getRequest()->getParam('lsKey');
+            $storeId = $this->getRequest()->getParam('storeId');
+            $baseUrl = $this->getRequest()->getParam('baseUrl');
+            $scopeId = $this->getRequest()->getParam('scopeId');
+            $tenant = $this->getRequest()->getParam('tenant');
+            $clientId = $this->getRequest()->getParam('client_id');
+            $clientSecret = $this->getRequest()->getParam('client_secret');
+            $companyName = $this->getRequest()->getParam('company_name');
+            $environmentName = $this->getRequest()->getParam('environment_name');
+
+            $baseUrl = $this->helper->getBaseUrl($baseUrl);
+            $connectionParams = [
+                'tenant' => $tenant,
+                'clientId' => $clientId,
+                'clientSecret' => $clientSecret,
+                'environmentName' => $environmentName,
+            ];
             $salesTypes = null;
-            if ($this->lsr->validateBaseUrl($baseUrl, $lsKey) && $storeId != "") {
-                $salesTypes = $this->storeHelper->getSalesType('', $storeId, $baseUrl, $lsKey);
+            if ($this->lsr->validateBaseUrl(
+                $baseUrl,
+                $connectionParams,
+                ['company' => $companyName],
+                $scopeId
+            )) {
+                $webStoreOperation = new GetStores_GetStores(
+                    $baseUrl,
+                    $connectionParams,
+                    $companyName,
+                );
+                $webStoreOperation->setOperationInput(
+                    ['storeGetType' => '0', 'searchText' => $storeId, 'includeDetail' => false]
+                );
+                $stores = current($webStoreOperation->execute()->getRecords());
+                $salesTypes = $stores->getLscSalesType();
             }
             if (!empty($salesTypes)) {
-                $salesTypeArray = $salesTypes->getHospSalesTypes();
-                $option_array   = [['value' => '', 'label' => __('Please select sales type')]];
-                foreach ($salesTypeArray as $salesType) {
-                    $option_array[] = ['value' => $salesType->getCode(), 'label' => $salesType->getDescription()];
+                $options = [['value' => '', 'label' => __('Please select sales type')]];
+                foreach ($salesTypes as $salesType) {
+                    $options[] = ['value' => $salesType->getCode(), 'label' => $salesType->getDescription()];
                 }
             } else {
-                $option_array = [['value' => '', 'label' => __('No sales type found for the selected store')]];
+                $options = [['value' => '', 'label' => __('No sales type found for the selected store')]];
             }
         } catch (Exception $e) {
             $this->logger->critical($e);
         }
-        /** @var Json $result */
         $result = $this->resultJsonFactory->create();
-        return $result->setData(['success' => true, 'salesType' => $option_array]);
+
+        return $result->setData(['success' => true, 'salesType' => $options]);
     }
 
     /**
