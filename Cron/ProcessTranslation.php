@@ -268,7 +268,7 @@ class ProcessTranslation
             $dataTranslation->setData('is_updated', 0);
             $dataTranslation->setData('is_failed', 0);
             // @codingStandardsIgnoreLine
-            //$this->dataTranslationRepository->save($dataTranslation);
+            $this->dataTranslationRepository->save($dataTranslation);
         }
 
         
