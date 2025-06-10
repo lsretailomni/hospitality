@@ -268,7 +268,7 @@ class ProcessTranslation
             $dataTranslation->setData('is_updated', 0);
             $dataTranslation->setData('is_failed', 0);
             // @codingStandardsIgnoreLine
-            $this->dataTranslationRepository->save($dataTranslation);
+            //$this->dataTranslationRepository->save($dataTranslation);
         }
 
         
@@ -295,7 +295,9 @@ class ProcessTranslation
                         $product = $this->productRepository->getById($productObj->getId(), false, $storeId);
                         $customOptionsArr = [];
                         foreach ($product->getOptions() as $customOption) {
-                            $optionKey = str_replace("ls_mod_", "", $customOption->getLsModifierRecipeId());
+                            $optionKey = ($customOption->getLsModifierRecipeId()) ? 
+                                str_replace("ls_mod_", "", $customOption->getLsModifierRecipeId()) 
+                                : "";
                             if ($customOption->getValues()) {
                                 $values          = $customOption->getValues();
                                 $newOptionValues = [];
