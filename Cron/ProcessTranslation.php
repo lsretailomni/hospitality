@@ -11,6 +11,7 @@ use \Ls\Replication\Logger\Logger;
 use \Ls\Replication\Model\ResourceModel\ReplDataTranslation\CollectionFactory as ReplDataTranslationCollectionFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\ResourceModel\Product;
+use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\CustomOptions;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
@@ -127,7 +128,8 @@ class ProcessTranslation
                             $langCode = null;
                         }
                         $itemsStatus      = $this->updateDeal($store, $langCode);
-                        $this->cronStatus = $itemsStatus;
+                        $modiferStatus    = $this->updateModifiers($store, $langCode);
+                        $this->cronStatus = $itemsStatus && $modiferStatus;
 
                     } catch (Exception $e) {
                         $this->logDetailedException(__METHOD__, $this->store->getName(), '');
@@ -214,6 +216,128 @@ class ProcessTranslation
         }
 
         return $collection->getSize() == 0;
+    }
+    
+    /**
+     * Cater translation of modifiers select text and description
+     *
+     * @param $store
+     * @param $langCode
+     * @return bool
+     */
+    public function updateModifiers($store, $langCode)
+    {
+        $modifierSelectKey = $lsModifierRecipeIds = $translationMap = [];
+        $storeId           = $this->lsr->getStoreId();
+        $productCollection = null;
+        $filters           = $this->getFiltersGivenValues(
+            $store->getId(),
+            $langCode,
+            [LSR::SC_TRANSLATION_ID_DEAL_MODIFIER_SELECT, LSR::SC_TRANSLATION_ID_DEAL_MODIFIER_DESC]
+        );
+        $criteria          = $this->replicationHelper->buildCriteriaForArrayWithAlias($filters, -1);
+        $collection        = $this->replDataTranslationCollectionFactory->create();
+        $this->replicationHelper->setCollectionPropertiesPlusJoinSku(
+            $collection,
+            $criteria,
+            null,
+            null,
+            ['repl_data_translation_id']
+        );
+        $websiteId         = $store->getWebsiteId();
+        $query             = $collection->getSelect()->__toString();
+        /** @var ReplDataTranslation $dataTranslation */
+        foreach ($collection as $dataTranslation) {
+            try {
+                if($dataTranslation->getTranslationId() == LSR::SC_TRANSLATION_ID_DEAL_MODIFIER_SELECT) {
+                    $lsModifierRecipeIds = "ls_mod_".trim($dataTranslation->getKey());
+                    $this->processModifiersTranslation($lsModifierRecipeIds, $storeId, $dataTranslation);
+                } elseif(!empty($dataTranslation->getKey())) {
+                    $modifier   = explode(";",$dataTranslation->getKey());
+                    $lsModifierRecipeIds = "ls_mod_".$modifier[0];
+                    $this->processModifiersTranslation($lsModifierRecipeIds, $storeId, $dataTranslation);
+                }
+                
+            } catch (Exception $e) {
+                $this->logDetailedException(__METHOD__, $this->store->getName(), $dataTranslation->getKey());
+                $this->logger->debug($e->getMessage());
+                $dataTranslation->setData('is_failed', 1);
+            }
+            $dataTranslation->setData('processed_at', $this->replicationHelper->getDateTime());
+            $dataTranslation->setData('processed', 1);
+            $dataTranslation->setData('is_updated', 0);
+            $dataTranslation->setData('is_failed', 0);
+            // @codingStandardsIgnoreLine
+            $this->dataTranslationRepository->save($dataTranslation);
+        }
+
+        
+
+        return $collection->getSize() == 0;
+    }
+
+    /**
+     * Process modifier option title and modifier option value title translations
+     * 
+     * @param $lsModifierRecipeIds
+     * @param $storeId
+     * @param $dataTranslation
+     * @return void
+     */
+    public function processModifiersTranslation($lsModifierRecipeIds,$storeId,$dataTranslation)
+    {
+        if(!empty($lsModifierRecipeIds)) {
+            try {
+                $productCollection = $this->replicationHelper->getProductsByRecipeId($lsModifierRecipeIds);
+
+                if ($productCollection) {
+                    foreach ($productCollection as $productObj) {
+                        $product = $this->productRepository->getById($productObj->getId(), false, $storeId);
+                        $customOptionsArr = [];
+                        foreach ($product->getOptions() as $customOption) {
+                            $optionKey = ($customOption->getLsModifierRecipeId()) ? 
+                                str_replace("ls_mod_", "", $customOption->getLsModifierRecipeId()) 
+                                : "";
+                            if ($customOption->getValues()) {
+                                $values          = $customOption->getValues();
+                                $newOptionValues = [];
+                                if ($dataTranslation->getKey() == $optionKey
+                                    && !empty($dataTranslation->getText()) 
+                                    && $dataTranslation->getTranslationId() == LSR::SC_TRANSLATION_ID_DEAL_MODIFIER_SELECT
+                                ) {
+                                    $customOption->setTitle($dataTranslation->getText());
+                                    $customOption->setStoreTitle($dataTranslation->getText());
+                                    $customOption->setStoreId($storeId);
+                                }
+                                foreach ($values as $value) {
+                                    $valueKey = $optionKey.";".$value->getSku(); 
+                                    if ($dataTranslation->getKey() == $valueKey 
+                                        && !empty($dataTranslation->getText()) 
+                                        && $dataTranslation->getTranslationId() == LSR::SC_TRANSLATION_ID_DEAL_MODIFIER_DESC
+                                    ) {
+                                        $value->setTitle($dataTranslation->getText());
+                                        $value->setStoreId($storeId);
+                                    }
+                                    $newOptionValues[] = $value;
+                                }
+                                if (!empty($newOptionValues)) {
+                                    $customOption->setValues($newOptionValues);
+                                    $customOptionsArr[] = $customOption;
+                                }
+                            }
+                        }
+                        if (!empty($customOptionsArr)) {
+                            $product->setOptions($customOptionsArr);
+                            $product->setStoreId($storeId);
+                            $this->productRepository->save($product);
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                $this->logDetailedException(__METHOD__, $this->store->getName(), $dataTranslation->getKey());
+                $this->logger->debug($e->getMessage());
+            }
+        }
     }
 
     /**
