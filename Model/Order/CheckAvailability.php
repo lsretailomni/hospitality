@@ -8,6 +8,7 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\HospAvailabilityResponse;
 use \Ls\Omni\Client\Ecommerce\Operation;
+use Ls\Omni\Helper\Data;
 use \Ls\Omni\Helper\ItemHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -66,7 +67,8 @@ class CheckAvailability
         ItemHelper $itemHelper,
         HospitalityHelper $hospitalityHelper,
         CheckoutSession $checkoutSession,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        public Data $dataHelper,
     ) {
         $this->productRepository = $productRepository;
         $this->lsr               = $lsr;
@@ -118,17 +120,15 @@ class CheckAvailability
      */
     public function validateQty($isItem = false, $qty = null, $item = null)
     {
-        $checkAvailabilityCollection = [];
-        $availabilityRequestArray    = [];
-        $lineNo                      = null;
+        $message = "";
 
         if ($this->lsr->isCheckAvailabilityEnabled()) {
             if ($isItem == true) {
-                $items      = [$item];
+                $items = [$item];
                 $itemsCount = 1;
             } else {
                 $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
-                $items      = $this->checkoutSession->getQuote()->getAllVisibleItems();
+                $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
             }
             if ($itemsCount > 0) {
                 foreach ($items as $item) {
@@ -136,29 +136,57 @@ class CheckAvailability
                     list($itemId, , $unitOfMeasure) = $this->itemHelper->getComparisonValues(
                         $item->getSku()
                     );
-                    if (in_array($itemId, $checkAvailabilityCollection)) {
-                        $itemQty = $checkAvailabilityCollection[$itemId]['qty'] + $itemQty;
-                    }
-                    $checkAvailabilityCollection[$itemId] = [
-                        'item_id' => $itemId,
-                        'name'    => $item->getName(),
-                        'qty'     => $itemQty
-                    ];
-                    $this->setModifiersForCheckingAvailability(
-                        $item,
-                        $availabilityRequestArray,
-                        $checkAvailabilityCollection
-                    );
-                    $availabilityRequest = new Entity\HospAvailabilityRequest();
-                    $availabilityRequest->setItemId($itemId);
-                    $availabilityRequest->setUnitOfMeasure($unitOfMeasure);
-                    $availabilityRequestArray[] = $availabilityRequest;
-                }
-            }
 
-            $responseResult = $this->availability($this->lsr->getActiveWebStore(), $availabilityRequestArray);
-            if ($responseResult) {
-                $this->processResponse($checkAvailabilityCollection, $responseResult);
+                    $options = $this->hospitalityHelper->getCustomOptionsFromQuoteItem($item);
+                    if ($options) {
+                        foreach ($options as $option) {
+                            if (isset($option['ls_modifier_recipe_id']) &&
+                                $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX
+                            ) {
+                                $qty = 1;
+                                $modifier = current(
+                                    $this->hospitalityHelper->getModifierByDescription($option['value'])
+                                );
+                                if ($modifier) {
+                                    $itemId = $modifier->getTriggerCode();
+                                    $code           = $modifier->getCode();
+                                    $unitOfMeasure  = $modifier->getUnitOfMeasure();
+                                }
+                            }
+                        }
+                    }
+                    $response = current($this->dataHelper->fetchGivenTableData(
+                        'LSC Current Availability',
+                        '',
+                        [
+                            [
+                                'filterName' => 'Store No.',
+                                'filterValue' => $this->lsr->getActiveWebStore()
+                            ],
+                            [
+                                'filterName' => 'No.',
+                                'filterValue' => $itemId
+                            ],
+                            [
+                                'filterName' => 'Unit of Measure',
+                                'filterValue' => $unitOfMeasure
+                            ]
+                        ]
+                    ));
+
+                    if ($response) {
+                        $resultQty = (int)$response['Available Qty.'];
+                        if ($itemQty > $resultQty || $resultQty == 0) {
+                            $message .= __(
+                                'Product %1 has quantity of %2 which is greater then current available quantity %3. Please adjust the product quantity.',
+                                $item->getName(),
+                                $itemQty,
+                                $resultQty
+                            );
+                            throw new ValidatorException(__($message));
+                        }
+                    }
+                }
             }
         }
     }
