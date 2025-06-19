@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Plugin\Magento\Quote\Model\Quote;
 
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\Exception\LocalizedException;
@@ -12,33 +13,23 @@ use Magento\Quote\Model\Quote\Item;
  */
 class ItemPlugin
 {
-    /** @var LSR @var */
-    private $lsr;
-
     /**
-     * @var CheckAvailability
-     */
-    private $checkAvailability;
-
-    /**
-     * @param LSR $LSR
+     * @param LSR $lsr
      * @param CheckAvailability $checkAvailability
      */
     public function __construct(
-        LSR $LSR,
-        CheckAvailability $checkAvailability
+        public LSR $lsr,
+        public CheckAvailability $checkAvailability
     ) {
-        $this->lsr               = $LSR;
-        $this->checkAvailability = $checkAvailability;
     }
 
     /**
      * After plugin intercepting addQty of each quote_item
      *
      * @param Item $subject
-     * @param object $result
-     * @return mixed|void
-     * @throws LocalizedException
+     * @param Item $result
+     * @return Item
+     * @throws LocalizedException|GuzzleException
      */
     public function afterAddQty(Item $subject, $result)
     {
@@ -46,7 +37,7 @@ class ItemPlugin
             (!$result->getParentItem()) &&
             $this->lsr->isHospitalityStore()
         ) {
-            $this->checkAvailability->validateQty(true, $result->getQty(), $result);
+            $this->checkAvailability->validateQty(true, $result);
         }
 
         return $result;

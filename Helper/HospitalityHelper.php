@@ -7,6 +7,7 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
 use \Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
 use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
+use Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
@@ -14,16 +15,19 @@ use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
-use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
-use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
+use Ls\Replication\Api\ReplHierarchydeallineviewRepositoryInterface;
+use Ls\Replication\Api\ReplHierarchydealviewRepositoryInterface;
+use Ls\Replication\Api\ReplLscWiItemRecipeBufferRepositoryInterface;
+use Ls\Replication\Model\ReplHierarchydealviewRepository;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
+use Ls\Replication\Api\ReplLscWiItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
 use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchydealview\CollectionFactory as DealCollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview\CollectionFactory as DealLineCollectionFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -87,12 +91,12 @@ class HospitalityHelper extends AbstractHelper
     public $configurationHelper;
 
     /**
-     * @var ReplItemModifierRepository
+     * @var ReplLscWiItemModifierRepository
      */
     public $itemModifierRepository;
 
     /**
-     * @var ReplItemRecipeRepository
+     * @var ReplLscWiItemRecipeBufferRepositoryInterface
      */
     public $recipeRepository;
 
@@ -124,7 +128,7 @@ class HospitalityHelper extends AbstractHelper
     public $lsr;
 
     /**
-     * @var ReplHierarchyHospDealRepositoryInterface
+     * @var ReplHierarchydealviewRepository
      */
     public $replHierarchyHospDealRepository;
 
@@ -161,7 +165,7 @@ class HospitalityHelper extends AbstractHelper
     public $registry;
 
     /**
-     * @var ReplHierarchyHospDealLineRepositoryInterface
+     * @var ReplHierarchydeallineviewRepositoryInterface
      */
     public $replHierarchyHospDealLineRepository;
 
@@ -223,13 +227,13 @@ class HospitalityHelper extends AbstractHelper
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ProductRepository $productRepository
-     * @param ReplItemModifierRepository $itemModifierRepository
+     * @param ReplLscWiItemModifierRepository $itemModifierRepository
      * @param ReplItemRecipeRepository $recipeRepository
      * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
      * @param ReplicationHelper $replicationHelper
      * @param DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory
      * @param DealCollectionFactory $replHierarchyHospDealCollectionFactory
-     * @param ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository
+     * @param ReplHierarchydealviewRepositoryInterface $replHierarchyHospDealRepository
      * @param ResourceConnection $resourceConnection
      * @param LSR $lsr
      * @param Filesystem $filesystem
@@ -240,7 +244,7 @@ class HospitalityHelper extends AbstractHelper
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param StoreManagerInterface $storeManager
      * @param Registry $registry
-     * @param ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
+     * @param ReplHierarchydeallineviewRepositoryInterface $replHierarchyHospDealLineRepository
      * @param Information $storeInfo
      * @param AddressInterfaceFactory $addressFactory
      * @param AttributeRepositoryInterface $attributeRepository
@@ -258,13 +262,13 @@ class HospitalityHelper extends AbstractHelper
         Configuration $configurationHelper,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         ProductRepository $productRepository,
-        ReplItemModifierRepository $itemModifierRepository,
-        ReplItemRecipeRepository $recipeRepository,
+        ReplLscWiItemModifierRepository $itemModifierRepository,
+        ReplLscWiItemRecipeBufferRepositoryInterface $recipeRepository,
         ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository,
         ReplicationHelper $replicationHelper,
         DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
         DealCollectionFactory $replHierarchyHospDealCollectionFactory,
-        ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
+        ReplHierarchydealviewRepositoryInterface $replHierarchyHospDealRepository,
         ResourceConnection $resourceConnection,
         LSR $lsr,
         Filesystem $filesystem,
@@ -275,7 +279,7 @@ class HospitalityHelper extends AbstractHelper
         ProductCustomOptionRepositoryInterface $optionRepository,
         StoreManagerInterface $storeManager,
         Registry $registry,
-        ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
+        ReplHierarchydeallineviewRepositoryInterface $replHierarchyHospDealLineRepository,
         Information $storeInfo,
         AddressInterfaceFactory $addressFactory,
         AttributeRepositoryInterface $attributeRepository,
@@ -331,14 +335,12 @@ class HospitalityHelper extends AbstractHelper
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
+    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $parentSubLineId)
     {
-        $lineNumber *= 10000;
-
         /** @var Interceptor $product */
         $product = $quoteItem->getProduct();
         list($lsrId, , $uom) = $this->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
-
+        $lineNumber = 0;
         /**
          * Business Logic ***
          * For configurable based products, we are storing values based on UoM Description
@@ -355,8 +357,11 @@ class HospitalityHelper extends AbstractHelper
             $mainDealLine = current($this->getMainDealLine($lsrId));
 
             if ($mainDealLine) {
+                $lineNumber += 10000;
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId' => $mainDealLine->getLineNo(),
+                    'ParentSubLineId' => $parentSubLineId,
+                    'DealId' => $mainDealLine->getOfferNo(),
                     'LineNumber' => $lineNumber
                 ];
             }
@@ -376,10 +381,14 @@ class HospitalityHelper extends AbstractHelper
                     $dealLineId,
                     $dealModLineId
                 );
+                $lineNumber += 10000;
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId'    => $dealLineId,
                     'DealModLineId' => $dealModLineId,
-                    'uom'           => $uom
+                    'uom'           => $uom,
+                    'DealId' => $mainDealLine->getOfferNo(),
+                    'ParentSubLineId' => $parentSubLineId,
+                    'LineNumber' => $lineNumber
                 ];
                 unset($selectedOptionsOfQuoteItem[$index]);
             }
@@ -397,7 +406,7 @@ class HospitalityHelper extends AbstractHelper
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
                         $recipeData['DealLineId']      = $mainDealLine->getLineNo();
-                        $recipeData['ParentSubLineId'] = $lineNumber;
+                        $recipeData['ParentSubLineId'] = $parentSubLineId;
                         $recipeData['price']           = $option['price'] ?? null;
                         $recipe                        = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
@@ -405,8 +414,10 @@ class HospitalityHelper extends AbstractHelper
                     }
 
                     if (!empty($recipe)) {
-                        $itemId                               = reset($recipe)->getItemNo();
+                        $lineNumber += 10000;
+                        $itemId                               = reset($recipe)->getNo();
                         $recipeData['ItemId']                 = $itemId;
+                        $recipeData['LineNumber'] = $lineNumber;
                         $selectedOrderHospSubLine['recipe'][] = $recipeData;
                     }
                 } else {
@@ -424,15 +435,17 @@ class HospitalityHelper extends AbstractHelper
                     );
 
                     if (!empty($itemModifier)) {
-                        $subCode = reset($itemModifier)->getSubCode();
+                        $lineNumber += 10000;
+                        $subCode = reset($itemModifier)->getSubcode();
                         $selectedOrderHospSubLine['modifier'][]
                                  = [
                             'ModifierGroupCode' => $formattedItemSubLineCode,
                             'ModifierSubCode'   => $subCode,
                             'DealLineId'        => $mainDealLineNo,
                             'ParentSubLineId'   => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
-                                $lineNumber : '',
+                                $parentSubLineId : '',
                             'price'             => $option['price'] ?? null,
+                            'LineNumber' => $lineNumber
                         ];
                     }
                 }
@@ -445,19 +458,33 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get amount from given line
      *
-     * @param OrderHospLine $line
+     * @param MobileTransactionLine $line
+     * @param array $subLines
      * @return float|null
      */
-    public function getAmountGivenLine(OrderHospLine $line)
+    public function getAmountGivenLine(MobileTransactionLine $line, array $subLines = [])
     {
-        $amount = $line->getAmount();
+        $amount = $line->getNetAmount() + $line->getTaxAmount();
+        $parentLineNo = $line->getLineNo();
+        $itemId = $line->getNumber();
+        $lineNo = 0;
 
-        foreach ($line->getSubLines() as $subLine) {
-            if ($subLine->getType() == SubLineType::DEAL) {
+        foreach ($subLines as $subLine) {
+            if ($subLine->getLinetype() == 1 &&
+                $subLine->getDealid() == $itemId &&
+                $subLine->getParentlineno() == $parentLineNo &&
+                $subLine->getDealmodline() == 0
+            ) {
+                $lineNo = $subLine->getLineno();
+            }
+        }
+
+        foreach ($subLines as $subLine) {
+            if ($subLine->getLinetype() == 1 || $subLine->getParentlineno() !== $lineNo) {
                 continue;
             }
 
-            $amount += $subLine->getAmount();
+            $amount += $subLine->getNetAmount() + $subLine->getTaxAmount();
         }
 
         return $amount;
@@ -574,9 +601,9 @@ class HospitalityHelper extends AbstractHelper
     public function getItemModifier($navId, $code, $value)
     {
         // removing this for now.
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
-            ->addFilter('Description', $value)
-            ->addFilter('Code', $code);
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('parent_item_no', $navId)
+            ->addFilter('description', $value)
+            ->addFilter('infocode_code', $code);
 
         $itemModifier = $this->itemModifierRepository->getList(
             $searchCriteria->setPageSize(1)
@@ -622,8 +649,8 @@ class HospitalityHelper extends AbstractHelper
     public function getRecipe($recipeNo, $value)
     {
         $recipe = $this->recipeRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('RecipeNo', $recipeNo)
-                ->addFilter('Description', $value)
+            $this->searchCriteriaBuilder->addFilter('parent_item_no', $recipeNo)
+                ->addFilter('description', $value)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
@@ -634,20 +661,19 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get modifier by description
      *
-     * @param $value
+     * @param string $value
      * @return mixed
      */
     public function getModifierByDescription($value)
     {
         $modifier = $this->itemModifierRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('Description', $value)
+            $this->searchCriteriaBuilder->addFilter('description', $value)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
 
         return $modifier->getItems();
     }
-
 
     /**
      * Get custom options from quote item
@@ -659,7 +685,6 @@ class HospitalityHelper extends AbstractHelper
     {
         return $this->configurationHelper->getCustomOptions($quoteItem);
     }
-
 
     /**
      * @param $recipeNo
@@ -676,7 +701,6 @@ class HospitalityHelper extends AbstractHelper
 
         return $modifier->getItems();
     }
-
 
     /**
      * @param $store
@@ -764,8 +788,8 @@ class HospitalityHelper extends AbstractHelper
     public function getMainDealLine($dealNo)
     {
         return $this->replHierarchyHospDealRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('DealNo', $dealNo, 'eq')
-                ->addFilter('Type', 'Item', 'eq')->create()
+            $this->searchCriteriaBuilder->addFilter('offer_no', $dealNo, 'eq')
+                ->addFilter('type', '0', 'eq')->create()
         )->getItems();
     }
 
@@ -1159,9 +1183,9 @@ class HospitalityHelper extends AbstractHelper
     {
         $uom                        = null;
         $filterForDealLine          = [
-            ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
-            ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
-            ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
+            ['field' => 'offer_no', 'value' => $sku, 'condition_type' => 'eq'],
+            ['field' => 'deal_modifier_line_no', 'value' => $dealModLineId, 'condition_type' => 'eq'],
+            ['field' => 'offer_line_no', 'value' => $dealLineId, 'condition_type' => 'eq'],
             ['field' => 'scope_id', 'value' => $this->lsr->getCurrentWebsiteId(), 'condition_type' => 'eq']
         ];
         $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);

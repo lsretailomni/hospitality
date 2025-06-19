@@ -9,15 +9,21 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
+use Ls\Omni\Client\Ecommerce\Entity\MobileTransaction;
+use Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
+use Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
 use Ls\Omni\Client\Ecommerce\Entity\OneListCalculateResponse;
 use Ls\Omni\Client\Ecommerce\Entity\OneListHospCalculateResponse;
 use Ls\Omni\Client\Ecommerce\Entity\Order;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation;
+use Ls\Omni\Client\Ecommerce\Operation\EcomCalculateBasket;
+use Ls\Omni\Client\Ecommerce\Operation\MobilePosCalculate;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
+use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Pricing\Price\FinalPrice;
 use Magento\Catalog\Pricing\Price\RegularPrice;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -54,7 +60,7 @@ class BasketHelperPlugin
      * @param RootMobileTransaction $oneList
      * @return mixed
      * @throws InvalidEnumException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function aroundSetOneListQuote(
         BasketHelper $subject,
@@ -65,86 +71,141 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry($quote->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($quote, $oneList);
         }
-
         $quoteItems = $quote->getAllVisibleItems();
 
-        // @codingStandardsIgnoreLine
-        $items = new Entity\ArrayOfOneListItem();
-
         $itemsArray = [];
+        $oneListSubLinesArray = [];
+        $transactionLines = [];
+        $transactionId = $oneList->getMobiletransaction()
+            ->getId();
+        $storeCode = $subject->getDefaultWebStore();
 
-        foreach ($quoteItems as $index => $quoteItem) {
-            ++$index;
-            list($itemId, $variantId, $uom, $barCode) =
-                $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
+        foreach ($quoteItems as $lineNumber => $quoteItem) {
+            $lineNumber = (++$lineNumber) * 10000;
             $product = $quoteItem->getProduct();
+            $children = [];
+            $isBundle = 0;
 
-            $oneListSubLinesArray = [];
-            $selectedSubLines     = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
+            if ($quoteItem->getProductType() == Type::TYPE_BUNDLE) {
+                $children = $quoteItem->getChildren();
+                $isBundle = 1;
+            } else {
+                $children[] = $quoteItem;
+            }
+
+            foreach ($children as $child) {
+                if ($child->getProduct()->isInStock()) {
+                    list($itemId, $variantId, $uom, $barCode) =
+                        $subject->itemHelper->getItemAttributesGivenQuoteItem($child);
+                    $match = false;
+                    $giftCardIdentifier = $subject->lsr->getGiftCardIdentifiers();
+
+                    if (in_array($itemId, explode(',', $giftCardIdentifier))) {
+                        foreach ($itemsArray as $itemArray) {
+                            if ($itemArray->getId() == $child->getItemId()) {
+                                $itemArray->setQuantity($itemArray->getQuantity() + $quoteItem->getData('qty'));
+                                $match = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        foreach ($itemsArray as $itemArray) {
+                            if (is_numeric($itemArray->getId()) ?
+                                $itemArray->getId() == $child->getItemId() :
+                                ($itemArray->getItemId() == $itemId &&
+                                    $itemArray->getVariantId() == $variantId &&
+                                    $itemArray->getUnitOfMeasureId() == $uom &&
+                                    $itemArray->getBarcodeId() == $barCode)
+                            ) {
+                                $itemArray->setQuantity($itemArray->getQuantity() + $quoteItem->getData('qty'));
+                                $match = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!$match) {
+                        $price = $quoteItem->getProduct()->getPrice();
+                        $price = $subject->itemHelper->convertToCurrentStoreCurrency($price);
+                        $qty = $isBundle ? $child->getData('qty') * $quoteItem->getData('qty') :
+                            $quoteItem->getData('qty');
+                        $amount = $subject->itemHelper->convertToCurrentStoreCurrency($quoteItem->getPrice() * $qty);
+                        $transactionLine = $subject->createInstance(
+                            MobileTransactionLine::class,
+                            [
+                                'data' => [
+                                    MobileTransactionLine::ID => $transactionId,
+                                    MobileTransactionLine::LINE_NO => $lineNumber,
+                                    MobileTransactionLine::STORE_ID => $storeCode,
+                                    MobileTransactionLine::QUANTITY => $qty,
+                                    MobileTransactionLine::NUMBER => $itemId,
+                                    MobileTransactionLine::VARIANT_CODE => $variantId,
+                                    MobileTransactionLine::UOM_ID => $uom,
+                                    MobileTransactionLine::PRICE => $price,
+                                    MobileTransactionLine::NET_AMOUNT => $amount,
+                                    MobileTransactionLine::TRANS_DATE => $subject->getCompatibleDateTime(),
+                                    MobileTransactionLine::CURRENCY_FACTOR => 1,
+                                    MobileTransactionLine::DEAL_ITEM =>
+                                        $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)
+                                ]
+                            ]
+                        );
+                        $transactionLines[] = $transactionLine;
+                    }
+                }
+            }
+            $selectedSubLines = $this->hospitalityHelper->getSelectedOrderHospSubLineGivenQuoteItem(
                 $quoteItem,
-                $index
+                $lineNumber
             );
 
             if (!empty($selectedSubLines['deal'])) {
                 foreach ($selectedSubLines['deal'] as $subLine) {
-                    $oneListSubLine         = (new Entity\OneListItemSubLine())
-                        ->setDealLineId($subLine['DealLineId'] ?? null)
-                        ->setDealModLineId($subLine['DealModLineId'] ?? null)
-                        ->setLineNumber($subLine['LineNumber'] ?? null)
-                        ->setUom($subLine['uom'] ?? null)
+                    $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
+                        ->setId($transactionId)
+                        ->setLineno($subLine['LineNumber'] ?? null)
+                        ->setParentlineno($subLine['ParentSubLineId'] ?? null)
+                        ->setLinetype(1)
+                        ->setUomid($subLine['uom'] ?? null)
                         ->setQuantity(1)
-                        ->setType(SubLineType::DEAL);
+                        ->setDealline($subLine['DealLineId'] ?? null)
+                        ->setDealmodline($subLine['DealModLineId'] ?? null)
+                        ->setDealid($subLine['DealId'] ?? null);
                     $oneListSubLinesArray[] = $oneListSubLine;
                 }
             }
 
             if (!empty($selectedSubLines['modifier'])) {
                 foreach ($selectedSubLines['modifier'] as $subLine) {
-                    $oneListSubLine         = (new Entity\OneListItemSubLine())
-                        ->setDealLineId($subLine['DealLineId'] ?? null)
-                        ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
-                        ->setModifierGroupCode($subLine['ModifierGroupCode'])
-                        ->setModifierSubCode($subLine['ModifierSubCode'])
+
+                    $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
+                        ->setId($transactionId)
+                        ->setLineno($subLine['LineNumber'] ?? null)
+                        ->setParentlineno($subLine['ParentSubLineId'] ?? null)
+                        ->setParentlineissubline(1)
                         ->setQuantity(1)
-                        ->setType(SubLineType::MODIFIER);
+                        ->setModifiergroupcode($subLine['ModifierGroupCode'])
+                        ->setModifiersubcode($subLine['ModifierSubCode'])
+                        ->setDealid(0);
                     $oneListSubLinesArray[] = $oneListSubLine;
                 }
             }
 
             if (!empty($selectedSubLines['recipe'])) {
                 foreach ($selectedSubLines['recipe'] as $subLine) {
-                    $oneListSubLine         = (new Entity\OneListItemSubLine())
-                        ->setDealLineId($subLine['DealLineId'] ?? null)
-                        ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
-                        ->setItemId($subLine['ItemId'])
-                        ->setQuantity(0)
-                        ->setType(SubLineType::MODIFIER);
+                    $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
+                        ->setId($transactionId)
+                        ->setLineno($subLine['LineNumber'] ?? null)
+                        ->setParentlineno($subLine['ParentSubLineId'] ?? null)
+                        ->setParentlineissubline(1)
+                        ->setNumber($subLine['ItemId'])
+                        ->setDealid(0);
                     $oneListSubLinesArray[] = $oneListSubLine;
                 }
             }
-            // @codingStandardsIgnoreLine
-            $list_item    = (new Entity\OneListItem())
-                ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
-                ->setQuantity($quoteItem->getData('qty'))
-                ->setItemId($itemId)
-                ->setId($quoteItem->getItemId())
-                ->setBarcodeId($barCode)
-                ->setVariantId($variantId)
-                ->setUnitOfMeasureId($uom)
-                ->setAmount($quoteItem->getPrice())
-                ->setPrice($quoteItem->getPrice())
-                ->setImmutable(true)
-                ->setOnelistSubLines(
-                    (new ArrayOfOneListItemSubLine())->setOneListItemSubLine($oneListSubLinesArray)
-                );
-            $itemsArray[] = $list_item;
         }
-        $items->setOneListItem($itemsArray);
-
-        $oneList->setItems($items)
-            ->setPublishedOffers($subject->_offers());
-
-        $subject->setOneListInCustomerSession($oneList);
+        $oneList->setMobiletransactionsubline($oneListSubLinesArray);
+        $oneList->setMobiletransactionline($transactionLines);
 
         return $oneList;
     }
@@ -156,10 +217,8 @@ class BasketHelperPlugin
      * @param callable $proceed
      * @param RootMobileTransaction $oneList
      * @return OneListCalculateResponse|OneListHospCalculateResponse|Order|OrderHosp|ResponseInterface|null
-     * @throws InvalidEnumException
-     * @throws NoSuchEntityException
      * @throws GuzzleException
-     * @throws AlreadyExistsException
+     * @throws NoSuchEntityException
      */
     public function aroundCalculate(BasketHelper $subject, callable $proceed, RootMobileTransaction $oneList)
     {
@@ -170,96 +229,57 @@ class BasketHelperPlugin
             return $proceed($oneList);
         }
 
-        if ((empty($subject->getCouponCode()) && $subject->calculateBasket == 1
-                && empty($subject->getOneListCalculationFromCheckoutSession())) ||
-            !$subject->lsr->isLSR(
-                $subject->lsr->getCurrentStoreId(),
-                false,
-                $subject->lsr->getBasketIntegrationOnFrontend()
-            )) {
+        if (!$subject->lsr->isLSR(
+            $subject->lsr->getCurrentStoreId(),
+            false,
+            $subject->lsr->getBasketIntegrationOnFrontend()
+        )) {
             return null;
         }
 
-        // @codingStandardsIgnoreLine
-        $storeId = $subject->getDefaultWebStore();
-        $cardId  = $oneList->getCardId();
-
-        /** @var Entity\ArrayOfOneListItem $oneListItems */
-        $oneListItems = $oneList->getItems();
-
-        /** @var Entity\OneListCalculateResponse $response */
-        $response = false;
-
-        if (!($oneListItems->getOneListItem() == null)) {
-            /** @var Entity\OneListItem || Entity\OneListItem[] $listItems */
-            $listItems = $oneListItems->getOneListItem();
-
-            if (!is_array($listItems)) {
-                /** Entity\ArrayOfOneListItem $items */
-                // @codingStandardsIgnoreLine
-                $items = new Entity\ArrayOfOneListItem();
-                $items->setOneListItem($listItems);
-                $listItems = $items;
-            }
-
-            // @codingStandardsIgnoreStart
-            $oneListRequest = (new Entity\OneList())
-                ->setCardId($cardId)
-                ->setListType(Entity\Enum\ListType::BASKET)
-                ->setItems($listItems)
-                ->setStoreId($storeId);
-
-            if (version_compare($subject->lsr->getOmniVersion(), '4.19', '>')) {
-                $oneListRequest
-                    ->setIsHospitality(true)
-                    ->setSalesType($this->hospitalityHelper->getLSR()->getDeliverySalesType());
-            } else {
-                $oneListRequest
-                    ->setHospitalityMode(\Ls\Omni\Client\Ecommerce\Entity\Enum\HospMode::TAKEAWAY);
-            }
-
-            if (version_compare($subject->lsr->getOmniVersion(), '4.24', '>')) {
-                $oneListRequest->setShipToCountryCode($oneList->getShipToCountryCode());
-            }
-
-            /** @var Entity\OneListCalculate $entity */
-            if ($subject->getCouponCode() != "" and $subject->getCouponCode() != null) {
-                $offer  = new Entity\OneListPublishedOffer();
-                $offers = new Entity\ArrayOfOneListPublishedOffer();
-                $offers->setOneListPublishedOffer($offer);
-                $offer->setId($subject->getCouponCode());
-                $offer->setType("Coupon");
-                $oneListRequest->setPublishedOffers($offers);
-            } else {
-                $oneListRequest->setPublishedOffers($subject->_offers());
-            }
-
-            $entity  = new Entity\OneListHospCalculate();
-            $request = new Operation\OneListHospCalculate();
-
-            $entity->setOneList($oneListRequest);
-            $response = $request->execute($entity);
+        if (empty($subject->getCouponCode()) && $subject->calculateBasket == 1
+            && empty($subject->getOneListCalculationFromCheckoutSession())) {
+            return null;
         }
 
-        if (($response == null)) {
-            // @codingStandardsIgnoreLine
-            $oneListCalResponse = new Entity\OneListCalculateResponse();
-
-            return $oneListCalResponse->getResult();
+        if ($subject->getCouponCode() != "" && $subject->getCouponCode() != null) {
+            $mobileTransactionLines = $oneList->getMobiletransactionline();
+            $lineNumber = (count($mobileTransactionLines) + 1) * 10000;
+            $transactionId = $oneList->getMobiletransaction()
+                ->getId();
+            $storeCode = $subject->getDefaultWebStore();
+            $listItem = $subject->createInstance(
+                MobileTransactionLine::class,
+                [
+                    'data' => [
+                        MobileTransactionLine::ID => $transactionId,
+                        MobileTransactionLine::LINE_NO => $lineNumber,
+                        MobileTransactionLine::STORE_ID => $storeCode,
+                        MobileTransactionLine::QUANTITY => 1,
+                        MobileTransactionLine::NUMBER => $subject->getCouponCode(),
+                        MobileTransactionLine::BARCODE => $subject->getCouponCode(),
+                        MobileTransactionLine::TRANS_DATE => $subject->getCompatibleDateTime(),
+                        MobileTransactionLine::CURRENCY_FACTOR => 1,
+                        MobileTransactionLine::LINE_TYPE => 6,
+                        MobileTransactionLine::TRANSACTION_NO => $lineNumber,
+                        MobileTransactionLine::ORIG_TRANS_NO => $lineNumber,
+                        MobileTransactionLine::ORIG_TRANS_LINE_NO => $lineNumber,
+                    ]
+                ]
+            );
+            $mobileTransactionLines[] = $listItem;
+            $oneList->setMobiletransactionline($mobileTransactionLines);
         }
+        $oneList->getMobiletransaction()
+            ->setCurrencycode($subject->lsr->getStoreCurrencyCode())
+            ->setCurrencyfactor($subject->loyaltyHelper->getPointRate());
+        $operation = $subject->createInstance(MobilePosCalculate::class);
+        $operation->setOperationInput(
+            [Entity\MobilePosCalculate::MOBILE_TRANSACTION_XML => $oneList]
+        );
+        $response = $operation->execute();
 
-        if (property_exists($response, "OneListCalculateResult")) {
-            // @codingStandardsIgnoreLine
-            $subject->setOneListCalculationInCheckoutSession($response->getResult());
-            return $response->getResult();
-        }
-
-        if (is_object($response)) {
-            $subject->setOneListCalculationInCheckoutSession($response->getResult());
-            return $response->getResult();
-        } else {
-            return $response;
-        }
+        return $response && $response->getResponsecode() == "0000" ? $response->getMobiletransactionxml() : null;
     }
 
     /**

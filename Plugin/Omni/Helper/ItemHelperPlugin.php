@@ -75,7 +75,7 @@ class ItemHelperPlugin
         $quoteItemList = $quote->getAllVisibleItems();
 
         if (count($quoteItemList) && !empty($basketData)) {
-            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+            $orderLines = $basketData->getMobiletransactionline();
         }
 
         foreach ($quoteItemList as $quoteItem) {
@@ -95,7 +95,11 @@ class ItemHelperPlugin
                         $child->getItemId() == $line->getId() :
                         $subject->isSameItem($child, $line)
                     ) {
-                        $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+                        $totalUnitPrice = $this->hospitalityHelper->getAmountGivenLine(
+                            $line,
+                            $basketData->getMobiletransactionsubline()
+                        );
+                        $unitPrice = $totalUnitPrice / $line->getQuantity();
                         $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $child, $unitPrice, $type);
                         unset($orderLines[$index]);
                         break;
