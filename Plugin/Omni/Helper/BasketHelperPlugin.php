@@ -6,27 +6,20 @@ use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
-use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOneListItemSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\ArrayOfOrderHospSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
-use Ls\Omni\Client\Ecommerce\Entity\MobileTransaction;
-use Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
-use Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
-use Ls\Omni\Client\Ecommerce\Entity\OneListCalculateResponse;
-use Ls\Omni\Client\Ecommerce\Entity\OneListHospCalculateResponse;
-use Ls\Omni\Client\Ecommerce\Entity\Order;
+use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
+use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
+use \Ls\Omni\Client\Ecommerce\Entity\OneListCalculateResponse;
+use \Ls\Omni\Client\Ecommerce\Entity\OneListHospCalculateResponse;
+use \Ls\Omni\Client\Ecommerce\Entity\Order;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
-use Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
-use \Ls\Omni\Client\Ecommerce\Operation;
-use Ls\Omni\Client\Ecommerce\Operation\EcomCalculateBasket;
-use Ls\Omni\Client\Ecommerce\Operation\MobilePosCalculate;
+use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
+use \Ls\Omni\Client\Ecommerce\Operation\MobilePosCalculate;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
 use Magento\Catalog\Model\Product\Type;
-use Magento\Catalog\Pricing\Price\FinalPrice;
-use Magento\Catalog\Pricing\Price\RegularPrice;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
@@ -38,17 +31,11 @@ use Magento\Quote\Model\Quote\Item;
 class BasketHelperPlugin
 {
     /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -73,9 +60,8 @@ class BasketHelperPlugin
         }
         $quoteItems = $quote->getAllVisibleItems();
 
-        $itemsArray = [];
-        $oneListSubLinesArray = [];
-        $transactionLines = [];
+        $itemsArray = $oneListSubLinesArray = $transactionLines = $dealLines = $modifierLines = $recipeLines = [];
+        $oneList->getMobiletransaction()->setSalestype($this->hospitalityHelper->getLSR()->getDeliverySalesType());
         $transactionId = $oneList->getMobiletransaction()
             ->getId();
         $storeCode = $subject->getDefaultWebStore();
@@ -160,48 +146,75 @@ class BasketHelperPlugin
             );
 
             if (!empty($selectedSubLines['deal'])) {
-                foreach ($selectedSubLines['deal'] as $subLine) {
-                    $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
-                        ->setId($transactionId)
-                        ->setLineno($subLine['LineNumber'] ?? null)
-                        ->setParentlineno($subLine['ParentSubLineId'] ?? null)
-                        ->setLinetype(1)
-                        ->setUomid($subLine['uom'] ?? null)
-                        ->setQuantity(1)
-                        ->setDealline($subLine['DealLineId'] ?? null)
-                        ->setDealmodline($subLine['DealModLineId'] ?? null)
-                        ->setDealid($subLine['DealId'] ?? null);
-                    $oneListSubLinesArray[] = $oneListSubLine;
-                }
+                $dealLines = array_merge($selectedSubLines['deal'], $dealLines);
             }
 
             if (!empty($selectedSubLines['modifier'])) {
-                foreach ($selectedSubLines['modifier'] as $subLine) {
-
-                    $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
-                        ->setId($transactionId)
-                        ->setLineno($subLine['LineNumber'] ?? null)
-                        ->setParentlineno($subLine['ParentSubLineId'] ?? null)
-                        ->setParentlineissubline(1)
-                        ->setQuantity(1)
-                        ->setModifiergroupcode($subLine['ModifierGroupCode'])
-                        ->setModifiersubcode($subLine['ModifierSubCode'])
-                        ->setDealid(0);
-                    $oneListSubLinesArray[] = $oneListSubLine;
-                }
+                $modifierLines = array_merge($selectedSubLines['modifier'], $modifierLines);
             }
 
             if (!empty($selectedSubLines['recipe'])) {
-                foreach ($selectedSubLines['recipe'] as $subLine) {
-                    $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
-                        ->setId($transactionId)
-                        ->setLineno($subLine['LineNumber'] ?? null)
-                        ->setParentlineno($subLine['ParentSubLineId'] ?? null)
-                        ->setParentlineissubline(1)
-                        ->setNumber($subLine['ItemId'])
-                        ->setDealid(0);
-                    $oneListSubLinesArray[] = $oneListSubLine;
+                $recipeLines = array_merge($selectedSubLines['recipe'], $recipeLines);
+            }
+        }
+        $lineNumber = 0;
+        if (!empty($dealLines)) {
+            // Custom sort: entries without DealModLineId and uom come first
+            usort($dealLines, function ($a, $b) {
+                $aHasModAndUom = isset($a['DealModLineId']) && isset($a['uom']);
+                $bHasModAndUom = isset($b['DealModLineId']) && isset($b['uom']);
+
+                // If one has and the other doesn't, the one without comes first
+                if ($aHasModAndUom !== $bHasModAndUom) {
+                    return $aHasModAndUom ? 1 : -1;
                 }
+
+                // Optional: sort by LineNumber if both are equal on above condition
+                return ($a['ParentSubLineId'] ?? 0) <=> ($b['ParentSubLineId'] ?? 0);
+            });
+            foreach ($dealLines as $dealLine) {
+                $lineNumber = $lineNumber + 10000;
+                $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
+                    ->setId($transactionId)
+                    ->setLineno($lineNumber)
+                    ->setParentlineno($dealLine['ParentSubLineId'] ?? null)
+                    ->setLinetype(1)
+                    ->setUomid($dealLine['uom'] ?? null)
+                    ->setQuantity(1)
+                    ->setDealline($dealLine['DealLineId'] ?? null)
+                    ->setDealmodline($dealLine['DealModLineId'] ?? null)
+                    ->setDealid($dealLine['DealId'] ?? null);
+                $oneListSubLinesArray[] = $oneListSubLine;
+            }
+        }
+
+        if (!empty($modifierLines)) {
+            foreach ($modifierLines as $modifierLine) {
+                $lineNumber = $lineNumber + 10000;
+                $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
+                    ->setId($transactionId)
+                    ->setLineno($lineNumber)
+                    ->setParentlineno($modifierLine['ParentSubLineId'] ?? null)
+                    ->setParentlineissubline(1)
+                    ->setQuantity(1)
+                    ->setModifiergroupcode($modifierLine['ModifierGroupCode'] ?? null)
+                    ->setModifiersubcode($modifierLine['ModifierSubCode'] ?? null)
+                    ->setDealid(0);
+                $oneListSubLinesArray[] = $oneListSubLine;
+            }
+        }
+
+        if (!empty($recipeLines)) {
+            foreach ($recipeLines as $recipeLine) {
+                $lineNumber = $lineNumber + 10000;
+                $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
+                    ->setId($transactionId)
+                    ->setLineno($lineNumber)
+                    ->setParentlineno($recipeLine['ParentSubLineId'] ?? null)
+                    ->setParentlineissubline(1)
+                    ->setNumber($recipeLine['ItemId'])
+                    ->setDealid(0);
+                $oneListSubLinesArray[] = $oneListSubLine;
             }
         }
         $oneList->setMobiletransactionsubline($oneListSubLinesArray);
@@ -222,9 +235,8 @@ class BasketHelperPlugin
      */
     public function aroundCalculate(BasketHelper $subject, callable $proceed, RootMobileTransaction $oneList)
     {
-        if ($subject->lsr->getCurrentIndustry(
-            $subject->getCorrectStoreIdFromCheckoutSession() ?? null
-        ) != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        if ($subject->lsr->getCurrentIndustry($subject->getCorrectStoreIdFromCheckoutSession() ?? null) !=
+            \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY
         ) {
             return $proceed($oneList);
         }
@@ -272,7 +284,7 @@ class BasketHelperPlugin
         }
         $oneList->getMobiletransaction()
             ->setCurrencycode($subject->lsr->getStoreCurrencyCode())
-            ->setCurrencyfactor($subject->loyaltyHelper->getPointRate());
+            ->setCurrencyfactor((float)$subject->loyaltyHelper->getPointRate());
         $operation = $subject->createInstance(MobilePosCalculate::class);
         $operation->setOperationInput(
             [Entity\MobilePosCalculate::MOBILE_TRANSACTION_XML => $oneList]
@@ -298,23 +310,23 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item);
         }
-        $rowTotal   = $item->getRowTotalInclTax();
+        $rowTotal = $item->getRowTotalInclTax();
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
             $item->getSku()
         );
         $basketData = $subject->getOneListCalculation();
         if (!empty($basketData)) {
-            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+            $orderLines = $basketData->getMobiletransactionline();
+            $subLines = $basketData->getMobiletransactionsubline() ?? [];
 
             foreach ($orderLines as $index => $line) {
                 ++$index;
 
-                if (
-                    $subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
-                    $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index)
+                if ($subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure) &&
+                    $this->hospitalityHelper->isSameAsSelectedLine($line, $item, $index, $subLines)
                 ) {
-                    $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line);
+                    $rowTotal = $this->hospitalityHelper->getAmountGivenLine($line, $subLines);
                     break;
                 }
             }
@@ -341,7 +353,7 @@ class BasketHelperPlugin
         if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($item, $lines);
         }
-        $rowDiscount       = 0;
+        $rowDiscount = 0;
         $baseUnitOfMeasure = $item->getProduct()->getData('uom');
         list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
             $item->getSku()
@@ -349,11 +361,11 @@ class BasketHelperPlugin
 
         $basketData = $subject->getOneListCalculation();
         if (!empty($basketData)) {
-            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+            $orderLines = $basketData->getMobiletransactionline();
             foreach ($orderLines as $line) {
                 if ($subject->itemHelper->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                    $rowDiscount = $line->getQuantity() == $item->getQty() ? $line->getDiscountAmount()
-                        : ($line->getDiscountAmount() / $line->getQuantity()) * $item->getQty();
+                    $rowDiscount = $line->getQuantity() == $item->getQty() ? $line->getDiscountamount()
+                        : ($line->getDiscountamount() / $line->getQuantity()) * $item->getQty();
                     break;
                 }
             }

@@ -20,32 +20,15 @@ use Psr\Log\LoggerInterface;
 class ItemHelperPlugin
 {
     /**
-     * @var LoggerInterface
-     */
-    public $logger;
-
-    /** @var  LSR $lsr */
-    public $lsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * ItemHelper constructor.
      * @param LoggerInterface $logger
-     * @param LSR $Lsr
+     * @param LSR $lsr
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        LoggerInterface $logger,
-        LSR $Lsr,
-        HospitalityHelper $hospitalityHelper
+        public LoggerInterface $logger,
+        public LSR $lsr,
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->logger            = $logger;
-        $this->lsr               = $Lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -58,7 +41,7 @@ class ItemHelperPlugin
      * @param int $type
      * @return mixed
      * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function aroundCompareQuoteItemsWithOrderLinesAndSetRelatedAmounts(
         ItemHelper $subject,
@@ -71,7 +54,7 @@ class ItemHelperPlugin
             return $proceed($quote, $basketData, $type);
         }
 
-        $orderLines    = [];
+        $orderLines = [];
         $quoteItemList = $quote->getAllVisibleItems();
 
         if (count($quoteItemList) && !empty($basketData)) {
@@ -80,10 +63,10 @@ class ItemHelperPlugin
 
         foreach ($quoteItemList as $quoteItem) {
             $bundleProduct = $customPrice = $taxAmount = $rowTotal = $rowTotalIncTax = $priceInclTax = 0;
-            $children      = [];
+            $children = [];
 
             if ($quoteItem->getProductType() == Type::TYPE_BUNDLE) {
-                $children      = $quoteItem->getChildren();
+                $children = $quoteItem->getChildren();
                 $bundleProduct = 1;
             } else {
                 $children[] = $quoteItem;
@@ -97,7 +80,7 @@ class ItemHelperPlugin
                     ) {
                         $totalUnitPrice = $this->hospitalityHelper->getAmountGivenLine(
                             $line,
-                            $basketData->getMobiletransactionsubline()
+                            $basketData->getMobiletransactionsubline() ?? []
                         );
                         $unitPrice = $totalUnitPrice / $line->getQuantity();
                         $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $child, $unitPrice, $type);
@@ -113,10 +96,10 @@ class ItemHelperPlugin
                     $this->logger->critical("Error saving SKU:-" . $child->getSku() . " - " . $e->getMessage());
                 }
 
-                $customPrice    += $child->getCustomPrice();
-                $priceInclTax   += $child->getPriceInclTax();
-                $taxAmount      += $child->getTaxAmount();
-                $rowTotal       += $child->getRowTotal();
+                $customPrice += $child->getCustomPrice();
+                $priceInclTax += $child->getPriceInclTax();
+                $taxAmount += $child->getTaxAmount();
+                $rowTotal += $child->getRowTotal();
                 $rowTotalIncTax += $child->getRowTotalInclTax();
             }
 
