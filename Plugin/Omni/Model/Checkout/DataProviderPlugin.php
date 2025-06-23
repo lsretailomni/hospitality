@@ -50,6 +50,7 @@ class DataProviderPlugin
         DataProvider $subject,
         $result
     ) {
+        return $result;
         if ($this->lsr->getCurrentIndustry($subject->getStoreId()) != LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $result;
         }
