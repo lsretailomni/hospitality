@@ -632,6 +632,25 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get recipe by line number
+     *
+     * @param $recipeNo
+     * @param $LineNo
+     * @return mixed
+     */
+    public function getRecipeByLineNumber($recipeNo, $LineNo)
+    {
+        $recipe = $this->recipeRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('RecipeNo', $recipeNo)
+                ->addFilter('LineNo', $LineNo)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $recipe->getItems();
+    }
+
+    /**
      * Get modifier by description
      *
      * @param $value
