@@ -8,7 +8,7 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Block\Stores\Stores;
 use \Ls\Omni\Model\Checkout\DataProvider;
-use Ls\Replication\Model\ResourceModel\ReplStoreview\Collection;
+use \Ls\Replication\Model\ResourceModel\ReplStoreview\Collection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
