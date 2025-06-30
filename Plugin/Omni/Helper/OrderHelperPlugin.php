@@ -94,7 +94,7 @@ class OrderHelperPlugin
                 $order->getBillingAddress()->getLastname(), 0, 20);
 
             /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
-            $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId);
+            $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId, $storeId);
             $isClickCollect          = false;
             $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
             $pickupDateTimeslot      = null;
