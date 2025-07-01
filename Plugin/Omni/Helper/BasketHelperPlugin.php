@@ -336,7 +336,6 @@ class BasketHelperPlugin
     }
 
     /**
-     *
      * Around plugin for getting Correct Item Row Discount for minicart after comparison
      *
      * @param BasketHelper $subject
@@ -479,7 +478,6 @@ class BasketHelperPlugin
                     $rowTotalInclTax = $rowTotalInclTax - $cartRuleDiscount;
                 }
 
-
                 if ($deficit > 0) {
                     $rowTotalInclTax -= $deficit;
                 }
@@ -489,7 +487,6 @@ class BasketHelperPlugin
                     $discount = $regularPrice - $rowTotalInclTax;
                     $discountPercentage = ($discount / $regularPrice) * 100;
                 }
-
 
                 $product = $quoteItem->getProduct();
 

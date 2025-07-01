@@ -142,10 +142,10 @@ class ItemHelperPlugin
         $type = 1,
         $graphQlRequest = 0
     ) {
-        $check             = false;
+        $check = false;
         $baseUnitOfMeasure = "";
-        $discountInfo      = $orderLines = $discountsLines = [];
-        $discountText      = __("Save");
+        $discountInfo = $orderLines = $discountsLines = [];
+        $discountText = __("Save");
 
         try {
             if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
@@ -153,9 +153,9 @@ class ItemHelperPlugin
             }
 
             if ($type == 2) {
-                $itemId      = $item->getItemId();
-                $variantId   = $item->getVariantId();
-                $uom         = $item->getUomId();
+                $itemId = $item->getItemId();
+                $variantId = $item->getVariantId();
+                $uom = $item->getUomId();
                 $customPrice = $item->getDiscountAmount();
             } else {
                 $baseUnitOfMeasure = $item->getProduct()->getData('uom');
@@ -166,7 +166,7 @@ class ItemHelperPlugin
             }
 
             if ($orderData instanceof SalesEntry) {
-                $orderLines     = $orderData->getLines();
+                $orderLines = $orderData->getLines();
                 $discountsLines = $orderData->getDiscountLines();
             } elseif ($orderData instanceof OrderHosp) {
                 $orderLines = $orderData->getOrderLines();
@@ -187,7 +187,7 @@ class ItemHelperPlugin
                                     } else {
                                         $discountInfo[] = [
                                             'description' => $orderDiscountLine->getDescription(),
-                                            'value'       => $orderDiscountLine->getDiscountAmount()
+                                            'value' => $orderDiscountLine->getDiscountAmount()
                                         ];
                                     }
                                 }
