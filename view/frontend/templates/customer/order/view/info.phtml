@@ -1,113 +1,117 @@
 <?php
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
-list(, $status, $productionTime, $qCounter, $kotNo, $lines, $tableNo, $pickupOrderTime) = $block->getData('data');
-if (empty($status)) {
-    $status = __('Kitchen status service is down. Please try again by refreshing the page.');
-}
-?>
-<div class="hosp-info-container">
-    <?php if ($tableNo): ?>
-        <div class="block-content">
-            <div class="custom-box">
-                <strong class="box-title"><span>
+$status   = $block->getData('data');
+foreach ($status as $statusInfo) {
+    ?>
+    <div class="hosp-info-container">
+        <?php if ($statusInfo['table_no']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
                 __('Table No:') ?></span></strong>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['table_no']; ?></span>
+                </div>
+            </div>
+        <?php endif; ?>
+        <div class="block-content">
+            <?php
+            if (empty($statusInfo['status'])) {
+                $statusInfo['status'] = __('Kitchen status service is down. Please try again by refreshing the page.');
+            }
+            ?>
+            <div class="custom-box">
+                <strong class="box-title"><span><?= /* @escapeNotVerified */
+                        __('Status:') ?></span></strong>
                 <span><?= /* @escapeNotVerified */
-                    $tableNo; ?></span>
+                    $statusInfo['status']; ?></span>
             </div>
         </div>
-    <?php endif; ?>
-    <div class="block-content">
-        <div class="custom-box">
-            <strong class="box-title"><span><?= /* @escapeNotVerified */
-                    __('Status:') ?></span></strong>
-            <span><?= /* @escapeNotVerified */
-                $status; ?></span>
-        </div>
-    </div>
-    <?php if ($productionTime > 0): ?>
-        <div class="block-content">
-            <div class="custom-box">
-                <strong class="box-title"><span>
+        <?php if ($statusInfo['production_time'] > 0): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
                 __('Production Time:') ?></span></strong>
-                <span><?= /* @escapeNotVerified */
-                    $productionTime; ?> <?= /* @escapeNotVerified */
-                    __('Minutes') ?></span>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['production_time']; ?> <?= /* @escapeNotVerified */
+                        __('Minutes') ?></span>
+                </div>
             </div>
-        </div>
-    <?php endif; ?>
-    <?php if ($pickupOrderTime): ?>
-        <div class="block-content">
-            <div class="custom-box">
-                <strong class="box-title"><span>
+        <?php endif; ?>
+        <?php if ($statusInfo['pickupOrderTime']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
                 __('Pickup Order Time:') ?></span></strong>
-                <span><?= /* @escapeNotVerified */
-                    $pickupOrderTime; ?></span>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['pickupOrderTime']; ?></span>
+                </div>
             </div>
-        </div>
-    <?php endif; ?>
-    <?php if ($kotNo): ?>
-        <div class="block-content">
-            <div class="custom-box">
-                <strong class="box-title"><span>
+        <?php endif; ?>
+        <?php if ($statusInfo['kot_no']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
                 __('Kitchen Order No:') ?></span></strong>
-                <span><?= /* @escapeNotVerified */
-                    $kotNo; ?></span>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['kot_no']; ?></span>
+                </div>
             </div>
-        </div>
-    <?php endif; ?>
-    <?php if ($qCounter): ?>
-        <div class="block-content">
-            <div class="custom-box">
-                <strong class="box-title"><span>
+        <?php endif; ?>
+        <?php if ($statusInfo['q_counter']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
                 __('Queue Counter:') ?></span></strong>
-                <span><?= /* @escapeNotVerified */
-                    $qCounter; ?></span>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['q_counter']; ?></span>
+                </div>
             </div>
-        </div>
-    <?php endif; ?>
-    <?php if ($lines): ?>
-        <div class="block-content">
-            <div class="custom-box">
-                <strong class="box-title"><span>
+        <?php endif; ?>
+        <?php if ($statusInfo['lines']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
                 __('Items Ordered:') ?></span></strong>
-                <div class="custom-table-wrapper">
-                    <table class="custom-product-table cart items data table">
-                        <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Quantity</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($lines as $line): ?>
+                    <div class="custom-table-wrapper">
+                        <table class="custom-product-table cart items data table">
+                            <thead>
                             <tr>
-                                <td class="product-image">
+                                <th>Item</th>
+                                <th>Quantity</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($statusInfo['lines'] as $line): ?>
+                                <tr>
+                                    <td class="product-image">
                                     <span class="product-image-container">
                                             <a href="<?= $line['productUrl'] ?>" target="_blank">
                                                 <img src="<?= $line['imageUrl'] ?>"
                                                      alt="<?= $block->escapeHtml($line['productName']) ?>">
                                             </a>
                                     </span>
-                                    <div class="product-item-details">
-                                        <a href="<?= $line['productUrl'] ?>" target="_blank">
-                                            <?= $block->escapeHtml($line['productName']) ?>
-                                        </a>
-                                    </div>
-                                </td>
-                                <td class="product-qty"><?= $line['quantity'] ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                        <div class="product-item-details">
+                                            <a href="<?= $line['productUrl'] ?>" target="_blank">
+                                                <?= $block->escapeHtml($line['productName']) ?>
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td class="product-qty"><?= $line['quantity'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-    <?php endif; ?>
-</div>
+        <?php endif; ?>
+    </div>
+<?php } ?>

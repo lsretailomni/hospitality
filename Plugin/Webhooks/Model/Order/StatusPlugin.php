@@ -97,7 +97,6 @@ class StatusPlugin
                     && $magOrder->canShip()) {
                     $subject->payment->createShipment($magOrder, $data['Lines']);
                 }
-
             }
         }
 
