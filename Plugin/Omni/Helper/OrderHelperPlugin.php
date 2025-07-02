@@ -3,11 +3,13 @@
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
 use \Ls\Omni\Client\Ecommerce\Entity\HospOrderCancelResponse;
+use Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
@@ -18,6 +20,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model;
 use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -70,15 +73,15 @@ class OrderHelperPlugin
      * @param OrderHelper $subject
      * @param callable $proceed
      * @param Model\Order $order
-     * @param mixed $oneListCalculateResponse
+     * @param RootMobileTransaction $oneListCalculateResponse
      * @return Entity\OrderHospCreate
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function aroundPrepareOrder(
         OrderHelper $subject,
         callable $proceed,
         Model\Order $order,
-        $oneListCalculateResponse
+        RootMobileTransaction $oneListCalculateResponse
     ) {
         if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($order, $oneListCalculateResponse);
@@ -157,7 +160,7 @@ class OrderHelperPlugin
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
-            $orderLinesArray = $subject->updateShippingAmount($orderLinesArray, $order);
+            $orderLinesArray = $subject->updateShippingAmount($orderLinesArray, $order, $storeId);
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
@@ -197,15 +200,21 @@ class OrderHelperPlugin
      * @param OrderHelper $subject
      * @param callable $proceed
      * @param $orderLines
-     * @param $order
+     * @param Order $order
+     * @param string $storeCode
      * @return mixed
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      */
-    public function aroundUpdateShippingAmount(OrderHelper $subject, callable $proceed, $orderLines, $order)
-    {
+    public function aroundUpdateShippingAmount(
+        OrderHelper $subject,
+        callable $proceed,
+        $orderLines,
+        Model\Order $order,
+        string $storeCode
+    ) {
         if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($orderLines, $order);
+            return $proceed($orderLines, $order, $storeCode);
         }
 
         $shipmentFeeId      = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
