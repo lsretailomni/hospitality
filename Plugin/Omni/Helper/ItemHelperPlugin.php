@@ -163,24 +163,13 @@ class ItemHelperPlugin
                 );
                 $customPrice = $item->getCustomPrice();
             }
-            
+
             if ($orderData instanceof GetSelectedSalesDoc_GetSelectedSalesDoc) {
                 $orderLines     = $orderData->getLscMemberSalesDocLine();
                 if (!empty($orderData->getLscMemberSalesDocDiscLine())) {
                     $discountsLines = $orderData->getLscMemberSalesDocDiscLine();
                 }
             }
-            //Need to remove after testing different scenarios
-//            if ($orderData instanceof SalesEntry) {
-//                $orderLines     = $orderData->getLines();
-//                $discountsLines = $orderData->getDiscountLines();
-//            } elseif ($orderData instanceof OrderHosp) {
-//                $orderLines = $orderData->getOrderLines();
-//
-//                if (!empty($orderData->getOrderDiscountLines())) {
-//                    $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
-//                }
-//            }
 
             foreach ($orderLines as $line) {
                 if ($subject->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
