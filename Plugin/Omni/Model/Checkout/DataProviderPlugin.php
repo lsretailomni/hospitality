@@ -8,7 +8,8 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Block\Stores\Stores;
 use \Ls\Omni\Model\Checkout\DataProvider;
-use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
+use \Ls\Replication\Model\ResourceModel\ReplStoreview\Collection;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -17,57 +18,62 @@ use Magento\Framework\Exception\NoSuchEntityException;
 class DataProviderPlugin
 {
     /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
      * @param LSR $lsr
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        LSR $lsr,
-        HospitalityHelper $hospitalityHelper
+        public LSR $lsr,
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->lsr               = $lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
      * After plugin for intercepting get required stores method to get takeaway stores
      *
      * @param DataProvider $subject
-     * @param Collection $result
+     * @param callable $proceed
      * @return Collection
      * @throws NoSuchEntityException
      */
-    public function afterGetRequiredStores(
+    public function aroundGetRequiredStores(
         DataProvider $subject,
-        $result
+        $proceed,
     ) {
-        return $result;
         if ($this->lsr->getCurrentIndustry($subject->getStoreId()) != LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $result;
+            return $proceed();
         }
         $takeAwaySalesType = $this->lsr->getTakeAwaySalesType();
 
-        return $result->addFieldToFilter('HospSalesTypes', ['like' => '%' . $takeAwaySalesType . '%']);
+        $allStores = $subject->storeHelper->getAllStoresFromCentral();
+        $requiredStores = [];
+
+        foreach (!empty($allStores->getLscStore()) ?  $allStores->getLscStore() : [] as $store) {
+            if (($store->getClickAndCollect() ||
+                $store->getWebStore()) &&
+                in_array($takeAwaySalesType, explode('|', $store->getStoreSalesTypeFilter()))
+            ) {
+                $requiredStores[] = $store->getNo();
+            }
+        }
+
+        return $subject->storeCollectionFactory->create()
+            ->addFieldToFilter(
+                'scope_id',
+                !$subject->lsr->isSSM() ?
+                    $subject->lsr->getCurrentWebsiteId() :
+                    $subject->lsr->getAdminStore()->getWebsiteId()
+            )->addFieldToFilter('no', ['in' => $requiredStores]);
     }
 
     /**
      * Before intercept to set the store
      *
      * @param DataProvider $subject
-     * @param $responseItems
-     * @return mixed
+     * @param array $responseItems
+     * @return array
      * @throws NoSuchEntityException
      */
-    public function beforeGetSelectedClickAndCollectStoresData(DataProvider $subject, $responseItems)
+    public function beforeGetSelectedClickAndCollectStoresData(DataProvider $subject, array $responseItems)
     {
         if ($this->lsr->getCurrentIndustry($subject->getStoreId()) == LSRAlias::LS_INDUSTRY_VALUE_HOSPITALITY
             && empty($responseItems)) {
@@ -81,31 +87,32 @@ class DataProviderPlugin
      * After getting the configuration
      *
      * @param DataProvider $subject
-     * @param $result
-     * @return array[]
+     * @param array $result
+     * @return array
      * @throws NoSuchEntityException
+     * @throws LocalizedException
      */
-    public function afterGetConfig(DataProvider $subject, $result)
+    public function afterGetConfig(DataProvider $subject, array $result)
     {
         if ($this->lsr->isHospitalityStore()) {
             $storeId = $subject->storeManager->getStore()->getId();
 
-            $anonymousOrderEnabled     = $this->lsr->getStoreConfig(
+            $anonymousOrderEnabled = $this->lsr->getStoreConfig(
                 Lsr::ANONYMOUS_ORDER_ENABLED,
                 $storeId
             );
             $removeCheckoutStepEnabled = $this->hospitalityHelper->removeCheckoutStepEnabled();
 
-            $anonymousOrderRequiredAttributes             = $this->hospitalityHelper->getformattedAddressAttributesConfig(
+            $anonymousOrderRequiredAttributes = $this->hospitalityHelper->getformattedAddressAttributesConfig(
                 $storeId
             );
-            $result['anonymous_order']['is_enabled']      = (bool)$anonymousOrderEnabled;
+            $result['anonymous_order']['is_enabled'] = (bool)$anonymousOrderEnabled;
             $result['anonymous_order']['required_fields'] = $anonymousOrderRequiredAttributes;
-            $result['remove_checkout_step_enabled']       = (bool)$removeCheckoutStepEnabled;
+            $result['remove_checkout_step_enabled'] = (bool)$removeCheckoutStepEnabled;
         }
         $clickAndCollectEnabled = $this->lsr->getClickCollectEnabled();
-        $enabled                = $this->lsr->isPickupTimeslotsEnabled();
-        $deliveryHoursEnabled   = $this->lsr->isDeliveryTimeslotsEnabled();
+        $enabled = $this->lsr->isPickupTimeslotsEnabled();
+        $deliveryHoursEnabled = $this->lsr->isDeliveryTimeslotsEnabled();
         if (empty($subject->basketHelper->getStorePickUpHoursFromCheckoutSession()) || !$clickAndCollectEnabled) {
             $enabled = 0;
         }
@@ -113,24 +120,24 @@ class DataProviderPlugin
             $deliveryHoursEnabled = 0;
         }
         if ($this->lsr->isDisableInventory() && $this->lsr->isHospitalityStore()) {
-            $storesResponse                                = $subject->getRequiredStores();
-            $stores                                        = $storesResponse ? $storesResponse->toArray() : [];
-            $layout                                        = $subject->layoutFactory->create();
-            $storesData                                    = $layout->createBlock(Stores::class)
+            $storesResponse = $subject->getRequiredStores();
+            $stores = $storesResponse ? $storesResponse->toArray() : [];
+            $layout = $subject->layoutFactory->create();
+            $storesData = $layout->createBlock(Stores::class)
                 ->setTemplate('Ls_Omni::stores/stores.phtml')
                 ->setData('data', $storesResponse)
                 ->setData('storeHours', 0)
                 ->toHtml();
-            $stores['storesInfo']                          = $storesData;
-            $encodedStores                                 = Json::encode($stores);
+            $stores['storesInfo'] = $storesData;
+            $encodedStores = Json::encode($stores);
             $result['shipping']['select_store'] ['stores'] = $encodedStores;
         }
         $result['shipping'] ['pickup_date_timeslots'] = [
-            'options'                => $subject->basketHelper->getStorePickUpHoursFromCheckoutSession(),
-            'delivery_hours'         => $subject->basketHelper->getDeliveryHoursFromCheckoutSession(),
-            'enabled'                => $enabled,
-            'current_web_store'      => $this->lsr->getActiveWebStore(),
-            'store_type'             => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ?
+            'options' => $subject->basketHelper->getStorePickUpHoursFromCheckoutSession(),
+            'delivery_hours' => $subject->basketHelper->getDeliveryHoursFromCheckoutSession(),
+            'enabled' => $enabled,
+            'current_web_store' => $this->lsr->getActiveWebStore(),
+            'store_type' => ($this->lsr->getCurrentIndustry() == LSR::LS_INDUSTRY_VALUE_HOSPITALITY) ?
                 1 : 0,
             'delivery_hours_enabled' => $deliveryHoursEnabled
         ];
@@ -142,14 +149,14 @@ class DataProviderPlugin
      * After getting the configuration
      *
      * @param DataProvider $subject
-     * @param $result
-     * @return array[]
+     * @param string $result
+     * @return string
      * @throws NoSuchEntityException
      */
-    public function afterAvailableStoresOnlyEnabled(DataProvider $subject, $result)
+    public function afterAvailableStoresOnlyEnabled(DataProvider $subject, string $result)
     {
         if ($subject->checkoutSession->getNoManageStock()) {
-            $result = [true];
+            $result = "1";
         }
 
         return $result;
