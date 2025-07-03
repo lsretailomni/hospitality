@@ -84,8 +84,8 @@ class Info extends \Ls\Customer\Block\Order\Info
         if (!$this->hospitalityLsr->isHospitalityStore()) {
             parent::_prepareLayout();
         } else {
-            if ($this->getOrder()) {
-                $this->pageConfig->getTitle()->set(__('Order # %1', $this->getOrder()->getId()));
+            if ($this->getLscMemberSalesBuffer()) {
+                $this->pageConfig->getTitle()->set(__('Order # %1', $this->getLscMemberSalesBuffer()->getDocumentId()));
             }
         }
     }
