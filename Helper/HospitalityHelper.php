@@ -920,9 +920,10 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status    = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = '';
-        $linesData = [];
-        $order     = $this->getOrderByDocumentId($orderId);
+        $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = '';
+        $resultArray = [];
+        $linesData   = [];
+        $order       = $this->getOrderByDocumentId($orderId);
         if ($order) {
             $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
             if ($qrcodeInfo) {
@@ -996,6 +997,15 @@ class HospitalityHelper extends AbstractHelper
                                     ];
                                 }
                             }
+                            $resultArray[] = [
+                                'status'             => $status,
+                                'status_description' => $statusDescription,
+                                'production_time'    => $productionTime,
+                                'q_counter'          => $qCounter,
+                                'kot_no'             => $kotNo,
+                                'lines'              => $linesData,
+                                'table_no'           => $tableNo
+                            ];
                         }
                     } else {
                         $status   = $orderStatusResult->getStatus();
@@ -1020,7 +1030,7 @@ class HospitalityHelper extends AbstractHelper
             }
         }
 
-        return [$status, $statusDescription, $productionTime, $qCounter, $kotNo, $linesData, $tableNo];
+        return $resultArray;
     }
 
     /**
@@ -1544,11 +1554,27 @@ class HospitalityHelper extends AbstractHelper
      */
     public function fixOrderLinesStatus(&$data)
     {
-        $status = $data['HeaderStatus'];
-        foreach ($data['Lines'] as &$line) {
-            if ($line['Quantity'] == 0 || $line['NewStatus'] == null) {
-                $line['Quantity']  = 1;
-                $line['NewStatus'] = $status;
+        $status       = $data['HeaderStatus'];
+        $magentoOrder = $this->getOrderByDocumentId($data['OrderId']);
+        foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
+            list($itemId, $variantId, $uom) = $this->itemHelper->getComparisonValues(
+                $orderItem->getSku(),
+                $orderItem->getProductId()
+            );
+            foreach ($data['Lines'] as &$line) {
+                if ($line['Quantity'] == 0 || $line['NewStatus'] == null) {
+                    $line['Quantity']  = 1;
+                    $line['NewStatus'] = $status;
+                }
+                if (empty($line['UnitOfMeasureId']) && $itemId == $line['ItemId']) {
+                    $line['UnitOfMeasureId'] = $uom;
+                }
+                if ($line['Amount'] == 0 && $itemId == $line['ItemId'] && $uom == $line['UnitOfMeasureId']) {
+                    $line['Quantity']  = 1;
+                    $line['NewStatus'] = $status;
+                    $line['Amount']    = $orderItem->getQtyOrdered() > 0
+                        ? $orderItem->getPrice() / $orderItem->getQtyOrdered() : 0;
+                }
             }
         }
     }
