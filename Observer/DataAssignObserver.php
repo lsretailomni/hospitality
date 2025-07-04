@@ -77,9 +77,13 @@ class DataAssignObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $quote                      = $observer->getQuote();
-        $order                      = $observer->getOrder();
-        $shippingMethod             = $quote->getShippingAddress()->getShippingMethod();
+        $quote          = $observer->getQuote();
+        $order          = $observer->getOrder();
+        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+        $email          = $quote->getBillingAddress()->getEmail();
+        if ($email != $order->getCustomerEmail()) {
+            $order->setCustomerEmail($email);
+        }
         $validatePickupDateRangeMsg = "";
         $pickupStore                = "";
         if ($quote->getServiceMode()) {
