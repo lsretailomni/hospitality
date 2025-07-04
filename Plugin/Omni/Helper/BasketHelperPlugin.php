@@ -378,7 +378,7 @@ class BasketHelperPlugin
      *
      * @param BasketHelper $subject
      * @param callable $proceed
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      * @return Entity\OneListCalculateResponse|Entity\Order
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
@@ -387,7 +387,7 @@ class BasketHelperPlugin
     public function aroundFormulateCentralOrderRequestFromMagentoOrder(
         BasketHelper $subject,
         callable $proceed,
-        $order
+        \Magento\Sales\Model\Order $order
     ) {
         if ($subject->lsr->getCurrentIndustry($order->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             return $proceed($order);
