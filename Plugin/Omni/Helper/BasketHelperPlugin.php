@@ -440,7 +440,7 @@ class BasketHelperPlugin
         $basketResponse = $quote->getBasketResponse();
         $mobileTransaction = $mobileTransactionLines = $mobileTransactionDiscountLines = $mobileTransactionSubLines =
         $modifierLines = $recipeLines = [];
-
+        $transactionId = '{'.$subject->generateGuid().'}';
         if (!empty($basketResponse)) {
             // phpcs:ignore Magento2.Security.InsecureFunction.FoundWithAlternative
             $basketData     = $subject->restoreModel(unserialize($basketResponse));
@@ -448,14 +448,16 @@ class BasketHelperPlugin
             $mobileTransactionDiscountLines = $basketData->getMobiletransdiscountline();
             $mobileTransactionLines = $basketData->getMobiletransactionline();
             $mobileTransactionSubLines =  $basketData->getMobiletransactionsubline();
-            $transactionId = current((array)$basketData->getMobiletransaction())
-                ->getId();
         }
 
         if (empty($mobileTransaction)) {
             $mobileTransaction[] = $subject->createInstance(MobileTransaction::class);
             current($mobileTransaction)->addData([
+                MobileTransaction::ID => $transactionId,
                 MobileTransaction::STORE_ID => $storeCode,
+                MobileTransaction::TRANSACTION_TYPE => 2,
+                MobileTransaction::CURRENCY_FACTOR => 1,
+                MobileTransaction::SOURCE_TYPE => 1,
             ]);
         }
 
@@ -476,8 +478,9 @@ class BasketHelperPlugin
 
         $quoteItems = $quote->getAllVisibleItems();
         if (empty($mobileTransactionLines)) {
-            $lineNumber = 10000;
+            $lineNumber = 0;
             foreach ($quoteItems as $index => $quoteItem) {
+                $lineNumber = $lineNumber + 10000;
                 list($itemId, $variantId, $uom) =
                     $subject->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
                 $discountPercentage = $discount = null;
@@ -528,7 +531,7 @@ class BasketHelperPlugin
                 if (!empty($selectedSubLines['recipe'])) {
                     $recipeLines = array_merge($selectedSubLines['recipe'], $recipeLines);
                 }
-                $lineNumber = 0;
+                $subLinesLineNumber = 0;
                 if (!empty($dealLines)) {
                     // Custom sort: entries without DealModLineId and uom come first
                     usort($dealLines, function ($a, $b) {
@@ -544,10 +547,10 @@ class BasketHelperPlugin
                         return ($a['ParentSubLineId'] ?? 0) <=> ($b['ParentSubLineId'] ?? 0);
                     });
                     foreach ($dealLines as $dealLine) {
-                        $lineNumber = $lineNumber + 10000;
+                        $subLinesLineNumber = $subLinesLineNumber + 10000;
                         $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
                             ->setId($transactionId)
-                            ->setLineno($lineNumber)
+                            ->setLineno($subLinesLineNumber)
                             ->setParentlineno($dealLine['ParentSubLineId'] ?? null)
                             ->setLinetype(1)
                             ->setUomid($dealLine['uom'] ?? null)
@@ -561,30 +564,30 @@ class BasketHelperPlugin
 
                 if (!empty($modifierLines)) {
                     foreach ($modifierLines as $modifierLine) {
-                        $lineNumber = $lineNumber + 10000;
+                        $subLinesLineNumber = $subLinesLineNumber + 10000;
                         $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
                             ->setId($transactionId)
-                            ->setLineno($lineNumber)
+                            ->setLineno($subLinesLineNumber)
                             ->setParentlineno($modifierLine['ParentSubLineId'] ?? null)
                             ->setParentlineissubline($modifierLine['ParentLineIsSubline'] ?? 0)
                             ->setQuantity(1)
                             ->setModifiergroupcode($modifierLine['ModifierGroupCode'] ?? null)
                             ->setModifiersubcode($modifierLine['ModifierSubCode'] ?? null)
-                            ->setDealid(0);
+                            ->setDealid('0');
                         $mobileTransactionSubLines[] = $oneListSubLine;
                     }
                 }
 
                 if (!empty($recipeLines)) {
                     foreach ($recipeLines as $recipeLine) {
-                        $lineNumber = $lineNumber + 10000;
+                        $subLinesLineNumber = $subLinesLineNumber + 10000;
                         $oneListSubLine = $subject->createInstance(MobileTransactionSubLine::class)
                             ->setId($transactionId)
-                            ->setLineno($lineNumber)
+                            ->setLineno($subLinesLineNumber)
                             ->setParentlineno($recipeLine['ParentSubLineId'] ?? null)
                             ->setParentlineissubline($recipeLine['ParentLineIsSubline'] ?? 0)
                             ->setNumber($recipeLine['ItemId'])
-                            ->setDealid(0);
+                            ->setDealid('0');
                         $mobileTransactionSubLines[] = $oneListSubLine;
                     }
                 }
@@ -680,7 +683,6 @@ class BasketHelperPlugin
                     ]);
                     $mobileTransactionDiscountLines[] = $orderDiscountLine;
                 }
-                $lineNumber += 10000;
             }
         }
 

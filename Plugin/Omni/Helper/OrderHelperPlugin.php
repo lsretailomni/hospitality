@@ -88,7 +88,8 @@ class OrderHelperPlugin
             $transactionType = current((array)$oneListCalculateResponse->getMobiletransaction())->getTransactiontype();
             $currencyFactor = current((array)$oneListCalculateResponse->getMobiletransaction())->getCurrencyfactor();
             $transactionId = current((array)$oneListCalculateResponse->getMobiletransaction())->getId();
-            $transactionDate = current((array)$oneListCalculateResponse->getMobiletransaction())->getTransdate();
+            $transactionDate = current((array)$oneListCalculateResponse->getMobiletransaction())->getTransdate() ??
+                $this->date->date("Y-m-d\T" . "H:i:00");
             $customerEmail = $order->getCustomerEmail();
             $customerName = substr($order->getBillingAddress()->getFirstname() . ' ' .
                 $order->getBillingAddress()->getLastname(), 0, 20);
