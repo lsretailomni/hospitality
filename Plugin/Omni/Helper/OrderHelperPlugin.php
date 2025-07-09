@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
@@ -7,17 +8,17 @@ use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
-use Ls\Omni\Client\Ecommerce\Entity\CreateHospOrder;
-use Ls\Omni\Client\Ecommerce\Entity\CustomerOrderCreateCOPaymentV6;
-use Ls\Omni\Client\Ecommerce\Entity\CustomerOrderCreateV6;
+use \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrder;
+use \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrderResult;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
-use Ls\Omni\Client\Ecommerce\Entity\FABOrder;
+use \Ls\Omni\Client\Ecommerce\Entity\FABOrder;
 use \Ls\Omni\Client\Ecommerce\Entity\HospOrderCancelResponse;
-use Ls\Omni\Client\Ecommerce\Entity\HospTransaction;
-use Ls\Omni\Client\Ecommerce\Entity\HospTransactionLine;
-use Ls\Omni\Client\Ecommerce\Entity\HospTransDiscountLine;
-use Ls\Omni\Client\Ecommerce\Entity\RootHospTransaction;
-use Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
+use \Ls\Omni\Client\Ecommerce\Entity\HospTransaction;
+use \Ls\Omni\Client\Ecommerce\Entity\HospTransactionLine;
+use \Ls\Omni\Client\Ecommerce\Entity\HospTransDiscountLine;
+use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
+use \Ls\Omni\Client\Ecommerce\Entity\RootHospTransaction;
+use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
@@ -37,46 +38,21 @@ use Psr\Log\LoggerInterface;
 class OrderHelperPlugin
 {
     /**
-     * @var LoggerInterface
-     */
-    public $logger;
-
-    /**
-     * @var DateTime
-     */
-    public $date;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * OrderHelperPlugin constructor.
      * @param DateTime $date
      * @param LoggerInterface $logger
      * @param LSR $lsr
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        DateTime $date,
-        LoggerInterface $logger,
-        LSR $lsr,
-        HospitalityHelper $hospitalityHelper
+        public DateTime $date,
+        public LoggerInterface $logger,
+        public LSR $lsr,
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->date              = $date;
-        $this->logger            = $logger;
-        $this->lsr               = $lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
-     * Around plugin for preparing the order request
+     * Around plugin for preparing the order request for hospitality order
      *
      * @param OrderHelper $subject
      * @param callable $proceed
@@ -113,37 +89,31 @@ class OrderHelperPlugin
             $transactionId = current((array)$oneListCalculateResponse->getMobiletransaction())->getId();
             $transactionDate = current((array)$oneListCalculateResponse->getMobiletransaction())->getTransdate();
             $customerEmail = $order->getCustomerEmail();
-            $customerName = $order->getBillingAddress()->getFirstname() . ' ' .
-                $order->getBillingAddress()->getLastname();
+            $customerName = substr($order->getBillingAddress()->getFirstname() . ' ' .
+                $order->getBillingAddress()->getLastname(), 0, 20);
 
-            if ($order->getShippingAddress()) {
-                $shipToName = $order->getShippingAddress()->getFirstname() . ' ' .
-                    $order->getShippingAddress()->getLastname();
-            } else {
-                $shipToName = $customerName;
+            if ($this->hospitalityHelper->removeCheckoutStepEnabled()) {
+                $order->setShippingMethod('clickandcollect_clickandcollect');
             }
-
             $shippingMethod = $order->getShippingMethod(true);
-            //TODO work on condition
             $isClickCollect = false;
-            $carrierCode = '';
-            $method = '';
 
             if ($shippingMethod !== null) {
                 $carrierCode = $shippingMethod->getData('carrier_code');
-                $method = $shippingMethod->getData('method');
                 $isClickCollect = $carrierCode == 'clickandcollect';
             }
 
-            $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
-            $pickupDateTimeslot      = null;
-            $pickupDateTime          = $this->date->date($dateTimeFormat);
+            $dateTimeFormat = "Y-m-d\T" . "H:i:00";
+            $pickupDateTimeslot = null;
+            $pickupDateTime = $this->date->date($dateTimeFormat);
             if (!empty($order->getPickupDateTimeslot())) {
                 $pickupDateTimeslot = $order->getPickupDateTimeslot();
                 if (!empty($pickupDateTimeslot)) {
                     $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
                 }
             }
+
+            $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
 
             // Create DateTime object from the formatted string
             $pickupDateTimeObj = new \DateTime($pickupDateTime);
@@ -155,7 +125,7 @@ class OrderHelperPlugin
             $comment = $order->getData(LSR::LS_ORDER_COMMENT);
 
             $qrCodeQueryString = '';
-            $qrCodeParams      = $order->getData(LSR::LS_QR_CODE_ORDERING);
+            $qrCodeParams = $order->getData(LSR::LS_QR_CODE_ORDERING);
 
             if (!empty($qrCodeParams)) {
                 $qrCodeParams = $subject->json->unserialize($qrCodeParams);
@@ -180,7 +150,6 @@ class OrderHelperPlugin
                 $cardId,
                 $isClickCollect ? $order->getPickupStore() : $storeId
             );
-//            $rootCustomerOrderCreate->setCustomerordercreatecopaymentv6($orderPayments);
 
             //if the shipping address is empty, we use the contact address as shipping address.
             $customerOrderCreateCoHeader->addData(
@@ -209,49 +178,26 @@ class OrderHelperPlugin
                 FABOrder::QRMESSAGE => $qrCodeQueryString,
                 FABOrder::GROSS_AMOUNT => $order->getGrandTotal(),
                 FABOrder::CLIENT_ADDRESS => $order->getShippingAddress() ?
-                        $order->getShippingAddress()->getStreetLine(1) :
-                        $order->getBillingAddress()->getStreetLine(1),
+                    $order->getShippingAddress()->getStreetLine(1) :
+                    $order->getBillingAddress()->getStreetLine(1),
                 FABOrder::CLIENT_ADDRESS2 => $order->getShippingAddress() ?
-                        $order->getShippingAddress()->getStreetLine(2) :
-                        $order->getBillingAddress()->getStreetLine(2),
+                    $order->getShippingAddress()->getStreetLine(2) :
+                    $order->getBillingAddress()->getStreetLine(2),
                 FABOrder::CLIENT_CITY => $order->getShippingAddress() ?
-                        $order->getShippingAddress()->getCity() :
-                        $order->getBillingAddress()->getCity(),
+                    $order->getShippingAddress()->getCity() :
+                    $order->getBillingAddress()->getCity(),
                 FABOrder::CLIENT_PHONE_NO => $order->getShippingAddress() ?
-                        $order->getShippingAddress()->getTelephone() :
-                        $order->getBillingAddress()->getTelephone(),
+                    $order->getShippingAddress()->getTelephone() :
+                    $order->getBillingAddress()->getTelephone(),
                 FABOrder::CLIENT_POST_CODE => $order->getShippingAddress() ?
-                        $order->getShippingAddress()->getPostcode() :
-                        $order->getBillingAddress()->getPostcode(),
+                    $order->getShippingAddress()->getPostcode() :
+                    $order->getBillingAddress()->getPostcode(),
                 FABOrder::CLIENT_COUNTRY_REGION => $order->getShippingAddress() ?
-                        $order->getShippingAddress()->getCountryId() :
-                        $order->getBillingAddress()->getCountryId(),
+                    $order->getShippingAddress()->getCountryId() :
+                    $order->getBillingAddress()->getCountryId(),
             ]);
-//            if (!$isClickCollect) {
-//                //TODO need to fix the length issue once LS Central allow more then 10 characters.
-//                $carrierCode = ($carrierCode) ? substr($carrierCode, 0, 10) : "";
-//                $method = ($method) ? substr($method, 0, 10) : "";
-//                $customerOrderCreateCoHeader->addData([
-//                    CustomerOrderCreateCOHeaderV6::SHIPPING_AGENT_CODE => $carrierCode,
-//                    CustomerOrderCreateCOHeaderV6::SHIPPING_AGENT_SERVICE_CODE => $method
-//                ]);
-//            }
-//
-//            $pickupDateTimeslot = $order->getPickupDateTimeslot();
-//            if (!empty($pickupDateTimeslot)) {
-//                $dateTimeFormat = "Y-m-d";
-//                $pickupDateTime = $subject->dateTime->date($dateTimeFormat, $pickupDateTimeslot);
-//                $customerOrderCreateCoHeader->addData([
-//                    CustomerOrderCreateCOHeaderV6::REQUESTED_DELIVERY_DATE => $pickupDateTime
-//                ]);
-//            }
-            $rootCustomerOrderCreate
-                ->setHosptransaction($customerOrderCreateCoHeader)
-                ->setFaborder($fabOrder);
             $customerOrderCoLines = [];
-            $currentLineNo = 0;
             foreach ($oneListCalculateResponse->getMobiletransactionline() ?? [] as $id => $orderLine) {
-                $currentLineNo = $orderLine->getLineno();
                 if ($orderLine->getLinetype() == 0) {
                     $customerOrderCoLine = $subject->createInstance(
                         HospTransactionLine::class
@@ -273,13 +219,65 @@ class OrderHelperPlugin
                         HospTransactionLine::TAXAMOUNT => $orderLine->getTaxamount(),
                         HospTransactionLine::STORE_ID => $isClickCollect ? $order->getPickupStore() : $storeId,
                         HospTransactionLine::EXTERNAL_ID => $id,
+                        HospTransactionLine::DEAL_ITEM => $orderLine->getDealitem()
                     ]);
 
                     $customerOrderCoLines[] = $customerOrderCoLine;
                 }
             }
+            $dealLines = $modifierRecipeLines = [];
+
+            foreach ($oneListCalculateResponse->getMobiletransactionsubline() ?? [] as $id => $orderLine) {
+                $customerOrderCoLine = $subject->createInstance(
+                    MobileTransactionSubLine::class
+                );
+
+                $customerOrderCoLine->addData([
+                    MobileTransactionSubLine::ID => $transactionId,
+                    MobileTransactionSubLine::LINE_NO => $orderLine->getLineno(),
+                    MobileTransactionSubLine::PARENT_LINE_NO => $orderLine->getParentLineNo(),
+                    MobileTransactionSubLine::LINE_TYPE => $orderLine->getLinetype(),
+                    MobileTransactionSubLine::PARENT_LINE_IS_SUBLINE => $orderLine->getParentlineissubline(),
+                    MobileTransactionSubLine::NUMBER => $orderLine->getNumber(),
+                    MobileTransactionSubLine::VARIANT_CODE => $orderLine->getVariantcode(),
+                    MobileTransactionSubLine::UOM_ID => $orderLine->getUomid(),
+                    MobileTransactionSubLine::NET_PRICE => $orderLine->getNetprice(),
+                    MobileTransactionSubLine::PRICE => $orderLine->getPrice(),
+                    MobileTransactionSubLine::QUANTITY => $orderLine->getQuantity(),
+                    MobileTransactionSubLine::DISCOUNT_AMOUNT => $orderLine->getDiscountamount(),
+                    MobileTransactionSubLine::DISCOUNT_PERCENT => $orderLine->getDiscountpercent(),
+                    MobileTransactionSubLine::NET_AMOUNT => $orderLine->getNetamount(),
+                    MobileTransactionSubLine::TAXAMOUNT => $orderLine->getTaxamount(),
+                    MobileTransactionSubLine::MODIFIER_GROUP_CODE => $orderLine->getModifierGroupCode(),
+                    MobileTransactionSubLine::MODIFIER_SUB_CODE => $orderLine->getModifierSubCode(),
+                    MobileTransactionSubLine::DEAL_ID => $orderLine->getDealId(),
+                    MobileTransactionSubLine::DEAL_LINE => $orderLine->getDealline(),
+                    MobileTransactionSubLine::DEAL_MOD_LINE => $orderLine->getDealmodline(),
+                    MobileTransactionSubLine::DESCRIPTION => $orderLine->getDescription(),
+                    MobileTransactionSubLine::UOM_DESCRIPTION => $orderLine->getUomdescription(),
+                ]);
+
+                if (empty($orderLine->getDealmodline())) {
+                    $modifierRecipeLines[] = $customerOrderCoLine;
+                } else {
+                    $dealLines[] = $customerOrderCoLine;
+                }
+            }
+            $customerOrderCoSubLines = array_merge($modifierRecipeLines, $dealLines);
+
+            foreach ($customerOrderCoSubLines as $index => $subLine) {
+                $lineNo = (++$index) * 10000;
+                $subLine->addData([
+                    MobileTransactionSubLine::LINE_NO => $lineNo
+                ]);
+            }
+
+            //For click and collect we need to remove shipment charge orderline
+            //For flat shipment it will set the correct shipment value into the order
+            $customerOrderCoLines = $subject->updateShippingAmount($customerOrderCoLines, $order, $storeId);
 
             foreach ($orderPayments ?? [] as $orderPayment) {
+                $currentLineNo = end($customerOrderCoLines)->getLineno();
                 $currentLineNo += 10000;
                 $customerOrderCoLines[] = $orderPayment->addData([
                     HospTransactionLine::ID => $transactionId,
@@ -310,109 +308,34 @@ class OrderHelperPlugin
 
                 $customerOrderDiscountCoLines[] = $customerOrderDiscountCoLine;
             }
-            //For click and collect we need to remove shipment charge orderline
-            //For flat shipment it will set the correct shipment value into the order
-            $customerOrderCoLines = $subject->updateShippingAmount($customerOrderCoLines, $order, $storeId);
-            // @codingStandardsIgnoreLine
 
             $rootCustomerOrderCreate
+                ->setHosptransaction($customerOrderCreateCoHeader)
+                ->setFaborder($fabOrder)
                 ->setHosptransactionline($customerOrderCoLines)
-                ->setHosptransdiscountline($customerOrderDiscountCoLines);
+                ->setHosptransdiscountline($customerOrderDiscountCoLines)
+                ->setHosptransactionsubline($customerOrderCoSubLines);
 
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
 
         return $rootCustomerOrderCreate;
-
-//        // @codingStandardsIgnoreLine
-//        $request         = new Entity\OrderHospCreate();
-//        $orderLinesArray = $oneListCalculateResponse->getOrderLines()->getOrderHospLine();
-//        try {
-//            $storeId       = $oneListCalculateResponse->getStoreId();
-//            $cardId        = $oneListCalculateResponse->getCardId();
-//            $customerEmail = $order->getCustomerEmail();
-//            $billToName    = substr($order->getBillingAddress()->getFirstname() . ' ' .
-//                $order->getBillingAddress()->getLastname(), 0, 20);
-//
-//            /** Entity\ArrayOfOrderPayment $orderPaymentArrayObject */
-//            $orderPaymentArrayObject = $subject->setOrderPayments($order, $cardId, $storeId);
-//            $isClickCollect          = false;
-//            $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
-//            $pickupDateTimeslot      = null;
-//            $pickupDateTime          = $this->date->date($dateTimeFormat);
-//            if (!empty($order->getPickupDateTimeslot())) {
-//                $pickupDateTimeslot = $order->getPickupDateTimeslot();
-//                if (!empty($pickupDateTimeslot)) {
-//                    $pickupDateTime = $this->date->date($dateTimeFormat, $pickupDateTimeslot);
-//                }
-//            }
-//            $subject->checkoutSession->setPickupDateTimeslot($pickupDateTimeslot);
-//
-//            $qrCodeQueryString = '';
-//            $qrCodeParams      = $order->getData(LSR::LS_QR_CODE_ORDERING);
-//
-//            if (!empty($qrCodeParams)) {
-//                $qrCodeParams = $subject->json->unserialize($qrCodeParams);
-//            } else {
-//                $qrCodeParams = $this->hospitalityHelper->qrcodeHelperObject()->getQrCodeOrderingInSession();
-//            }
-//
-//            if (!empty($qrCodeParams)) {
-//                $qrCodeQueryString = http_build_query($qrCodeParams);
-//            }
-//
-//            if ($this->hospitalityHelper->removeCheckoutStepEnabled()) {
-//                $order->setShippingMethod('clickandcollect_clickandcollect');
-//            }
-//
-//            $shippingMethod = $order->getShippingMethod(true);
-//            if ($shippingMethod !== null) {
-//                $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
-//                if ($isClickCollect) {
-//                    $salesType = $this->lsr->getTakeAwaySalesType();
-//                    if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
-//                        $salesType = $qrCodeParams['sales_type'];
-//                    }
-//                    $oneListCalculateResponse->setSalesType($salesType);
-//                } else {
-//                    $oneListCalculateResponse->setSalesType($this->hospitalityHelper->getLSR()->getDeliverySalesType());
-//                }
-//            }
-//
-//            $comment = $order->getData(LSR::LS_ORDER_COMMENT);
-//            //if the shipping address is empty, we use the contact address as shipping address.
-//            $shipToAddress = $order->getShippingAddress() ?
-//                $subject->convertAddress($order->getShippingAddress()) : null;
-//            $oneListCalculateResponse
-//                ->setCardId($cardId)
-//                ->setStoreId($storeId)
-//                ->setRestaurantNo($storeId)
-//                ->setPickUpTime($pickupDateTime)
-//                ->setComment($comment)
-//                ->setQRData($qrCodeQueryString)
-//                ->setEmail($customerEmail)
-//                ->setName($billToName)
-//                ->setBillToName($billToName)
-//                ->setExternalId($order->getIncrementId())
-//                ->setAddress($shipToAddress);
-//            $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
-//            //For click and collect we need to remove shipment charge orderline
-//            //For flat shipment it will set the correct shipment value into the order
-//            $orderLinesArray = $subject->updateShippingAmount($orderLinesArray, $order, $storeId);
-//        } catch (Exception $e) {
-//            $this->logger->error($e->getMessage());
-//        }
-//        $oneListCalculateResponse->setOrderLines($orderLinesArray);
-//        $request->setRequest($oneListCalculateResponse);
-//
-//        if (version_compare($this->lsr->getOmniVersion(), '2023.05.1', '>=')) {
-//            $request->setReturnOrderIdOnly(true);
-//        }
-//
-//        return $request;
     }
 
+    /**
+     * Around plugin for getting payments for the hospitality order
+     *
+     * @param OrderHelper $subject
+     * @param $proceed
+     * @param Order $order
+     * @param string $cardId
+     * @param string $storeId
+     * @return array|mixed
+     * @throws GuzzleException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function aroundSetOrderPayments(
         OrderHelper $subject,
         $proceed,
@@ -530,7 +453,7 @@ class OrderHelperPlugin
             return $result;
         }
 
-        array_push($result, 'cashondelivery');
+        $result[] = 'cashondelivery';
 
         return $result;
     }
@@ -558,28 +481,32 @@ class OrderHelperPlugin
             return $proceed($orderLines, $order, $storeCode);
         }
 
-        $shipmentFeeId      = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
-
+        $shipmentFeeId = $this->lsr->getStoreConfig(\Ls\Core\Model\LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
         $shipmentTaxPercent = $subject->getShipmentTaxPercent($order->getStore());
-        $shippingAmount     = $order->getShippingAmount();
+        $shippingAmount = $order->getShippingInclTax();
 
         if (isset($shipmentTaxPercent) && $shippingAmount > 0) {
             $netPriceFormula = 1 + $shipmentTaxPercent / 100;
-            $netPrice        = $subject->loyaltyHelper->formatValue($shippingAmount / $netPriceFormula);
-            $taxAmount       = $subject->loyaltyHelper->formatValue($shippingAmount - $netPrice);
-            // @codingStandardsIgnoreLine
-            $shipmentOrderLine = new Entity\OrderHospLine();
-            $shipmentOrderLine->setPrice($shippingAmount)
-                ->setAmount($shippingAmount)
-                ->setNetPrice($netPrice)
-                ->setNetAmount($netPrice)
-                ->setTaxAmount($taxAmount)
-                ->setItemId($shipmentFeeId)
-                ->setLineType(Entity\Enum\LineType::ITEM)
-                ->setQuantity(1)
-                ->setPriceModified(true)
-                ->setDiscountAmount($order->getShippingDiscountAmount());
-            array_push($orderLines, $shipmentOrderLine);
+            $netPrice = (float)$shippingAmount / $netPriceFormula;
+            $taxAmount = (float)number_format(($shippingAmount - $netPrice), 2);
+            $currentLineNo = end($orderLines)->getLineno();
+            $currentLineNo += 10000;
+            $customerOrderCoLine = $subject->createInstance(
+                HospTransactionLine::class
+            );
+
+            $customerOrderCoLine->addData([
+                HospTransactionLine::LINE_NO => $currentLineNo,
+                HospTransactionLine::LINE_TYPE => 0,
+                HospTransactionLine::NUMBER => $shipmentFeeId,
+                HospTransactionLine::NET_PRICE => $netPrice,
+                HospTransactionLine::PRICE => $shippingAmount,
+                HospTransactionLine::QUANTITY => 1,
+                HospTransactionLine::NET_AMOUNT => $netPrice,
+                HospTransactionLine::TAXAMOUNT => $taxAmount,
+                HospTransactionLine::STORE_ID => $storeCode
+            ]);
+            $orderLines[] = $customerOrderCoLine;
         }
 
         return $orderLines;
@@ -591,7 +518,7 @@ class OrderHelperPlugin
      * @param OrderHelper $subject
      * @param callable $proceed
      * @param $request
-     * @return \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrderResult
+     * @return CreateHospOrderResult
      * @throws NoSuchEntityException
      */
     public function aroundPlaceOrder(OrderHelper $subject, callable $proceed, $request)
@@ -614,6 +541,26 @@ class OrderHelperPlugin
         $subject->customerSession->setData(LSR::LS_QR_CODE_ORDERING, null);
 
         return $response;
+    }
+
+    /**
+     * Extract document_id from order response
+     *
+     * @param OrderHelper $subject
+     * @param callable $proceed
+     * @param $response
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function aroundGetDocumentIdFromResponseBasedOnIndustry(OrderHelper $subject, callable $proceed, $response)
+    {
+        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
+            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
+        ) {
+            return $proceed($response);
+        }
+
+        return $response->getHosporderreceiptno();
     }
 
     /**

@@ -1,13 +1,12 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Helper;
 
 use Exception;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
-use Magento\Framework\Exception\CouldNotSaveException;
+use \Ls\Replication\Model\ResourceModel\ReplStoreview\CollectionFactory;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
-use Magento\Framework\Url\DecoderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -22,69 +21,24 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 class QrCodeHelper extends AbstractHelper
 {
     /**
-     * @var CustomerSession
-     */
-    public $customerSession;
-
-    /**
-     * @var CheckoutSession
-     */
-    public $checkoutSession;
-
-    /**
-     * @var CollectionFactory
-     */
-    public $storeCollection;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
-     *
-     * @var CartRepositoryInterface
-     */
-    public $quoteRepository;
-
-    /**
-     * @var SerializerJson
-     */
-    public $serializerJson;
-
-    /**
-     * @var DecoderInterface
-     */
-    public $urlDecoder;
-
-    /**
+     * @param Context $context
      * @param CustomerSession $customerSession
      * @param CheckoutSession $checkoutSession
      * @param CollectionFactory $storeCollection
      * @param LSR $lsr
      * @param CartRepositoryInterface $quoteRepository
      * @param SerializerJson $serializerJson
-     * @param Context $context
-     * @param DecoderInterface $urlDecoder
      */
     public function __construct(
-        CustomerSession $customerSession,
-        CheckoutSession $checkoutSession,
-        CollectionFactory $storeCollection,
-        LSR $lsr,
-        CartRepositoryInterface $quoteRepository,
-        SerializerJson $serializerJson,
         Context $context,
-        DecoderInterface $urlDecoder
+        public CustomerSession $customerSession,
+        public CheckoutSession $checkoutSession,
+        public CollectionFactory $storeCollection,
+        public LSR $lsr,
+        public CartRepositoryInterface $quoteRepository,
+        public SerializerJson $serializerJson,
     ) {
         parent::__construct($context);
-        $this->customerSession = $customerSession;
-        $this->checkoutSession = $checkoutSession;
-        $this->lsr             = $lsr;
-        $this->storeCollection = $storeCollection;
-        $this->quoteRepository = $quoteRepository;
-        $this->serializerJson  = $serializerJson;
-        $this->urlDecoder      = $urlDecoder;
     }
 
     /**
@@ -102,6 +56,7 @@ class QrCodeHelper extends AbstractHelper
      * Set QR code ordering data
      *
      * @param string $params
+     * @throws NoSuchEntityException
      */
     public function setQrCodeOrderingInSession($params)
     {
@@ -148,7 +103,7 @@ class QrCodeHelper extends AbstractHelper
         $collection = $this->storeCollection
             ->create()
             ->addFieldToFilter('scope_id', $this->lsr->getCurrentWebsiteId())
-            ->addFieldToFilter('nav_id', $storeId);
+            ->addFieldToFilter('no', $storeId);
         if ($collection->getSize() > 0) {
             $check = true;
         }
@@ -172,8 +127,7 @@ class QrCodeHelper extends AbstractHelper
      *
      * @param string $cartId
      * @param string $qrCodeParams
-     * @return mixed
-     * @throws CouldNotSaveException
+     * @return bool|string
      * @throws NoSuchEntityException
      */
     public function saveQrCodeParams($cartId, $qrCodeParams)
@@ -202,7 +156,6 @@ class QrCodeHelper extends AbstractHelper
      *
      * @param string $cartId
      * @return void
-     * @throws CouldNotSaveException
      * @throws NoSuchEntityException
      */
     public function removeQrCodeParams($cartId)
@@ -288,7 +241,6 @@ class QrCodeHelper extends AbstractHelper
      * Get Qr Code in checkout session
      *
      * @return string
-     * @throws NoSuchEntityException
      */
     public function getQrCodeInCheckoutSession()
     {
@@ -308,7 +260,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Get checkout session qr code ordering
      *
-     * @return mixed
+     * @return CheckoutSession
      */
     public function getCheckoutSessionObject()
     {
@@ -318,7 +270,7 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Get serialize json
      *
-     * @return mixed
+     * @return SerializerJson
      */
     public function getSerializeJsonObject()
     {
