@@ -20,6 +20,7 @@ use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\RootHospTransaction;
 use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation;
+use \Ls\Omni\Client\Ecommerce\Operation\GetSelectedSalesDoc_GetSelectedSalesDoc;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\OrderHelper;
@@ -564,25 +565,6 @@ class OrderHelperPlugin
     }
 
     /**
-     * Before plugin for base getOrderDetailsAgainstId
-     *
-     * @param OrderHelper $subject
-     * @param $docId
-     * @param string $type
-     * @return array
-     * @throws NoSuchEntityException
-     */
-    public function beforeGetOrderDetailsAgainstId(OrderHelper $subject, $docId, $type = DocumentIdType::ORDER)
-    {
-        if ($type == DocumentIdType::ORDER
-            && $subject->lsr->getCurrentIndustry() ==
-            LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return [$docId, DocumentIdType::HOSP_ORDER];
-        }
-        return [$docId, $type];
-    }
-
-    /**
      * Around plugin for order cancellation
      *
      * @param OrderHelper $subject
@@ -665,7 +647,7 @@ class OrderHelperPlugin
      * @param $proceed
      * @param $docId
      * @param $type
-     * @return Entity\SalesEntry|Entity\SalesEntryGetResponse|ResponseInterface|mixed|null
+     * @return GetSelectedSalesDoc_GetSelectedSalesDoc|null
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      */
@@ -675,6 +657,14 @@ class OrderHelperPlugin
             return $proceed($docId, $type);
         }
 
-        return $subject->getOrderDetailsAgainstId($docId, $type);
+        $type = $type == DocumentIdType::ORDER ? DocumentIdType::HOSP_ORDER : $type;
+
+        $response = $subject->getOrderDetailsAgainstId($docId, $type);
+
+        if (!$response && $type == DocumentIdType::HOSP_ORDER) {
+            $response = $subject->getOrderDetailsAgainstId($docId, DocumentIdType::RECEIPT);
+        }
+
+        return $response;
     }
 }
