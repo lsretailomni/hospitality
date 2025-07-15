@@ -297,6 +297,7 @@ class OrderHelperPlugin
                 $customerOrderDiscountCoLine->addData([
                     HospTransDiscountLine::ID => $transactionId,
                     HospTransDiscountLine::LINE_NO => $orderDiscountLine->getLineno(),
+                    HospTransDiscountLine::NO => $orderDiscountLine->getNo(),
                     HospTransDiscountLine::OFFER_NO => $orderDiscountLine->getOfferno(),
                     HospTransDiscountLine::DISCOUNT_TYPE => $orderDiscountLine->getDiscounttype(),
                     HospTransDiscountLine::PERIODIC_DISC_TYPE =>
