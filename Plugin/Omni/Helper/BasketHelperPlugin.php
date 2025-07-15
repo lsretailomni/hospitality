@@ -11,13 +11,8 @@ use \Ls\Omni\Client\Ecommerce\Entity\MobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
 use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\MobileTransDiscountLine;
-use \Ls\Omni\Client\Ecommerce\Entity\OneListCalculateResponse;
-use \Ls\Omni\Client\Ecommerce\Entity\OneListHospCalculateResponse;
-use \Ls\Omni\Client\Ecommerce\Entity\Order;
-use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
 use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation\MobilePosCalculate;
-use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
 use Magento\Catalog\Model\Product\Type;
@@ -230,7 +225,7 @@ class BasketHelperPlugin
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param RootMobileTransaction $oneList
-     * @return OneListCalculateResponse|OneListHospCalculateResponse|Order|OrderHosp|ResponseInterface|null
+     * @return RootMobileTransaction|null
      * @throws GuzzleException
      * @throws NoSuchEntityException
      */
@@ -380,7 +375,7 @@ class BasketHelperPlugin
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param \Magento\Sales\Model\Order $order
-     * @return Entity\OneListCalculateResponse|Entity\Order
+     * @return RootMobileTransaction
      * @throws InvalidEnumException
      * @throws NoSuchEntityException
      * @throws LocalizedException
@@ -592,64 +587,6 @@ class BasketHelperPlugin
                     }
                 }
 
-//                if (!empty($selectedSubLines['deal'])) {
-//                    foreach ($selectedSubLines['deal'] as $subLine) {
-//                        $oneListSubLine         = (new Entity\OrderHospSubLine())
-//                            ->setDealLineId($subLine['DealLineId'] ?? null)
-//                            ->setDealModifierLineId($subLine['DealModLineId'] ?? null)
-//                            ->setLineNumber($subLine['LineNumber'] ?? null)
-//                            ->setUom($subLine['uom'] ?? null)
-//                            ->setQuantity(1)
-//                            ->setType(SubLineType::DEAL);
-//                        $oneListSubLinesArray[] = $oneListSubLine;
-//                    }
-//                }
-//
-//                if (!empty($selectedSubLines['modifier'])) {
-//                    foreach ($selectedSubLines['modifier'] as $subLine) {
-//                        $oneListSubLine         = (new Entity\OrderHospSubLine())
-//                            ->setDealLineId($subLine['DealLineId'] ?? null)
-//                            ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
-//                            ->setModifierGroupCode($subLine['ModifierGroupCode'])
-//                            ->setModifierSubCode($subLine['ModifierSubCode'])
-//                            ->setQuantity(1)
-//                            ->setType(SubLineType::MODIFIER);
-//                        $oneListSubLinesArray[] = $oneListSubLine;
-//                    }
-//                }
-//
-//                if (!empty($selectedSubLines['recipe'])) {
-//                    foreach ($selectedSubLines['recipe'] as $subLine) {
-//                        $oneListSubLine         = (new Entity\OrderHospSubLine())
-//                            ->setDealLineId($subLine['DealLineId'] ?? null)
-//                            ->setParentSubLineId($subLine['ParentSubLineId'] ?? null)
-//                            ->setItemId($subLine['ItemId'])
-//                            ->setQuantity(0)
-//                            ->setType(SubLineType::MODIFIER);
-//                        $oneListSubLinesArray[] = $oneListSubLine;
-//                    }
-//                }
-                // @codingStandardsIgnoreLine
-//                $orderLine    = (new Entity\OrderHospLine())
-//                    ->setIsADeal($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
-//                    ->setQuantity($quoteItem->getData('qty'))
-//                    ->setItemId($itemId)
-//                    ->setId($quoteItem->getItemId())
-//                    ->setVariantId($variantId)
-//                    ->setUomId($uom)
-//                    ->setLineNumber($lineNumber)
-//                    ->setAmount($rowTotalInclTax)
-//                    ->setNetAmount($quoteItem->getRowTotal())
-//                    ->setPrice($priceIncTax ?? $quoteItem->getPriceInclTax())
-//                    ->setNetPrice($quoteItem->getPrice())
-//                    ->setTaxAmount($quoteItem->getTaxAmount())
-//                    ->setDiscountAmount($discount)
-//                    ->setDiscountPercent($discountPercentage)
-//                    ->setLineType(Entity\Enum\LineType::ITEM)
-//                    ->setSubLines(
-//                        (new ArrayOfOrderHospSubLine())->setOrderHospSubLine($oneListSubLinesArray)
-//                    );
-
                 $transactionLine = $subject->createInstance(
                     MobileTransactionLine::class,
                     [
@@ -670,7 +607,6 @@ class BasketHelperPlugin
                         ]
                     ]
                 );
-//                $transactionLines[] = $transactionLine;
                 $mobileTransactionLines[] = $transactionLine;
                 if ($discountPercentage && $discount) {
                     $orderDiscountLine = $subject->createInstance(MobileTransDiscountLine::class);
