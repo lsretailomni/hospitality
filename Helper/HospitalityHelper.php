@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Helper;
 
@@ -151,8 +152,8 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Creating selected sublines from quoteItem
      *
-     * @param $quoteItem
-     * @param $lineNumber
+     * @param \Magento\Quote\Model\Quote\Item $quoteItem
+     * @param int $parentSubLineId
      * @return array
      * @throws NoSuchEntityException
      */
@@ -229,6 +230,7 @@ class HospitalityHelper extends AbstractHelper
                         $recipeData['DealLineId'] = $mainDealLine->getLineNo();
                         $recipeData['ParentSubLineId'] = $parentSubLineId;
                         $recipeData['price'] = $option['price'] ?? null;
+                        $recipeData['ParentLineIsSubline'] = 1;
                         $recipe = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
                         $recipe = $this->getRecipe($lsrId, $optionValue);
@@ -239,6 +241,8 @@ class HospitalityHelper extends AbstractHelper
                         $itemId = reset($recipe)->getNo();
                         $recipeData['ItemId'] = $itemId;
                         $recipeData['LineNumber'] = $lineNumber;
+                        $recipeData['ParentSubLineId'] = $parentSubLineId;
+                        $recipeData['ParentLineIsSubline'] = $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) ? 1 : 0;
                         $selectedOrderHospSubLine['recipe'][] = $recipeData;
                     }
                 } else {
@@ -263,10 +267,10 @@ class HospitalityHelper extends AbstractHelper
                             'ModifierGroupCode' => $formattedItemSubLineCode,
                             'ModifierSubCode' => $subCode,
                             'DealLineId' => $mainDealLineNo,
-                            'ParentSubLineId' => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
-                                $parentSubLineId : '',
+                            'ParentSubLineId' => $parentSubLineId,
                             'price' => $option['price'] ?? null,
-                            'LineNumber' => $lineNumber
+                            'LineNumber' => $lineNumber,
+                            'ParentLineIsSubline' => $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) ? 1 : 0
                         ];
                     }
                 }
@@ -292,14 +296,18 @@ class HospitalityHelper extends AbstractHelper
 
         $subLines = $this->getRelevantSublinesForGivenLine($line, $subLines);
 
-        foreach ($subLines as $subLine) {
-            if ($subLine->getLinetype() == 1 &&
-                $subLine->getDealid() == $itemId &&
-                $subLine->getParentlineno() == $parentLineNo &&
-                $subLine->getDealmodline() == 0
-            ) {
-                $lineNo = $subLine->getLineno();
-                break;
+        if (!$line->getDealitem()) {
+            $lineNo = $line->getLineNo();
+        } else {
+            foreach ($subLines as $subLine) {
+                if ($subLine->getLinetype() == 1 &&
+                    $subLine->getDealid() == $itemId &&
+                    $subLine->getParentlineno() == $parentLineNo &&
+                    $subLine->getDealmodline() == 0
+                ) {
+                    $lineNo = $subLine->getLineno();
+                    break;
+                }
             }
         }
 
@@ -345,15 +353,19 @@ class HospitalityHelper extends AbstractHelper
         $lineNo = 0;
         $requiredSublines = [];
 
-        foreach ($subLines as $subLine) {
-            if ($subLine->getLinetype() == 1 &&
-                $subLine->getDealid() == $itemId &&
-                $subLine->getParentlineno() == $parentLineNo
-            ) {
-                if ($subLine->getDealmodline() == 0) {
-                    $lineNo = $subLine->getLineno();
+        if (!$line->getDealitem()) {
+            $lineNo = $line->getLineNo();
+        } else {
+            foreach ($subLines as $subLine) {
+                if ($subLine->getLinetype() == 1 &&
+                    $subLine->getDealid() == $itemId &&
+                    $subLine->getParentlineno() == $parentLineNo
+                ) {
+                    if ($subLine->getDealmodline() == 0) {
+                        $lineNo = $subLine->getLineno();
+                    }
+                    $requiredSublines[] = $subLine;
                 }
-                $requiredSublines[] = $subLine;
             }
         }
 

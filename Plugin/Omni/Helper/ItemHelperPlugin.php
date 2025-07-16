@@ -1,11 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
-use Exception;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Omni\Client\Ecommerce\Entity\GetSelectedSalesDoc_GetSelectedSalesDoc;
 use \Ls\Omni\Helper\ItemHelper;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -118,91 +117,6 @@ class ItemHelperPlugin
                     );
                 }
             }
-        }
-    }
-
-    /**
-     * Around plugin for comparing orderLines with discountLines and get discounted prices on cart page
-     * or order detail page
-     *
-     * @param ItemHelper $subject
-     * @param callable $proceed
-     * @param object $item
-     * @param object $orderData
-     * @param int $type
-     * @param int $graphQlRequest
-     * @return array|null
-     */
-    public function aroundGetOrderDiscountLinesForItem(
-        ItemHelper $subject,
-        callable $proceed,
-        $item,
-        $orderData,
-        $type = 1,
-        $graphQlRequest = 0
-    ) {
-        $check             = false;
-        $baseUnitOfMeasure = "";
-        $discountInfo      = $orderLines = $discountsLines = [];
-        $discountText      = __("Save");
-
-        try {
-            if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-                return $proceed($item, $orderData, $type, $graphQlRequest);
-            }
-
-            if ($type == 2) {
-                $itemId      = $item->getNumber();
-                $variantId   = $item->getVariantCode();
-                $uom         = $item->getUnitOfMeasure();
-                $customPrice = $item->getDiscountAmount();
-            } else {
-                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-                list($itemId, $variantId, $uom) = $subject->getComparisonValues(
-                    $item->getSku()
-                );
-                $customPrice = $item->getCustomPrice();
-            }
-
-            if ($orderData instanceof GetSelectedSalesDoc_GetSelectedSalesDoc) {
-                $orderLines     = $orderData->getLscMemberSalesDocLine();
-                if (!empty($orderData->getLscMemberSalesDocDiscLine())) {
-                    $discountsLines = $orderData->getLscMemberSalesDocDiscLine();
-                }
-            }
-
-            foreach ($orderLines as $line) {
-                if ($subject->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                    if ($customPrice > 0 && $customPrice != null) {
-                        foreach ($discountsLines as $orderDiscountLine) {
-                            if ($line->getLineNo() == $orderDiscountLine->getDocumentLineNo()) {
-                                if (!in_array($orderDiscountLine->getDescription() . '<br />', $discountInfo)) {
-                                    if (!$graphQlRequest) {
-                                        $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
-                                    } else {
-                                        $discountInfo[] = [
-                                            'description' => $orderDiscountLine->getDescription(),
-                                            'value'       => $orderDiscountLine->getDiscountAmount()
-                                        ];
-                                    }
-                                }
-                            }
-                            $check = true;
-                        }
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
-        }
-
-        if ($check) {
-            if (!$graphQlRequest) {
-                return [implode($discountInfo), $discountText];
-            }
-            return [$discountInfo, $discountText];
-        } else {
-            return null;
         }
     }
 }
