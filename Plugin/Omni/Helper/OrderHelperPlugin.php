@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
+use \Ls\Omni\Client\Ecommerce\Entity\CancelHospOrder as CancelHospOrderRequest;
 use \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrder;
 use \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrderResult;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
@@ -20,10 +21,12 @@ use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
 use \Ls\Omni\Client\Ecommerce\Entity\RootHospTransaction;
 use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation;
+use \Ls\Omni\Client\Ecommerce\Operation\CancelHospOrder;
 use \Ls\Omni\Client\Ecommerce\Operation\GetSelectedSalesDoc_GetSelectedSalesDoc;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\OrderHelper;
+use \Ls\Omni\Helper\Data as DataHelper;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
@@ -43,12 +46,14 @@ class OrderHelperPlugin
      * @param LoggerInterface $logger
      * @param LSR $lsr
      * @param HospitalityHelper $hospitalityHelper
+     * @param DataHelper $dataHelper
      */
     public function __construct(
         public DateTime $date,
         public LoggerInterface $logger,
         public LSR $lsr,
-        public HospitalityHelper $hospitalityHelper
+        public HospitalityHelper $hospitalityHelper,
+        public DataHelper $dataHelper
     ) {
     }
 
@@ -585,17 +590,24 @@ class OrderHelperPlugin
         }
 
         $response = null;
-        $request  = new Entity\HospOrderCancel();
-        $request->setOrderId($documentId);
-        $request->setStoreId($storeId);
-        $operation = new Operation\HospOrderCancel();
+        $request = $this->dataHelper->createInstance(
+            CancelHospOrder::class,
+            []
+        );
+        $request->setOperationInput(
+            [
+                CancelHospOrderRequest::ORDER_NO => $documentId,
+                CancelHospOrderRequest::STORE_NO => $storeId
+            ]
+        );
+
         try {
-            $response = $operation->execute($request);
+            $response = $request->execute($request);
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
 
-        return $response ? $response->getHospOrderCancelResult() : $response;
+        return $response && $response->getResponseCode() == "0000" ? $response->getHospOrderCancelResult() : $response;
     }
 
     /**
@@ -619,7 +631,7 @@ class OrderHelperPlugin
             return $proceed($response, $order);
         }
 
-        if (!$response) {
+        if (!$response || ($response && $response->getResponseCode() != "0000")) {
             $subject->formulateException($order);
         }
     }
