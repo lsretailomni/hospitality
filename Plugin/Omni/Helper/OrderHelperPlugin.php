@@ -503,7 +503,7 @@ class OrderHelperPlugin
                 HospTransactionLine::LINE_TYPE => 0,
                 HospTransactionLine::NUMBER => $shipmentFeeId,
                 HospTransactionLine::NET_PRICE => $netPrice,
-                HospTransactionLine::PRICE => $shippingAmount,
+                HospTransactionLine::MANUAL_PRICE => $shippingAmount,
                 HospTransactionLine::QUANTITY => 1,
                 HospTransactionLine::NET_AMOUNT => $netPrice,
                 HospTransactionLine::TAXAMOUNT => $taxAmount,
