@@ -11,6 +11,11 @@
         </arguments>
     </type>
 
+    <!-- For showing the parent item in case of recipe, deal items -->
+    <type name="Ls\Customer\Block\Order\Custom\Items">
+        <plugin name="ls_hospitality_order_view_page_items_grid" type="Ls\Hospitality\Plugin\Customer\Block\Order\Custom\ItemsPlugin"/>
+    </type>
+
     <!-- For Service Mode  -->
     <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
         <plugin name="hosp_checkout_layout_processor" type="Ls\Hospitality\Plugin\Checkout\Model\LayoutProcessorPlugin"
