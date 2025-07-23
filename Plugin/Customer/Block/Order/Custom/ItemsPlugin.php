@@ -11,16 +11,10 @@ use Magento\Framework\Exception\NoSuchEntityException;
 class ItemsPlugin
 {
     /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
      * @param LSR $lsr
      */
-    public function __construct(LSR $lsr)
+    public function __construct(public LSR $lsr)
     {
-        $this->lsr = $lsr;
     }
 
     /**
