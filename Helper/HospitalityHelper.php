@@ -3,28 +3,33 @@ declare(strict_types=1);
 
 namespace Ls\Hospitality\Helper;
 
-use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity;
-use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
-use \Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
-use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
-use \Ls\Omni\Client\Ecommerce\Operation;
-use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use \Ls\Omni\Client\ResponseInterface;
-use \Ls\Omni\Helper\ItemHelper;
-use \Ls\Omni\Helper\LoyaltyHelper;
-use \Ls\Omni\Helper\OrderHelper;
-use \Ls\Replication\Api\ReplHierarchydeallineviewRepositoryInterface;
-use \Ls\Replication\Api\ReplHierarchydealviewRepositoryInterface;
-use \Ls\Replication\Api\ReplLscWiItemRecipeBufferRepositoryInterface;
-use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
-use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
-use \Ls\Replication\Api\ReplLscWiItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
-use \Ls\Replication\Helper\ReplicationHelper;
-use \Ls\Replication\Model\ReplImageLinkSearchResults;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchydealview\CollectionFactory as DealCollectionFactory;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview\CollectionFactory as DealLineCollectionFactory;
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
+use Ls\Hospitality\Model\LSR;
+use Ls\Omni\Client\Ecommerce\Entity;
+use Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
+use Ls\Omni\Client\Ecommerce\Entity\GetKotStatus;
+use Ls\Omni\Client\Ecommerce\Entity\GetKotStatusResult as GetKotStatusResponse;
+use Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
+use Ls\Omni\Client\Ecommerce\Entity\ImageSize;
+use Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
+use Ls\Omni\Client\Ecommerce\Entity\RootKotStatus;
+use Ls\Omni\Client\Ecommerce\Operation;
+use Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use Ls\Omni\Client\ResponseInterface;
+use Ls\Omni\Helper\ItemHelper;
+use Ls\Omni\Helper\LoyaltyHelper;
+use Ls\Omni\Helper\OrderHelper;
+use Ls\Replication\Api\ReplHierarchydeallineviewRepositoryInterface;
+use Ls\Replication\Api\ReplHierarchydealviewRepositoryInterface;
+use Ls\Replication\Api\ReplLscWiItemRecipeBufferRepositoryInterface;
+use Ls\Replication\Api\ReplImageLinkRepositoryInterface;
+use Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
+use Ls\Replication\Api\ReplLscWiItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
+use Ls\Replication\Helper\ReplicationHelper;
+use Ls\Replication\Model\ReplImageLinkSearchResults;
+use Ls\Replication\Model\ResourceModel\ReplHierarchydealview\CollectionFactory as DealCollectionFactory;
+use Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview\CollectionFactory as DealLineCollectionFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -39,10 +44,12 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
@@ -51,6 +58,8 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
+use Magento\Quote\Model\Quote\Item;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
@@ -152,7 +161,7 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Creating selected sublines from quoteItem
      *
-     * @param \Magento\Quote\Model\Quote\Item $quoteItem
+     * @param Item $quoteItem
      * @param int $parentSubLineId
      * @return array
      * @throws NoSuchEntityException
@@ -765,29 +774,50 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Getting the kitchen order status information
      *
-     * @param $orderId
-     * @param $webStore
-     * @return HospOrderStatusResponse|ResponseInterface|null
+     * @param string $orderId
+     * @param string $webStore
+     * @return RootKotStatus|null
      * @throws NoSuchEntityException
+     * @throws GuzzleException
      */
     public function getKitchenOrderStatus($orderId, $webStore)
     {
         $response = null;
 
         if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
-            if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $operation = new Operation\HospOrderStatus();
-                $request   = new Entity\HospOrderStatus();
-            } else {
-                $request   = new Entity\HospOrderKotStatus();
-                $operation = new Operation\HospOrderKotStatus();
-            }
-            $request->setOrderId($orderId);
-            $request->setStoreId($webStore);
-            $response = $operation->execute($request);
+//            if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
+//                $operation = new Operation\HospOrderStatus();
+//                $request   = new Entity\HospOrderStatus();
+//            } else {
+//                $request   = new Entity\HospOrderKotStatus();
+//                $operation = new Operation\HospOrderKotStatus();
+//            }
+//            $request->setOrderId($orderId);
+//            $request->setStoreId($webStore);
+//            $response = $operation->execute($request);
+            $operation = $this->createInstance(Operation\GetKotStatus::class);
+            $operation->setOperationInput(
+                [
+                    GetKotStatus::STORE_NO => $webStore,
+                    GetKotStatus::ORDER_NO => $orderId,
+                ]
+            );
+            $response = $operation->execute();
         }
 
-        return $response;
+        return $response && $response->getResponsecode() == "0000" ? $response->getGetkotstatusxml() : null;
+    }
+
+    /**
+     * Create new instance of given class name
+     *
+     * @param string|null $entityClassName
+     * @param array $data
+     * @return mixed
+     */
+    public function createInstance(string $entityClassName = null, array $data = [])
+    {
+        return ObjectManager::getInstance()->create($entityClassName, $data);
     }
 
     /**
@@ -1437,7 +1467,7 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param $documentId
      * @param $all
-     * @return false|\Magento\Sales\Api\Data\OrderInterface|OrderSearchResultInterface | \Magento\Sales\Api\Data\OrderInterface[]
+     * @return false|OrderInterface|OrderSearchResultInterface | OrderInterface[]
      */
     public function getOrderByDocumentId($documentId)
     {
@@ -1448,7 +1478,7 @@ class HospitalityHelper extends AbstractHelper
             );
             $orderArray = $order->getItems();
             $order      = end($orderArray);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->_logger->error($e->getMessage());
         }
 
@@ -1501,7 +1531,7 @@ class HospitalityHelper extends AbstractHelper
      * @param $quote
      * @return int
      * @throws NoSuchEntityException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function removeCheckoutStepEnabled($quote = null)
     {
