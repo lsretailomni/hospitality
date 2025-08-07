@@ -11,17 +11,11 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 class PlaceOrderPlugin
 {
     /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
