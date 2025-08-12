@@ -1623,27 +1623,27 @@ class HospitalityHelper extends AbstractHelper
                 'amount'                 => $item->getAmount(),
                 'click_and_collect_line' => $item->getClickAndCollectLine(),
                 'discount_amount'        => $item->getDiscountAmount(),
-                'discount_percent'       => $item->getDiscountPercent(),
-                'item_description'       => $item->getItemDescription(),
-                'item_id'                => $item->getItemId(),
-                'item_image_id'          => $item->getItemImageId(),
-                'line_number'            => $item->getLineNumber(),
-                'line_type'              => $item->getLineType(),
+                'discount_percent'       => $item->getDiscount(),
+                'item_description'       => $item->getDescription(),
+                'item_id'                => $item->getNumber(),
+                'item_image_id'          => $item->getImageId(),
+                'line_number'            => $item->getLineNo(),
+                'line_type'              => 'Item',
                 'net_amount'             => $item->getNetAmount(),
                 'net_price'              => $item->getNetPrice(),
                 'parent_line'            => $item->getParentLine(),
                 'price'                  => $item->getPrice(),
                 'quantity'               => $item->getQuantity(),
-                'store_id'               => $item->getStoreId(),
-                'tax_amount'             => $item->getTaxAmount(),
-                'uom_id'                 => $item->getUomId(),
+                'store_id'               => $item->getStoreNo(),
+                'tax_amount'             => $item->getVatAmount(),
+                'uom_id'                 => $item->getUnitOfMeasure(),
                 'variant_description'    => $item->getVariantDescription(),
-                'variant_id'             => $item->getVariantId(),
+                'variant_id'             => $item->getVariantCode()
             ];
             if ($magOrder) {
                 $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getItemId(), $subject);
             }
-            $lineNumber = $item->getLineNumber();
+            $lineNumber = $item->getLineNo();
             $parentLine = $item->getParentLine();
             if (empty($parentLine) || $lineNumber == $parentLine) {
                 if (!empty($itemsArray) && array_key_exists($lineNumber, $itemsArray)) {

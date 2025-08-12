@@ -50,14 +50,29 @@ class DataHelperPlugin
         if ($this->hospitalityLsr->isHospitalityStore()) {
             $takeAwaySalesType = $this->hospitalityLsr->getTakeAwaySalesType();
 
+            $allStores = $subject->storeHelper->getAllStoresFromCentral();
+            $requiredStores = [];
+
+            foreach (!empty($allStores->getLscStore()) ?  $allStores->getLscStore() : [] as $store) {
+                if (($store->getClickAndCollect() ||
+                        $store->getWebStore()) &&
+                    in_array($takeAwaySalesType, explode('|', $store->getStoreSalesTypeFilter()))
+                ) {
+                    $requiredStores[] = $store->getNo();
+                }
+            }
+
             if (!empty($takeAwaySalesType)) {
-                $storeCollection->addFieldToFilter('HospSalesTypes', ['like' => '%'.$takeAwaySalesType.'%']);
+                $storeCollection->addFieldToFilter('no', ['in' => $requiredStores]);
             }
         }
 
-        $storesData = $storeCollection
-            ->addFieldToFilter('scope_id', $scopeId)
-            ->addFieldToFilter('click_and_collect', 1);
+        $storesData =  $storeCollection
+            ->addFieldToFilter(
+                'scope_id',
+                $scopeId
+            )
+        ->addFieldToFilter('click_and_collect', 1);
 
         if (!$this->availableStoresOnlyEnabled()) {
             return $storesData;
@@ -82,7 +97,7 @@ class DataHelperPlugin
     /**
      * Available Stores only enabled
      *
-     * @return mixed
+     * @return string
      * @throws NoSuchEntityException
      */
     public function availableStoresOnlyEnabled()

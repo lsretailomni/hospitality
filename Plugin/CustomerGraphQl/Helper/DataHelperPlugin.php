@@ -43,6 +43,6 @@ class DataHelperPlugin
             return $proceed($items);
         }
 
-        return $this->hospitalityHelper->getItems($subject, $items->getSalesEntryLine(), $magOrder);
+        return $this->hospitalityHelper->getItems($subject, $items, $magOrder);
     }
 }
