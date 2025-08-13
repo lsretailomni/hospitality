@@ -1618,6 +1618,7 @@ class HospitalityHelper extends AbstractHelper
     {
         $itemsArray  = [];
         $childrenKey = 'subitems';
+        $parentArray = [];
         foreach ($items as $item) {
             $data = [
                 'amount'                 => $item->getAmount(),
@@ -1640,32 +1641,38 @@ class HospitalityHelper extends AbstractHelper
                 'variant_description'    => $item->getVariantDescription(),
                 'variant_id'             => $item->getVariantCode()
             ];
-            if ($magOrder) {
-                $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getNumber(), $subject);
+            $parent = null;
+            foreach ($parentArray as &$children) {
+                foreach ($children[$childrenKey] as &$child) {
+                    if ($child['line_number'] == $data['parent_line']) {
+                        $parent = true;
+                        $child[$childrenKey][$data['line_number']] = $data;
+                    }
+                }
             }
-            $lineNumber = $item->getLineNo();
-            $parentLine = $item->getParentLine();
-            if (empty($parentLine) || $lineNumber == $parentLine) {
-                if (!empty($itemsArray) && array_key_exists($lineNumber, $itemsArray)) {
-                    $tempArray[$lineNumber]                = $data;
-                    $tempArray [$lineNumber][$childrenKey] = $itemsArray[$lineNumber][$childrenKey];
-                    $itemsArray[$lineNumber]               = $tempArray[$lineNumber];
-                    $tempArray                             = null;
+
+            if (!$parent) {
+                if ($data['parent_line'] == $data['line_number'] || empty($data['parent_line'])) {
+                    $parentArray[$data['parent_line']] = $data;
+                    $parentArray[$data['parent_line']][$childrenKey] = [];
                 } else {
-                    $itemsArray [$lineNumber] = $data;
+                    $parentArray[$data['parent_line']][$childrenKey][$data['line_number']] = $data;
                 }
-            } else {
-                if (!isset($itemsArray[$parentLine])) {
-                    $itemsArray[$parentLine] = $data;
-                    continue;
+            }
+        }
+        $finalLines = $parentArray;
+
+        foreach ($finalLines as $index => $lines) {
+            if (!isset($lines['item_id'])) {
+                foreach ($lines[$childrenKey] as $line) {
+                    $finalLines[$line['line_number']] = $line;
                 }
-                $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
+
+                unset($finalLines[$index]);
             }
         }
 
-        $itemsArray = $this->sortItemsAsParentChild($itemsArray, $childrenKey);
-
-        return $this->sumTotalItemsAmount($itemsArray, $childrenKey);
+        return $this->sumTotalItemsAmount($finalLines, $childrenKey);
     }
 
     /**
