@@ -1641,7 +1641,7 @@ class HospitalityHelper extends AbstractHelper
                 'variant_id'             => $item->getVariantCode()
             ];
             if ($magOrder) {
-                $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getItemId(), $subject);
+                $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getNumber(), $subject);
             }
             $lineNumber = $item->getLineNo();
             $parentLine = $item->getParentLine();
@@ -1655,6 +1655,10 @@ class HospitalityHelper extends AbstractHelper
                     $itemsArray [$lineNumber] = $data;
                 }
             } else {
+                if (!isset($itemsArray[$parentLine])) {
+                    $itemsArray[$parentLine] = $data;
+                    continue;
+                }
                 $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
             }
         }
