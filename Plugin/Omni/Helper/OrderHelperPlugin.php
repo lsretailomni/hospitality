@@ -607,7 +607,7 @@ class OrderHelperPlugin
             $this->logger->error($e->getMessage());
         }
 
-        return $response && $response->getResponseCode() == "0000" ? $response->getHospOrderCancelResult() : $response;
+        return $response && $response->getResponseCode() == "0000" ? $response->getResponseCode() : $response;
     }
 
     /**
