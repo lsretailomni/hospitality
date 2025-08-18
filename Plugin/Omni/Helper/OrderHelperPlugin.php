@@ -219,6 +219,7 @@ class OrderHelperPlugin
             $taxAmount       = $subject->loyaltyHelper->formatValue($shippingAmount - $netPrice);
             // @codingStandardsIgnoreLine
             $shipmentOrderLine = new Entity\OrderHospLine();
+
             $shipmentOrderLine->setPrice($shippingAmount)
                 ->setAmount($shippingAmount)
                 ->setNetPrice($netPrice)
