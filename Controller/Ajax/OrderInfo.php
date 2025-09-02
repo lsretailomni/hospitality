@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Controller\Ajax;
 
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Customer\Block\Order\Info;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Framework\App\Action\HttpGetActionInterface;
@@ -16,50 +18,25 @@ use Magento\Framework\View\Result\PageFactory;
  */
 class OrderInfo implements HttpGetActionInterface
 {
-
     /**
-     * @var PageFactory
-     */
-    public $resultPageFactory;
-
-    /**
-     * @var JsonFactory
-     */
-    public $resultJsonFactory;
-
-    /**
-     * @var RequestInterface
-     */
-    public $request;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * OrderInfo constructor.
      * @param PageFactory $resultPageFactory
      * @param JsonFactory $resultJsonFactory
      * @param RequestInterface $request
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        PageFactory $resultPageFactory,
-        JsonFactory $resultJsonFactory,
-        RequestInterface $request,
-        HospitalityHelper $hospitalityHelper
+        public PageFactory $resultPageFactory,
+        public JsonFactory $resultJsonFactory,
+        public RequestInterface $request,
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->resultPageFactory = $resultPageFactory;
-        $this->resultJsonFactory = $resultJsonFactory;
-        $this->request           = $request;
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
      * Executing the ajax function for order status info
+     *
      * @return Json
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function execute()
     {
@@ -81,5 +58,7 @@ class OrderInfo implements HttpGetActionInterface
                 return $result;
             }
         }
+
+        return null;
     }
 }

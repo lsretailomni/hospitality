@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Plugin\OmniGraphQl\Helper;
 
@@ -6,8 +7,9 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Helper\StockHelper;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\OmniGraphQl\Helper\DataHelper;
-use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
+use Ls\Replication\Model\ResourceModel\ReplStoreview\Collection;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
@@ -16,38 +18,17 @@ use Magento\Framework\Exception\NoSuchEntityException;
 class DataHelperPlugin
 {
     /**
-     * @var LSR
-     */
-    public $hospitalityLsr;
-    /**
-     * @var CheckoutSession
-     */
-    private CheckoutSession $checkoutSession;
-    /**
-     * @var StockHelper
-     */
-    private StockHelper $stockHelper;
-    /**
-     * @var DataProvider
-     */
-    private DataProvider $dataProvider;
-
-    /**
      * @param LSR $hospitalityLsr
      * @param CheckoutSession $checkoutSession
      * @param StockHelper $stockHelper
      * @param DataProvider $dataProvider
      */
     public function __construct(
-        LSR $hospitalityLsr,
-        CheckoutSession $checkoutSession,
-        StockHelper $stockHelper,
-        DataProvider $dataProvider
+        public LSR $hospitalityLsr,
+        public CheckoutSession $checkoutSession,
+        public StockHelper $stockHelper,
+        public DataProvider $dataProvider
     ) {
-        $this->hospitalityLsr    = $hospitalityLsr;
-        $this->checkoutSession   = $checkoutSession;
-        $this->stockHelper       = $stockHelper;
-        $this->dataProvider      = $dataProvider;
     }
 
     /**
@@ -57,27 +38,41 @@ class DataHelperPlugin
      * @param Collection $result
      * @param string $scopeId
      * @return Collection
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function aroundGetStores(
         DataHelper $subject,
         $result,
         $scopeId
     ) {
-
         $storeCollection = $subject->storeCollectionFactory->create();
 
         if ($this->hospitalityLsr->isHospitalityStore()) {
             $takeAwaySalesType = $this->hospitalityLsr->getTakeAwaySalesType();
 
+            $allStores = $subject->storeHelper->getAllStoresFromCentral();
+            $requiredStores = [];
+
+            foreach (!empty($allStores->getLscStore()) ?  $allStores->getLscStore() : [] as $store) {
+                if (($store->getClickAndCollect() ||
+                        $store->getWebStore()) &&
+                    in_array($takeAwaySalesType, explode('|', $store->getStoreSalesTypeFilter()))
+                ) {
+                    $requiredStores[] = $store->getNo();
+                }
+            }
+
             if (!empty($takeAwaySalesType)) {
-                $storeCollection->addFieldToFilter('HospSalesTypes', ['like' => '%'.$takeAwaySalesType.'%']);
+                $storeCollection->addFieldToFilter('no', ['in' => $requiredStores]);
             }
         }
 
-        $storesData = $storeCollection
-            ->addFieldToFilter('scope_id', $scopeId)
-            ->addFieldToFilter('ClickAndCollect', 1);
+        $storesData =  $storeCollection
+            ->addFieldToFilter(
+                'scope_id',
+                $scopeId
+            )
+        ->addFieldToFilter('click_and_collect', 1);
 
         if (!$this->availableStoresOnlyEnabled()) {
             return $storesData;
@@ -88,15 +83,7 @@ class DataHelperPlugin
             $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
             list($response) = $this->stockHelper->getGivenItemsStockInGivenStore($items);
 
-            if ($response) {
-                if (is_object($response)) {
-                    if (!is_array($response->getInventoryResponse())) {
-                        $response = [$response->getInventoryResponse()];
-                    } else {
-                        $response = $response->getInventoryResponse();
-                    }
-                }
-
+            if ($response && !empty($response->getInventorybufferout())) {
                 $clickNCollectStoresIds = $this->dataProvider->getClickAndCollectStoreIds($storesData);
                 $this->dataProvider->filterClickAndCollectStores($response, $clickNCollectStoresIds);
 
@@ -110,7 +97,7 @@ class DataHelperPlugin
     /**
      * Available Stores only enabled
      *
-     * @return mixed
+     * @return string
      * @throws NoSuchEntityException
      */
     public function availableStoresOnlyEnabled()
