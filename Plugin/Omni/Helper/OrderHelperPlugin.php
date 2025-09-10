@@ -8,19 +8,19 @@ use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Client\Ecommerce\Entity;
-use \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrder;
-use \Ls\Omni\Client\Ecommerce\Entity\CreateHospOrderResult;
+use \Ls\Omni\Client\CentralEcommerce\Entity\CreateHospOrder;
+use \Ls\Omni\Client\CentralEcommerce\Entity\CreateHospOrderResult;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\DocumentIdType;
-use \Ls\Omni\Client\Ecommerce\Entity\FABOrder;
+use \Ls\Omni\Client\CentralEcommerce\Entity\FABOrder;
 use \Ls\Omni\Client\Ecommerce\Entity\HospOrderCancelResponse;
-use \Ls\Omni\Client\Ecommerce\Entity\HospTransaction;
-use \Ls\Omni\Client\Ecommerce\Entity\HospTransactionLine;
-use \Ls\Omni\Client\Ecommerce\Entity\HospTransDiscountLine;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
-use \Ls\Omni\Client\Ecommerce\Entity\RootHospTransaction;
-use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
+use \Ls\Omni\Client\CentralEcommerce\Entity\HospTransaction;
+use \Ls\Omni\Client\CentralEcommerce\Entity\HospTransactionLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\HospTransDiscountLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionSubLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\RootHospTransaction;
+use \Ls\Omni\Client\CentralEcommerce\Entity\RootMobileTransaction;
 use \Ls\Omni\Client\Ecommerce\Operation;
-use \Ls\Omni\Client\Ecommerce\Operation\GetSelectedSalesDoc_GetSelectedSalesDoc;
+use \Ls\Omni\Client\CentralEcommerce\Operation\GetSelectedSalesDoc_GetSelectedSalesDoc;
 use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\OrderHelper;
@@ -533,7 +533,7 @@ class OrderHelperPlugin
         }
 
         // @codingStandardsIgnoreLine
-        $operation = $subject->createInstance(Operation\CreateHospOrder::class);
+        $operation = $subject->createInstance(\Ls\Omni\Client\CentralEcommerce\Operation\CreateHospOrder::class);
 
         $operation->setOperationInput(
             [CreateHospOrder::CREATE_HOSP_ORDER_XML => $request]

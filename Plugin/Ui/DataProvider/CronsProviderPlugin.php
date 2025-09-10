@@ -16,7 +16,7 @@ class CronsProviderPlugin
      * @var string[]
      */
     public $translationList = [
-        'repl_deal_html_translation'
+        'repl_lsc_offer_html_ml'
     ];
 
     /**
