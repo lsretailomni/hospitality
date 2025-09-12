@@ -7,7 +7,7 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Helper\StockHelper;
 use \Ls\Omni\Model\Checkout\DataProvider;
 use \Ls\OmniGraphQl\Helper\DataHelper;
-use Ls\Replication\Model\ResourceModel\ReplStoreview\Collection;
+use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;

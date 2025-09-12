@@ -2,27 +2,27 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="flat_replication">
-        <job name="repl_hierarchydeallineview" instance="Ls\Replication\Cron\ReplHierarchydeallineviewTask"
+        <job name="repl_hierarchy_hosp_deal_line" instance="Ls\Replication\Cron\ReplLscHierarchydeallineviewTask"
              method="execute">
             <schedule>*/3 * * * *</schedule>
         </job>
 
-        <job name="repl_hierarchydealview" instance="Ls\Replication\Cron\ReplHierarchydealviewTask"
+        <job name="repl_hierarchy_hosp_deal" instance="Ls\Replication\Cron\ReplLscHierarchydealviewTask"
              method="execute">
             <schedule>*/3 * * * *</schedule>
         </job>
 
-        <job name="repl_lsc_wi_item_recipe_buffer" instance="Ls\Replication\Cron\ReplLscWiItemRecipeBufferTask"
+        <job name="repl_item_recipe" instance="Ls\Replication\Cron\ReplLscWiItemRecipeBufferTask"
              method="execute">
             <schedule>*/3 * * * *</schedule>
         </job>
 
-        <job name="repl_lsc_wi_item_modifier" instance="Ls\Replication\Cron\ReplLscWiItemModifierTask"
+        <job name="repl_item_modifier" instance="Ls\Replication\Cron\ReplLscWiItemModifierTask"
              method="execute">
             <schedule>*/3 * * * *</schedule>
         </job>
 
-        <job name="repl_deal_html_translation" instance="Ls\Replication\Cron\ReplEcommDealHtmlTranslationTask"
+        <job name="repl_deal_html_translation" instance="Ls\Replication\Cron\ReplLscOfferHtmlMlTask"
              method="execute">
             <schedule>*/3 * * * *</schedule>
         </job>

@@ -7,12 +7,12 @@ use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransaction;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionSubLine;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransDiscountLine;
-use \Ls\Omni\Client\Ecommerce\Entity\RootMobileTransaction;
-use \Ls\Omni\Client\Ecommerce\Operation\MobilePosCalculate;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransaction;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionSubLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransDiscountLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\RootMobileTransaction;
+use \Ls\Omni\Client\CentralEcommerce\Operation\MobilePosCalculate;
 use \Ls\Omni\Exception\InvalidEnumException;
 use \Ls\Omni\Helper\BasketHelper;
 use Magento\Catalog\Model\Product\Type;
@@ -283,7 +283,7 @@ class BasketHelperPlugin
             ->setCurrencyfactor((float)$subject->loyaltyHelper->getPointRate());
         $operation = $subject->createInstance(MobilePosCalculate::class);
         $operation->setOperationInput(
-            [Entity\MobilePosCalculate::MOBILE_TRANSACTION_XML => $oneList]
+            [\Ls\Omni\Client\CentralEcommerce\Entity\MobilePosCalculate::MOBILE_TRANSACTION_XML => $oneList]
         );
         $response = $operation->execute();
 

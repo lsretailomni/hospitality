@@ -36,16 +36,16 @@
         <arguments>
             <argument name="collections" xsi:type="array">
                 <item name="ls_repl_grids_deals_data_source" xsi:type="string">
-                    Ls\Replication\Model\ResourceModel\ReplHierarchydealview\Grid\Collection
+                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\Grid\Collection
                 </item>
                 <item name="ls_repl_grids_dealline_data_source" xsi:type="string">
-                    Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview\Grid\Collection
+                    Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\Grid\Collection
                 </item>
                 <item name="ls_repl_grids_recipe_data_source" xsi:type="string">
-                    Ls\Replication\Model\ResourceModel\ReplLscWiItemRecipeBuffer\Grid\Collection
+                    Ls\Replication\Model\ResourceModel\ReplItemRecipe\Grid\Collection
                 </item>
                 <item name="ls_repl_grids_modifier_data_source" xsi:type="string">
-                    Ls\Replication\Model\ResourceModel\ReplLscWiItemModifier\Grid\Collection
+                    Ls\Replication\Model\ResourceModel\ReplItemModifier\Grid\Collection
                 </item>
             </argument>
         </arguments>

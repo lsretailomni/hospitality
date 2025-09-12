@@ -8,7 +8,7 @@ use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Block\Stores\Stores;
 use \Ls\Omni\Model\Checkout\DataProvider;
-use \Ls\Replication\Model\ResourceModel\ReplStoreview\Collection;
+use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -62,7 +62,7 @@ class DataProviderPlugin
                 !$subject->lsr->isSSM() ?
                     $subject->lsr->getCurrentWebsiteId() :
                     $subject->lsr->getAdminStore()->getWebsiteId()
-            )->addFieldToFilter('no', ['in' => $requiredStores]);
+            )->addFieldToFilter('nav_id', ['in' => $requiredStores]);
     }
 
     /**
