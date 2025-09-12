@@ -9,7 +9,7 @@ use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
 use \Ls\Omni\Client\CentralEcommerce\Entity\GetHospOrderEstimatedTime;
 use \Ls\Omni\Client\CentralEcommerce\Entity\GetKotStatus;
-use Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
 use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
 use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionLine;
 use \Ls\Omni\Client\CentralEcommerce\Entity\RootKotStatus;

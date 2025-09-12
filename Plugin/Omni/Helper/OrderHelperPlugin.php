@@ -7,8 +7,6 @@ use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Omni\Client\Ecommerce\Entity;
-
 use \Ls\Omni\Client\CentralEcommerce\Entity\CancelHospOrder as CancelHospOrderRequest;
 use \Ls\Omni\Client\CentralEcommerce\Entity\CreateHospOrder;
 use \Ls\Omni\Client\CentralEcommerce\Entity\CreateHospOrderResult;
@@ -58,13 +56,14 @@ class OrderHelperPlugin
 
     /**
      * Around plugin for preparing the order request for hospitality order
-     *
+     * 
      * @param OrderHelper $subject
      * @param callable $proceed
-     * @param Model\Order $order
+     * @param Order $order
      * @param RootMobileTransaction $oneListCalculateResponse
-     * @return Entity\OrderHospCreate
-     * @throws NoSuchEntityException|GuzzleException
+     * @return mixed
+     * @throws GuzzleException
+     * @throws NoSuchEntityException
      */
     public function aroundPrepareOrder(
         OrderHelper $subject,

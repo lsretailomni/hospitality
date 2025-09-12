@@ -6,7 +6,6 @@ namespace Ls\Hospitality\Plugin\Omni\Helper;
 use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransaction;
 use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionLine;
 use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionSubLine;
