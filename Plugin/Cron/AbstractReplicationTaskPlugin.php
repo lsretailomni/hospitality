@@ -37,8 +37,14 @@ class AbstractReplicationTaskPlugin
         } else {
             $uniqueAttributes = ReplicationHelper::JOB_CODE_UNIQUE_FIELD_ARRAY[$subject->getConfigPath()];
         }
-        $checksum    = $subject->getHashGivenString($source);
-        $entityArray = $this->checkEntityExistByAttributes($subject, $uniqueAttributes, $source);
+        $checksum    = $subject->getHashGivenString($source->getData());
+        $uniqueAttributesHash = $subject->generateIdentityValue($uniqueAttributes, $source, $properties);
+        $entityArray = $this->checkEntityExistByAttributes(
+            $subject,
+            $uniqueAttributes,
+            $source,
+            $properties
+        );
 
         if (!empty($entityArray) && $source->getIsDeleted()) {
             foreach ($entityArray as $entity) {
@@ -64,23 +70,33 @@ class AbstractReplicationTaskPlugin
                 $entity = $subject->getFactory()->create();
             }
             if ($entity->getChecksum() != $checksum) {
-                $entity->setChecksum($checksum);
+                $entity->addData(
+                    [
+                        'checksum' => $checksum,
+                        'identity_value' => $uniqueAttributesHash,
+                        'scope' => $source->getScope(),
+                        'scope_id' => $source->getScopeId()
+                    ]
+                );
+                foreach ($properties as $propertyIndex => $property) {
+                    $entity->setData($property, $source->getData($propertyIndex));
+                }
 
-                foreach ($properties as $property) {
-                    if ($property === 'nav_id') {
-                        $setMethod = 'setNavId';
-                        $getMethod = 'getId';
-                    } else {
-                        $fieldNameCapitalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $property)));
-                        $setMethod             = "set$fieldNameCapitalized";
-                        $getMethod             = "get$fieldNameCapitalized";
-                    }
-                    if ($entity &&
-                        $source &&
-                        method_exists($entity, $setMethod) &&
-                        method_exists($source, $getMethod)
+                $mappings = \Ls\Replication\Helper\ReplicationHelper::DB_TABLES_MAPPING;
+                foreach ($mappings as $mapping) {
+                    if (\Ls\Replication\Helper\ReplicationHelper::TABLE_NAME_PREFIX . $mapping['table_name'] ==
+                        $entity->getResource()->getMainTable()
                     ) {
-                        $entity->{$setMethod}($source->{$getMethod}());
+                        $columnsMapping = $mapping['columns_mapping'];
+                        foreach ($columnsMapping as $columnName => $columnMapping) {
+                            if ($entity->hasData($columnName)) {
+                                $entity->setData(
+                                    is_array($columnMapping) ? $columnMapping['name'] : $columnMapping,
+                                    $entity->getData($columnName)
+                                );
+                            }
+                        }
+                        break;
                     }
                 }
             }
@@ -102,22 +118,25 @@ class AbstractReplicationTaskPlugin
      * @param AbstractReplicationTask $subject
      * @param array $uniqueAttributes
      * @param mixed $source
+     * @param $properties
      * @return mixed
      */
-    public function checkEntityExistByAttributes(AbstractReplicationTask $subject, $uniqueAttributes, $source)
-    {
+    public function checkEntityExistByAttributes(
+        AbstractReplicationTask $subject,
+        $uniqueAttributes,
+        $source,
+        $properties
+    ) {
         $criteria = $subject->getSearchCriteria();
 
-        foreach ($uniqueAttributes as $attribute) {
-            $fieldNameCapitalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $attribute)));
+        foreach ($uniqueAttributes as $index => $attribute) {
+            $key = array_search($index, $properties);
 
-            if ($attribute == 'nav_id') {
-                $getMethod = 'getId';
-            } else {
-                $getMethod = "get$fieldNameCapitalized";
+            if ($key === false) {
+                $key = $index;
             }
 
-            $sourceValue = $source->{$getMethod}();
+            $sourceValue = $source->getData($key);
 
             if (!$source->getIsDeleted() && $sourceValue == "") {
                 $criteria->addFilter($attribute, true, 'null');
@@ -129,6 +148,7 @@ class AbstractReplicationTaskPlugin
                 $criteria->addFilter($attribute, $sourceValue);
             }
         }
+
         $result = $subject->getRepository()->getList($criteria->create());
         return $result->getItems();
     }

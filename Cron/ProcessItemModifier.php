@@ -364,7 +364,7 @@ class ProcessItemModifier
                                                 $optionValueData->getSubCode()) {
                                                 $existingOptionValue
                                                     ->setTitle($optionValueData->getDescription())
-                                                    ->setPrice($optionValueData->getAmountPercent());
+                                                    ->setPrice($optionValueData->getAmountPercent() ?? 0);
                                                 $isOptionValueExist = true;
                                             }
                                             $optionData['values'][$finalCode] = $existingOptionValue;
@@ -376,7 +376,7 @@ class ProcessItemModifier
                                             ->setPriceType('fixed')
                                             ->setSortOrder($subcode)
                                             ->setSku($subcode)
-                                            ->setPrice($optionValueData->getAmountPercent());
+                                            ->setPrice($optionValueData->getAmountPercent() ?? 0);
 
                                         if (!empty($optionValueData->getTriggerCode())) {
                                             $replImage = $this->hospitalityHelper->getImageGivenItem(

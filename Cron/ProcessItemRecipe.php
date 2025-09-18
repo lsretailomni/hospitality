@@ -273,7 +273,7 @@ class ProcessItemRecipe
                                         ->setPriceType('fixed')
                                         ->setSortOrder($optionValueData->getLineNo())
                                         ->setSku($optionValueData->getItemNo())
-                                        ->setPrice(-$optionValueData->getExclusionPrice());
+                                        ->setPrice(-$optionValueData->getExclusionPrice() ?? 0);
 
                                     if (!empty($optionValueData->getImageId())) {
                                         $swatchPath = $this->hospitalityHelper->getImage(
