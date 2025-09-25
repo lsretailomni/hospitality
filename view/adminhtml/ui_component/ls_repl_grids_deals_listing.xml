@@ -16,14 +16,14 @@
                 Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider
             </argument>
             <argument name="name" xsi:type="string">ls_repl_grids_deals_data_source</argument>
-            <argument name="primaryFieldName" xsi:type="string">repl_hierarchydealview_id</argument>
+            <argument name="primaryFieldName" xsi:type="string">repl_hierarchy_hosp_deal_id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
                     <item name="update_url" xsi:type="url" path="mui/index/render"/>
                     <item name="storageConfig" xsi:type="array">
-                        <item name="indexField" xsi:type="string">repl_hierarchydealview_id</item>
+                        <item name="indexField" xsi:type="string">repl_hierarchy_hosp_deal_id</item>
                     </item>
                 </item>
             </argument>
@@ -99,7 +99,7 @@
                 </item>
             </argument>
         </column>
-        <column name="offer_no">
+        <column name="DealNo">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -111,7 +111,8 @@
             </argument>
         </column>
 
-        <column name="line_no">
+
+        <column name="DealLineNo">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -170,7 +171,7 @@
             </argument>
         </column>
 
-        <column name="description">
+        <column name="Description">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -182,7 +183,7 @@
             </argument>
         </column>
 
-        <column name="hierarchy_code">
+        <column name="HierarchyCode">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -194,7 +195,19 @@
             </argument>
         </column>
 
-        <column name="retail_image_id">
+        <column name="ModifierCode">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Modifier Code</item>
+                    <item name="sortOrder" xsi:type="number">12</item>
+                </item>
+            </argument>
+        </column>
+
+        <column name="ImageId">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -205,7 +218,7 @@
                 </item>
             </argument>
         </column>
-        <column name="modifier_added_amount">
+        <column name="AddedAmount">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -216,7 +229,7 @@
                 </item>
             </argument>
         </column>
-        <column name="no">
+        <column name="No">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -227,18 +240,18 @@
                 </item>
             </argument>
         </column>
-        <column name="type">
+        <column name="LineNo">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/column</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Type</item>
+                    <item name="label" xsi:type="string" translate="true">Line No</item>
                     <item name="sortOrder" xsi:type="number">21</item>
                 </item>
             </argument>
         </column>
-        <column name="min_selection">
+        <column name="MinSelection">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -250,7 +263,7 @@
             </argument>
         </column>
 
-        <column name="max_selection">
+        <column name="MaxSelection">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -262,7 +275,7 @@
             </argument>
         </column>
 
-        <column name="node_id">
+        <column name="ParentNode">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -273,7 +286,7 @@
                 </item>
             </argument>
         </column>
-        <column name="unit_of_measure">
+        <column name="UnitOfMeasure">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -284,7 +297,7 @@
                 </item>
             </argument>
         </column>
-        <column name="variant_code">
+        <column name="VariantCode">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
@@ -296,7 +309,7 @@
             </argument>
         </column>
 
-        <column name="deal_mod_size_gr_index">
+        <column name="DealModSizeGroupIndex">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>

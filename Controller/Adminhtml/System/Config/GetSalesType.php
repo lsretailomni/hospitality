@@ -5,7 +5,7 @@ namespace Ls\Hospitality\Controller\Adminhtml\System\Config;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Core\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Operation\GetStores_GetStores;
+use \Ls\Omni\Client\CentralEcommerce\Operation\GetStores_GetStores;
 use \Ls\Omni\Helper\Data;
 use \Ls\Omni\Helper\StoreHelper;
 use Magento\Backend\App\Action;

@@ -5,7 +5,7 @@ namespace Ls\Hospitality\Helper;
 
 use Exception;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Replication\Model\ResourceModel\ReplStoreview\CollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -192,7 +192,7 @@ class QrCodeHelper extends AbstractHelper
                 $qrCodeParams = $unserialize ? $qrCodeOrderingData : $quote->getData(LSR::LS_QR_CODE_ORDERING);
             }
         } catch (Exception $e) {
-            throw new Exception(__($e->getMessage()));
+            throw new Exception($e->getMessage());
         }
 
         return $qrCodeParams;
