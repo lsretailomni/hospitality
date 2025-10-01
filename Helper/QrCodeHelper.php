@@ -5,7 +5,7 @@ namespace Ls\Hospitality\Helper;
 
 use Exception;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Replication\Model\ResourceModel\ReplStoreview\CollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -33,7 +33,6 @@ class QrCodeHelper extends AbstractHelper
         Context $context,
         public CustomerSession $customerSession,
         public CheckoutSession $checkoutSession,
-        public CollectionFactory $storeCollection,
         public LSR $lsr,
         public CartRepositoryInterface $quoteRepository,
         public SerializerJson $serializerJson,

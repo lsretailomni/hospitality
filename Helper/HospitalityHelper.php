@@ -18,16 +18,16 @@ use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
-use \Ls\Replication\Api\ReplHierarchydeallineviewRepositoryInterface;
-use \Ls\Replication\Api\ReplHierarchydealviewRepositoryInterface;
-use \Ls\Replication\Api\ReplLscWiItemRecipeBufferRepositoryInterface;
+use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
+use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
+use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
-use \Ls\Replication\Api\ReplLscWiItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
+use \Ls\Replication\Api\ReplItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchydealview\CollectionFactory as DealCollectionFactory;
-use \Ls\Replication\Model\ResourceModel\ReplHierarchydeallineview\CollectionFactory as DealLineCollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
+use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -89,12 +89,12 @@ class HospitalityHelper extends AbstractHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ProductRepository $productRepository
      * @param ReplLscWiItemModifierRepository $itemModifierRepository
-     * @param ReplLscWiItemRecipeBufferRepositoryInterface $recipeRepository
+     * @param ReplItemRecipeRepositoryInterface $recipeRepository
      * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
      * @param ReplicationHelper $replicationHelper
      * @param DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory
      * @param DealCollectionFactory $replHierarchyHospDealCollectionFactory
-     * @param ReplHierarchydealviewRepositoryInterface $replHierarchyHospDealRepository
+     * @param ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository
      * @param ResourceConnection $resourceConnection
      * @param LSR $lsr
      * @param Filesystem $filesystem
@@ -105,7 +105,7 @@ class HospitalityHelper extends AbstractHelper
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param StoreManagerInterface $storeManager
      * @param Registry $registry
-     * @param ReplHierarchydeallineviewRepositoryInterface $replHierarchyHospDealLineRepository
+     * @param ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
      * @param Information $storeInfo
      * @param AddressInterfaceFactory $addressFactory
      * @param AttributeRepositoryInterface $attributeRepository
@@ -124,12 +124,12 @@ class HospitalityHelper extends AbstractHelper
         public SearchCriteriaBuilder $searchCriteriaBuilder,
         public ProductRepository $productRepository,
         public ReplLscWiItemModifierRepository $itemModifierRepository,
-        public ReplLscWiItemRecipeBufferRepositoryInterface $recipeRepository,
+        public ReplItemRecipeRepositoryInterface $recipeRepository,
         public ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository,
         public ReplicationHelper $replicationHelper,
         public DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
         public DealCollectionFactory $replHierarchyHospDealCollectionFactory,
-        public ReplHierarchydealviewRepositoryInterface $replHierarchyHospDealRepository,
+        public ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
         public ResourceConnection $resourceConnection,
         public LSR $lsr,
         public Filesystem $filesystem,
@@ -140,7 +140,7 @@ class HospitalityHelper extends AbstractHelper
         public ProductCustomOptionRepositoryInterface $optionRepository,
         public StoreManagerInterface $storeManager,
         public Registry $registry,
-        public ReplHierarchydeallineviewRepositoryInterface $replHierarchyHospDealLineRepository,
+        public ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
         public Information $storeInfo,
         public AddressInterfaceFactory $addressFactory,
         public AttributeRepositoryInterface $attributeRepository,
