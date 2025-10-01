@@ -138,9 +138,9 @@ class CheckAvailability
                     if (!$modifier) {
                         return;
                     }
-                    $modifierItemId = (string)$modifier->getItemNo();
-                    $code = $modifier->getInfocodeCode();
-                    $unitOfMeasure = $modifier->getUnitOfMeasure();
+                    $modifierItemId = $modifier->getTriggerCode();
+                    $code           = $modifier->getCode();
+                    $unitOfMeasure  = $modifier->getUnitOfMeasure();
 
                     if (in_array($modifierItemId, $checkAvailabilityCollection)) {
                         $qty = $checkAvailabilityCollection[$modifierItemId]['qty'] + $qty;

@@ -191,7 +191,7 @@ class QrCodeHelper extends AbstractHelper
                 $qrCodeParams = $unserialize ? $qrCodeOrderingData : $quote->getData(LSR::LS_QR_CODE_ORDERING);
             }
         } catch (Exception $e) {
-            throw new Exception(__($e->getMessage()));
+            throw new Exception($e->getMessage());
         }
 
         return $qrCodeParams;

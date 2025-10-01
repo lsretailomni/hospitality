@@ -222,15 +222,6 @@ class LSR extends \Ls\Core\Model\LSR
     }
 
     /**
-     * @return mixed
-     * @throws NoSuchEntityException
-     */
-    public function getStoreId()
-    {
-        return $this->storeManager->getStore()->getStoreId();
-    }
-
-    /**
      * Is Qr Code ordering enabled
      *
      * @return array|string

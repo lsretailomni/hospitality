@@ -18,41 +18,17 @@ use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 class CreateEmptyCartPlugin
 {
     /**
-     * @var GetCartForUser
-     */
-    private $getCartForUser;
-
-    /**
-     * @var LSR
-     */
-    private $hospitalityLsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    private $hospitalityHelper;
-
-    /**
-     * @var CartRepositoryInterface
-     */
-    private $quoteRepository;
-
-    /**
      * @param GetCartForUser $getCartForUser
      * @param LSR $hospitalityLsr
      * @param HospitalityHelper $hospitalityHelper
      * @param CartRepositoryInterface $quoteRepository
      */
     public function __construct(
-        GetCartForUser $getCartForUser,
-        LSR $hospitalityLsr,
-        HospitalityHelper $hospitalityHelper,
-        CartRepositoryInterface $quoteRepository
+        public GetCartForUser $getCartForUser,
+        public LSR $hospitalityLsr,
+        public HospitalityHelper $hospitalityHelper,
+        public CartRepositoryInterface $quoteRepository
     ) {
-        $this->getCartForUser    = $getCartForUser;
-        $this->hospitalityLsr    = $hospitalityLsr;
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->quoteRepository   = $quoteRepository;
     }
 
     /**
@@ -82,6 +58,10 @@ class CreateEmptyCartPlugin
         $maskedQuoteId = $result;
         $currentUserId = $context->getUserId();
         $storeId       = (int)$context->getExtensionAttributes()->getStore()->getId();
+
+        if (!$this->hospitalityLsr->isHospitalityStore($storeId)) {
+            return $result;
+        }
 
         $anonymousOrderEnabled = $this->hospitalityLsr->getStoreConfig(Lsr::ANONYMOUS_ORDER_ENABLED, $storeId);
 

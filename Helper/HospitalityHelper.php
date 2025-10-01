@@ -6,14 +6,14 @@ namespace Ls\Hospitality\Helper;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
-use \Ls\Omni\Client\Ecommerce\Entity\GetHospOrderEstimatedTime;
-use \Ls\Omni\Client\Ecommerce\Entity\GetKotStatus;
+use \Ls\Omni\Client\CentralEcommerce\Entity\GetHospOrderEstimatedTime;
+use \Ls\Omni\Client\CentralEcommerce\Entity\GetKotStatus;
+use Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
 use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
-use \Ls\Omni\Client\Ecommerce\Entity\MobileTransactionLine;
-use \Ls\Omni\Client\Ecommerce\Entity\RootKotStatus;
-use \Ls\Omni\Client\Ecommerce\Operation;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\RootKotStatus;
+use \Ls\Omni\Client\CentralEcommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
@@ -245,7 +245,7 @@ class HospitalityHelper extends AbstractHelper
 
                     if (!empty($recipe)) {
                         $lineNumber += 10000;
-                        $itemId = reset($recipe)->getNo();
+                        $itemId = reset($recipe)->getItemNo();
                         $recipeData['ItemId'] = $itemId;
                         $recipeData['LineNumber'] = $lineNumber;
                         $recipeData['ParentSubLineId'] = $parentSubLineId;
@@ -483,9 +483,9 @@ class HospitalityHelper extends AbstractHelper
     public function getItemModifier($navId, $code, $value)
     {
         // removing this for now.
-        $searchCriteria = $this->searchCriteriaBuilder->addFilter('parent_item_no', $navId)
-            ->addFilter('description', $value)
-            ->addFilter('infocode_code', $code);
+        $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $navId)
+            ->addFilter('Description', $value)
+            ->addFilter('Code', $code);
 
         $itemModifier = $this->itemModifierRepository->getList(
             $searchCriteria->setPageSize(1)
@@ -501,14 +501,14 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param $navId
      * @param $description
-     * @return |null
+     * @return null
      */
     public function getUoMCodeByDescription($navId, $description)
     {
         // removing this for now.
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('ItemId', $navId)
             ->addFilter('Description', $description);
-        $itemUom        = $this->replItemUomRepository->getList(
+        $itemUom = $this->replItemUnitOfMeasureRepository->getList(
             $searchCriteria->setPageSize(1)
                 ->setCurrentPage(1)
                 ->create()
@@ -531,8 +531,8 @@ class HospitalityHelper extends AbstractHelper
     public function getRecipe($recipeNo, $value)
     {
         $recipe = $this->recipeRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('parent_item_no', $recipeNo)
-                ->addFilter('description', $value)
+            $this->searchCriteriaBuilder->addFilter('RecipeNo', $recipeNo)
+                ->addFilter('Description', $value)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
@@ -549,7 +549,7 @@ class HospitalityHelper extends AbstractHelper
     public function getModifierByDescription($value)
     {
         $modifier = $this->itemModifierRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('description', $value)
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
@@ -587,16 +587,16 @@ class HospitalityHelper extends AbstractHelper
     /**
      * @param $store
      * @return array
-     * @throws Zend_Db_Select_Exception
+     * @throws Zend_Db_Select_Exception|LocalizedException
      */
     public function getUpdatedDealLinesRecords($store)
     {
         $batchSize = $this->getItemModifiersBatchSize();
-        $filters2  = [
+        $filters2 = [
             ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq']
         ];
 
-        $criteria2   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+        $criteria2 = $this->replicationHelper->buildCriteriaForArrayWithAlias(
             $filters2,
             $batchSize,
             1
@@ -617,7 +617,7 @@ class HospitalityHelper extends AbstractHelper
             ['field' => 'main_table.Type', 'value' => ['Item', 'Modifier'], 'condition_type' => 'in']
         ];
 
-        $criteria1   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+        $criteria1 = $this->replicationHelper->buildCriteriaForArrayWithAlias(
             $filters1,
             $batchSize,
             1
@@ -670,8 +670,8 @@ class HospitalityHelper extends AbstractHelper
     public function getMainDealLine($dealNo)
     {
         return $this->replHierarchyHospDealRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('offer_no', $dealNo, 'eq')
-                ->addFilter('type', '0', 'eq')->create()
+            $this->searchCriteriaBuilder->addFilter('DealNo', $dealNo, 'eq')
+                ->addFilter('Type', 'Item', 'eq')->create()
         )->getItems();
     }
 
@@ -965,11 +965,11 @@ class HospitalityHelper extends AbstractHelper
      */
     public function uploadFile($fileInfo)
     {
-        $media    = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $media = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
         $fileName = null;
 
         if (is_array($fileInfo)) {
-            $uploader   = $this->uploaderFactory->create(['fileId' => $fileInfo]);
+            $uploader = $this->uploaderFactory->create(['fileId' => $fileInfo]);
             $workingDir = $media->getAbsolutePath(self::DESTINATION_FOLDER);
             $uploader->save($workingDir);
             $fileName = self::DESTINATION_FOLDER . DIRECTORY_SEPARATOR . $uploader->getUploadedFileName();
@@ -988,14 +988,14 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getImage($imageId = '')
     {
-        $image     = '';
+        $image = '';
         $imageSize = [
             'height' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_HEIGHT,
-            'width'  => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
+            'width' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
         ];
         /** @var ImageSize $imageSizeObject */
         $imageSizeObject = $this->loyaltyHelper->getImageSize($imageSize);
-        $result          = $this->loyaltyHelper->getImageById($imageId, $imageSizeObject);
+        $result = $this->loyaltyHelper->getImageById($imageId, $imageSizeObject);
         if (!empty($result) && !empty($result['format']) && !empty($result['image'])) {
             //check if directory exists or not and if it has the proper permission or not
             $offerpath = $this->getMediaPathtoStore();
@@ -1003,12 +1003,12 @@ class HospitalityHelper extends AbstractHelper
             if (!is_dir($offerpath)) {
                 $this->file->mkdir($offerpath, 0775);
             }
-            $format      = $result['format'] ? strtolower($result['format']) : 'jpg';
-            $imageName   = $this->replicationHelper->oSlug($imageId);
+            $format = $result['format'] ? $this->replicationHelper->getImageFormat($result['format']) : 'jpg';
+            $imageName = $this->replicationHelper->oSlug($imageId);
             $output_file = "{$imageName}.$format";
-            $file        = "{$offerpath}{$output_file}";
+            $file = "{$offerpath}{$output_file}";
             if (!$this->file->fileExists($file)) {
-                $base64     = $result['image'];
+                $base64 = $result['image'];
                 $image_file = fopen($file, 'wb');
                 fwrite($image_file, base64_decode($base64));
                 fclose($image_file);
@@ -1070,7 +1070,7 @@ class HospitalityHelper extends AbstractHelper
             false
         );
         /** @var ReplImageLinkSearchResults $newImagestoProcess */
-        $newImagesToProcess = $this->replImageLinkRepositoryInterface->getList($criteriaForAllImages);
+        $newImagesToProcess = $this->replImageLinkRepository->getList($criteriaForAllImages);
 
         if ($newImagesToProcess->getTotalCount() > 0) {
             $replImage = current($newImagesToProcess->getItems());
@@ -1102,17 +1102,17 @@ class HospitalityHelper extends AbstractHelper
     {
         $uom                        = null;
         $filterForDealLine          = [
-            ['field' => 'offer_no', 'value' => $sku, 'condition_type' => 'eq'],
-            ['field' => 'deal_modifier_line_no', 'value' => $dealModLineId, 'condition_type' => 'eq'],
-            ['field' => 'offer_line_no', 'value' => $dealLineId, 'condition_type' => 'eq'],
+            ['field' => 'DealNo', 'value' => $sku, 'condition_type' => 'eq'],
+            ['field' => 'DealLineNo', 'value' => $dealLineId, 'condition_type' => 'eq'],
+            ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
             ['field' => 'scope_id', 'value' => $this->lsr->getCurrentWebsiteId(), 'condition_type' => 'eq']
         ];
-        $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
+        $criteria = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
         $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
 
         if ($replHierarchyHospDealLines->getTotalCount() > 0) {
             $dealLine = current($replHierarchyHospDealLines->getItems());
-            $uom      = $dealLine->getUnitOfMeasure();
+            $uom = $dealLine->getUnitOfMeasure();
         }
 
         return $uom;
@@ -1140,7 +1140,7 @@ class HospitalityHelper extends AbstractHelper
     public function getProductFromRepositoryGivenSku($sku)
     {
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku)->create();
-        $productList    = $this->productRepository->getList($searchCriteria)->getItems();
+        $productList = $this->productRepository->getList($searchCriteria)->getItems();
 
         return array_pop($productList);
     }
@@ -1179,7 +1179,7 @@ class HospitalityHelper extends AbstractHelper
     public function getAnonymousAddress($anonymousOrderRequiredAttributes)
     {
         $storeInformation = $this->getStoreInformation();
-        $address          = $this->addressFactory->create();
+        $address = $this->addressFactory->create();
 
         foreach ($anonymousOrderRequiredAttributes as $addressAttribute) {
             if ($addressAttribute == 'email') {
@@ -1258,11 +1258,12 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param array $anonymousOrderRequiredAttributes
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getAnonymousOrderPrefillAttributes($anonymousOrderRequiredAttributes)
     {
-        $prefillAttributes   = [];
-        $addressAttributes   = $this->getAllAddressAttributes();
+        $prefillAttributes = [];
+        $addressAttributes = $this->getAllAddressAttributes();
         $removeCheckoutSteps = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $this->lsr->getStoreId()
@@ -1345,7 +1346,7 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param array $data
      * @return void
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function fakeOrderLinesStatusWebhook(&$data)
     {
@@ -1353,7 +1354,7 @@ class HospitalityHelper extends AbstractHelper
 
         if (!empty($magentoOrder) && $this->lsr->isHospitalityStore($magentoOrder->getStoreId())) {
             $lineNo = 10000;
-            $index  = $qtyOrdered = 0;
+            $index = $qtyOrdered = 0;
             $status = $data['HeaderStatus'];
 
             foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
@@ -1458,7 +1459,6 @@ class HospitalityHelper extends AbstractHelper
         return $itemLines;
     }
 
-
     /**
      * Fix order lines status
      *
@@ -1470,7 +1470,7 @@ class HospitalityHelper extends AbstractHelper
         $status = $data['HeaderStatus'];
         foreach ($data['Lines'] as &$line) {
             if ($line['Quantity'] == 0 || $line['NewStatus'] == null) {
-                $line['Quantity']  = 1;
+                $line['Quantity'] = 1;
                 $line['NewStatus'] = $status;
             }
         }
@@ -1480,18 +1480,17 @@ class HospitalityHelper extends AbstractHelper
      * Get orders by document id
      *
      * @param $documentId
-     * @param $all
      * @return false|OrderInterface|OrderSearchResultInterface | OrderInterface[]
      */
     public function getOrderByDocumentId($documentId)
     {
         try {
-            $order      = false;
-            $order      = $this->orderRepository->getList(
+            $order = false;
+            $order = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
             );
             $orderArray = $order->getItems();
-            $order      = end($orderArray);
+            $order = end($orderArray);
         } catch (Exception $e) {
             $this->_logger->error($e->getMessage());
         }
@@ -1527,15 +1526,15 @@ class HospitalityHelper extends AbstractHelper
     public function getLine($amount, $itemId, $uom, $variantId, $status, $qty, $prevStatus, $extLineStatus, $lineNo)
     {
         return [
-            'Amount'          => $amount,
-            'ItemId'          => $itemId,
+            'Amount' => $amount,
+            'ItemId' => $itemId,
             'UnitOfMeasureId' => $uom,
-            'VariantId'       => $variantId,
-            'NewStatus'       => $status,
-            'Quantity'        => $qty,
-            'PrevStatus'      => $prevStatus,
-            'ExtLineStatus'   => $extLineStatus,
-            'LineNo'          => $lineNo
+            'VariantId' => $variantId,
+            'NewStatus' => $status,
+            'Quantity' => $qty,
+            'PrevStatus' => $prevStatus,
+            'ExtLineStatus' => $extLineStatus,
+            'LineNo' => $lineNo
         ];
     }
 
@@ -1549,7 +1548,7 @@ class HospitalityHelper extends AbstractHelper
      */
     public function removeCheckoutStepEnabled($quote = null)
     {
-        $storeId                   = $this->storeManager->getStore()->getId();
+        $storeId = $this->storeManager->getStore()->getId();
         $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $storeId
@@ -1563,23 +1562,6 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return $removeCheckoutStepEnabled & !empty($qrCodeParams);
-    }
-
-    /**
-     * Get remove checkout steps configuration
-     *
-     * @return int
-     * @throws NoSuchEntityException
-     */
-    public function getRemoveCheckoutStepEnabled()
-    {
-        $storeId                   = $this->storeManager->getStore()->getId();
-        $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
-            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
-            $storeId
-        );
-
-        return $removeCheckoutStepEnabled;
     }
 
     /**
@@ -1605,63 +1587,79 @@ class HospitalityHelper extends AbstractHelper
             ->getUrl();
     }
 
-
     /**
      * Format items for sales entries
      *
      * @param $subject
      * @param $items
-     * @param $magOrder
      * @return array
      */
-    public function getItems($subject, $items, $magOrder)
+    public function getItems($items)
     {
-        $itemsArray  = [];
         $childrenKey = 'subitems';
+        $parentArray = [];
+
         foreach ($items as $item) {
+            $product = $this->getProductFromRepositoryGivenSku($item->getNumber());
+            $isDealProduct = $product && $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE);
             $data = [
-                'amount'                 => $item->getAmount(),
+                'amount' => $item->getAmount(),
                 'click_and_collect_line' => $item->getClickAndCollectLine(),
-                'discount_amount'        => $item->getDiscountAmount(),
-                'discount_percent'       => $item->getDiscountPercent(),
-                'item_description'       => $item->getItemDescription(),
-                'item_id'                => $item->getItemId(),
-                'item_image_id'          => $item->getItemImageId(),
-                'line_number'            => $item->getLineNumber(),
-                'line_type'              => $item->getLineType(),
-                'net_amount'             => $item->getNetAmount(),
-                'net_price'              => $item->getNetPrice(),
-                'parent_line'            => $item->getParentLine(),
-                'price'                  => $item->getPrice(),
-                'quantity'               => $item->getQuantity(),
-                'store_id'               => $item->getStoreId(),
-                'tax_amount'             => $item->getTaxAmount(),
-                'uom_id'                 => $item->getUomId(),
-                'variant_description'    => $item->getVariantDescription(),
-                'variant_id'             => $item->getVariantId(),
+                'discount_amount' => $item->getDiscountAmount(),
+                'discount_percent' => $item->getDiscount(),
+                'item_description' => $item->getDescription(),
+                'item_id' => $item->getNumber(),
+                'item_image_id' => $item->getImageId(),
+                'line_number' => $item->getLineNo(),
+                'line_type' => $isDealProduct ? 'Deal' : 'Item',
+                'net_amount' => $item->getNetAmount(),
+                'net_price' => $item->getNetPrice(),
+                'parent_line' => $item->getParentLine(),
+                'price' => $item->getPrice(),
+                'quantity' => $item->getQuantity(),
+                'store_id' => $item->getStoreNo(),
+                'tax_amount' => $item->getVatAmount(),
+                'uom_id' => $item->getUnitOfMeasure(),
+                'variant_description' => $item->getVariantDescription(),
+                'variant_id' => $item->getVariantCode()
             ];
-            if ($magOrder) {
-                $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getItemId(), $subject);
-            }
-            $lineNumber = $item->getLineNumber();
-            $parentLine = $item->getParentLine();
-            if (empty($parentLine) || $lineNumber == $parentLine) {
-                if (!empty($itemsArray) && array_key_exists($lineNumber, $itemsArray)) {
-                    $tempArray[$lineNumber]                = $data;
-                    $tempArray [$lineNumber][$childrenKey] = $itemsArray[$lineNumber][$childrenKey];
-                    $itemsArray[$lineNumber]               = $tempArray[$lineNumber];
-                    $tempArray                             = null;
-                } else {
-                    $itemsArray [$lineNumber] = $data;
+            $parent = null;
+            foreach ($parentArray as &$children) {
+                foreach ($children[$childrenKey] as &$child) {
+                    if ($child['line_number'] == $data['parent_line']) {
+                        $parent = true;
+                        $child[$childrenKey][$data['line_number']] = $data;
+                    }
                 }
-            } else {
-                $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
+            }
+
+            if (!$parent) {
+                if ($data['parent_line'] == $data['line_number'] || empty($data['parent_line'])) {
+                    if (empty($data['parent_line'])) {
+                        $lineNumber = $data['line_number'];
+                    } else {
+                        $lineNumber = $data['parent_line'];
+                    }
+                    $parentArray[$lineNumber] = $data;
+                    $parentArray[$lineNumber][$childrenKey] = [];
+                } else {
+                    $parentArray[$data['parent_line']][$childrenKey][$data['line_number']] = $data;
+                }
+            }
+        }
+        $finalLines = $parentArray;
+
+        foreach ($finalLines as $index => $lines) {
+            if (!isset($lines['item_id'])) {
+                foreach ($lines[$childrenKey] as $line) {
+                    $finalLines[$line['line_number']] = $line;
+                }
+
+                unset($finalLines[$index]);
             }
         }
 
-        $itemsArray = $this->sortItemsAsParentChild($itemsArray, $childrenKey);
-
-        return $this->sumTotalItemsAmount($itemsArray, $childrenKey);
+        return $this->sumTotalItemsAmount($finalLines, $childrenKey);
     }
 
     /**
@@ -1675,10 +1673,10 @@ class HospitalityHelper extends AbstractHelper
     {
         foreach ($itemsArray as $mainKey => $arrayData) {
             $lineType = $arrayData['line_type'];
-            $amount   = $arrayData['amount'];
+            $amount = $arrayData['amount'];
             if (array_key_exists($childrenKey, $arrayData)) {
                 foreach ($arrayData[$childrenKey] as $key => $value) {
-                    if ($lineType == Entity\Enum\LineType::DEAL) {
+                    if ($lineType == LineType::DEAL) {
                         if (array_key_exists($childrenKey, $value)) {
                             foreach ($value[$childrenKey] as $subitems) {
                                 $amount += $subitems['amount'];
@@ -1693,72 +1691,5 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return $itemsArray;
-    }
-
-    /**
-     * Sorting items
-     *
-     * @param $itemsArray
-     * @param $childrenKey
-     * @return array
-     */
-    public function sortItemsAsParentChild($itemsArray, $childrenKey)
-    {
-        foreach ($itemsArray as $mainKey => $arrayData) {
-            if (array_key_exists($childrenKey, $arrayData)) {
-                foreach ($arrayData[$childrenKey] as $key => $value) {
-                    if (array_key_exists($key, $itemsArray)) {
-                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
-                        unset($itemsArray[$key]);
-                    }
-                }
-            }
-        }
-
-        return $itemsArray;
-    }
-
-    /**
-     * Get custom options from magento
-     *
-     * @param $magOrder
-     * @param $id
-     * @param $subject
-     * @return array
-     */
-    public function formatCustomOptions($magOrder, $id, $subject)
-    {
-        $outputOptions = [];
-        if (!empty($magOrder)) {
-            $items   = $magOrder->getAllVisibleItems();
-            $counter = 0;
-            foreach ($items as $item) {
-                list($itemId) = $subject->itemHelper->getComparisonValues(
-                    $item->getSku()
-                );
-                if ($itemId == $id) {
-                    $options = $item->getProductOptions();
-                    if (isset($options['options']) && !empty($options['options'])) {
-                        foreach ($options['options'] as $option) {
-                            $outputOptions[$counter]['label'] = $option['label'];
-                            $outputOptions[$counter]['value'] = $option['value'];
-                            $counter++;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $outputOptions;
-    }
-
-    /**
-     * Return serialize json class object
-     *
-     * @return QrCodeHelper
-     */
-    public function getJson()
-    {
-        return $this->serializerJson;
     }
 }

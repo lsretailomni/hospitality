@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
 
@@ -12,27 +13,14 @@ use Magento\Framework\Exception\NoSuchEntityException;
  */
 class DataHelperPlugin
 {
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
     /**
      * @param LSR $lsr
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        LSR $lsr,
-        HospitalityHelper $hospitalityHelper
+        public LSR $lsr,
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->lsr               = $lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -55,7 +43,6 @@ class DataHelperPlugin
             return $proceed($items);
         }
 
-        return $this->hospitalityHelper->getItems($subject, $items->getSalesEntryLine(), $magOrder);
+        return $this->hospitalityHelper->getItems($items);
     }
-
 }
