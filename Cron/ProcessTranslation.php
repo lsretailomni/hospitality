@@ -1,8 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Cron;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Model\ReplDataTranslation;
 use \Ls\Replication\Api\ReplDataTranslationRepositoryInterface;
@@ -22,26 +24,6 @@ use Magento\Store\Model\ScopeInterface;
 class ProcessTranslation
 {
     /**
-     * @var ReplicationHelper
-     */
-    public $replicationHelper;
-
-    /**
-     * @var ReplDataTranslationRepositoryInterface
-     */
-    public $dataTranslationRepository;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
-     * @var Logger
-     */
-    public $logger;
-
-    /**
      * @var StoreInterface $store
      */
     public $store;
@@ -52,45 +34,23 @@ class ProcessTranslation
     public $cronStatus = false;
 
     /**
-     * @var Product
-     */
-    public $productResourceModel;
-
-    /**
-     * @var ProductRepositoryInterface
-     */
-    public $productRepository;
-
-    /**
-     * @var ReplDataTranslationCollectionFactory
-     */
-    public $replDataTranslationCollectionFactory;
-
-    /**
      * @param ReplicationHelper $replicationHelper
      * @param ReplDataTranslationRepositoryInterface $dataTranslationRepository
-     * @param LSR $LSR
+     * @param LSR $lsr
      * @param Logger $logger
      * @param Product $productResourceModel
      * @param ProductRepositoryInterface $productRepository
      * @param ReplDataTranslationCollectionFactory $replDataTranslationCollectionFactory
      */
     public function __construct(
-        ReplicationHelper $replicationHelper,
-        ReplDataTranslationRepositoryInterface $dataTranslationRepository,
-        LSR $LSR,
-        Logger $logger,
-        Product $productResourceModel,
-        ProductRepositoryInterface $productRepository,
-        ReplDataTranslationCollectionFactory $replDataTranslationCollectionFactory
+        public ReplicationHelper $replicationHelper,
+        public ReplDataTranslationRepositoryInterface $dataTranslationRepository,
+        public LSR $lsr,
+        public Logger $logger,
+        public Product $productResourceModel,
+        public ProductRepositoryInterface $productRepository,
+        public ReplDataTranslationCollectionFactory $replDataTranslationCollectionFactory
     ) {
-        $this->replicationHelper                    = $replicationHelper;
-        $this->dataTranslationRepository            = $dataTranslationRepository;
-        $this->lsr                                  = $LSR;
-        $this->logger                               = $logger;
-        $this->productResourceModel                 = $productResourceModel;
-        $this->productRepository                    = $productRepository;
-        $this->replDataTranslationCollectionFactory = $replDataTranslationCollectionFactory;
     }
 
     /**
@@ -99,7 +59,7 @@ class ProcessTranslation
      * @param mixed $storeData
      * @return void
      * @throws NoSuchEntityException
-     * @throws LocalizedException
+     * @throws LocalizedException|GuzzleException
      */
     public function execute($storeData = null)
     {
@@ -164,6 +124,7 @@ class ProcessTranslation
      * @param string $sku
      * @param null $productData
      * @return bool
+     * @throws LocalizedException
      */
     public function updateDeal($store, $langCode)
     {
@@ -245,7 +206,7 @@ class ProcessTranslation
      *
      * @param mixed $storeData
      * @return int[]
-     * @throws NoSuchEntityException|LocalizedException
+     * @throws NoSuchEntityException|LocalizedException|GuzzleException
      */
     public function executeManually($storeData = null)
     {

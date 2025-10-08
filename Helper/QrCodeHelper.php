@@ -33,7 +33,6 @@ class QrCodeHelper extends AbstractHelper
         Context $context,
         public CustomerSession $customerSession,
         public CheckoutSession $checkoutSession,
-        public CollectionFactory $storeCollection,
         public LSR $lsr,
         public CartRepositoryInterface $quoteRepository,
         public SerializerJson $serializerJson,

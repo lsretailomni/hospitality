@@ -20,12 +20,12 @@ use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
+use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
+use \Ls\Replication\Api\ReplItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
-use \Ls\Replication\Model\ReplItemModifierRepository;
-use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
@@ -88,8 +88,8 @@ class HospitalityHelper extends AbstractHelper
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ProductRepository $productRepository
-     * @param ReplItemModifierRepository $itemModifierRepository
-     * @param ReplItemRecipeRepository $recipeRepository
+     * @param ReplLscWiItemModifierRepository $itemModifierRepository
+     * @param ReplItemRecipeRepositoryInterface $recipeRepository
      * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
      * @param ReplicationHelper $replicationHelper
      * @param DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory
@@ -123,8 +123,8 @@ class HospitalityHelper extends AbstractHelper
         public Configuration $configurationHelper,
         public SearchCriteriaBuilder $searchCriteriaBuilder,
         public ProductRepository $productRepository,
-        public ReplItemModifierRepository $itemModifierRepository,
-        public ReplItemRecipeRepository $recipeRepository,
+        public ReplLscWiItemModifierRepository $itemModifierRepository,
+        public ReplItemRecipeRepositoryInterface $recipeRepository,
         public ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository,
         public ReplicationHelper $replicationHelper,
         public DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
@@ -1003,7 +1003,7 @@ class HospitalityHelper extends AbstractHelper
             if (!is_dir($offerpath)) {
                 $this->file->mkdir($offerpath, 0775);
             }
-            $format = $result['format'] ? strtolower($result['format']) : 'jpg';
+            $format = $result['format'] ? $this->replicationHelper->getImageFormat($result['format']) : 'jpg';
             $imageName = $this->replicationHelper->oSlug($imageId);
             $output_file = "{$imageName}.$format";
             $file = "{$offerpath}{$output_file}";
