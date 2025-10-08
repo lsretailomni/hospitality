@@ -40,7 +40,7 @@ class KitchenInformation implements ResolverInterface
     /**
      * @inheritdoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null): array
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null): array
     {
         if (empty($args['order_id'])) {
             throw new GraphQlInputException(__('Required parameter "order_id" is missing'));
