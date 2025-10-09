@@ -945,9 +945,15 @@ class HospitalityHelper extends AbstractHelper
                             $status   = $resp->getStatus();
                             $qCounter = $resp->getQueueCounter();
                             $kotNo    = $resp->getKotNo();
-
                             if ($this->lsr->displayEstimatedDeliveryTime()) {
                                 $productionTime = $resp->getProductionTime();
+                            }
+
+                            if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                                if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                                    $productionTime = 0;
+                                }
+                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
                             }
                             $lines   = $resp->getLines()->getOrderHospStatusLine();
                             $itemIds = [];
