@@ -983,7 +983,8 @@ class HospitalityHelper extends AbstractHelper
                             $linesData = [];
                             foreach ($itemCounts as $itemId => $quantity) {
                                 if ($itemId) {
-                                    $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                                    $productName = isset($productMap[$itemId]) ?
+                                        $productMap[$itemId]['productName'] : $itemId;
                                     $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
                                     $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
                                     $linesData[] = [
@@ -992,8 +993,10 @@ class HospitalityHelper extends AbstractHelper
                                         'imageUrl'      => $imageUrl,
                                         'imagePath'     => $imagePath,
                                         'quantity'      => $quantity,
-                                        'productUrl'    => $productMap[$itemId]['productUrl'],
-                                        'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                                        'productUrl'    => isset($productMap[$itemId]) ?
+                                            $productMap[$itemId]['productUrl'] : '',
+                                        'productUrlKey' => isset($productMap[$itemId]) ?
+                                            $productMap[$itemId]['productUrlKey'] . ".html" : ''
                                     ];
                                 }
                             }
