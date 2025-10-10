@@ -31,8 +31,8 @@ class CustomerOrderInfo implements ArgumentInterface
         LSR $lsr,
         CheckoutSession $checkoutSession
     ) {
-        $this->lsr               = $lsr;
-        $this->checkoutSession   = $checkoutSession;
+        $this->lsr             = $lsr;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -50,19 +50,25 @@ class CustomerOrderInfo implements ArgumentInterface
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getOrderStatusInfo()
+    public function getOrderStatusInfo($order = null)
     {
         $statusInfo = [];
+
         if ($this->lsr->showOrderTrackingInfoOnSuccessPage()) {
             $webStore           = $this->lsr->getActiveWebStore();
             $documentId         = $this->checkoutSession->getLastDocumentId();
             $pickupDateTimeslot = $this->checkoutSession->getPickupDateTimeslot();
+            if (!empty($order) && empty($documentId) && method_exists($order, 'getDocumentId')) {
+                $documentId = $order->getDocumentId();
+            }
+
             if (!empty($documentId)) {
                 $statusInfo['orderId']            = $documentId;
                 $statusInfo['storeId']            = $webStore;
                 $statusInfo['pickupDateTimeslot'] = $pickupDateTimeslot;
             }
         }
+
         return $statusInfo;
     }
 }
