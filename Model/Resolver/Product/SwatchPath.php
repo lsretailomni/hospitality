@@ -65,8 +65,8 @@ class SwatchPath implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ) {
         if (!isset($value['swatch']) || empty($value['swatch'])) {
             $image = $this->productImageFactory->create();
