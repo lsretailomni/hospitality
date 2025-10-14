@@ -43,7 +43,7 @@ type Mutation {
 
 type Query {
     current_qr_code_params(cart_id: String @doc(description: "Cart ID.")): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\QrCodeParams") @doc(description: "Fetch current QR Code Params.")
-    fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): KitchenInformation @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
+    fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): [KitchenInformation] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
 }
 
 input QrCodeInput @doc(description: "Contain required input for setting qrcode") {

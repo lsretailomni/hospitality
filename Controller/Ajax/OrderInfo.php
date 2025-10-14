@@ -46,7 +46,9 @@ class OrderInfo implements HttpGetActionInterface
             $pickupOrderTime = $this->request->getParam('pickupOrderTime');
             if (!empty($orderId) && !empty($storeId)) {
                 $status     = $this->hospitalityHelper->getKitchenOrderStatusDetails($orderId, $storeId);
-                $status[]   = $pickupOrderTime;
+                foreach ($status as &$statusInfo) {
+                    $statusInfo['pickupOrderTime'] = $pickupOrderTime;
+                }
                 $result     = $this->resultJsonFactory->create();
                 $resultPage = $this->resultPageFactory->create();
                 $info       = $resultPage->getLayout()

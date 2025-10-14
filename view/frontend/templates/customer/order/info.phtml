@@ -5,8 +5,8 @@
 $viewModel = $block->getData("view_model");
 if ($viewModel->isHospitalityEnabled() == "1") :
     $ajaxUrl         = $block->getUrl('hospitality/ajax/OrderInfo');
-    $statusInfo      = $viewModel->getOrderStatusInfo();
     $order = $block->getLscMemberSalesBuffer();
+    $statusInfo      = $viewModel->getOrderStatusInfo($order);
     $magOrder        = $block->getMagOrder();
     $orderId         = null;
     $pickupOrderTime = '';
@@ -18,7 +18,7 @@ if ($viewModel->isHospitalityEnabled() == "1") :
         $pickupOrderTime = $statusInfo['pickupDateTimeslot'];
     }
 
-    if (!empty($order)) {
+    if (!empty($order) && empty($statusInfo)) {
         $orderId = $order->getDocumentId();
         $storeId = $order->getStoreNo();
     }

@@ -38,7 +38,7 @@ class SetQRCodeParams implements ResolverInterface
     /**
      * @inheritdoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         if (empty($args['input']['qr_code_id'])) {
             throw new GraphQlInputException(__('Required parameter "qr_code_id" is missing'));

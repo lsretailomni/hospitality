@@ -40,27 +40,30 @@ class KitchenInformation implements ResolverInterface
     /**
      * @inheritdoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null): array
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null): array
     {
         if (empty($args['order_id'])) {
             throw new GraphQlInputException(__('Required parameter "order_id" is missing'));
         }
+        $results  = [];
         $orderId  = $args['order_id'];
         $webStore = $this->hospitalityLsr->getActiveWebStore();
-        list ($status, $statusDescription, $productionTime, $qCounter, $kotNo, $linesData)
-            = $this->hospitalityHelper->getKitchenOrderStatusDetails($orderId, $webStore);
+        $status   = $this->hospitalityHelper->getKitchenOrderStatusDetails($orderId, $webStore);
+        foreach ($status as $statusInfo) {
+            $results[] = [
+                'status_code'            => $statusInfo['status'],
+                'status_description'     => $statusInfo['status_description'],
+                'display_estimated_time' => $this->hospitalityLsr->displayEstimatedDeliveryTime(),
+                'estimated_time'         => $statusInfo['production_time'] . ' Minutes',
+                'pickup_date'            => $this->hospitalityHelper->getOrderPickupDate($orderId),
+                'pickup_time'            => $this->hospitalityHelper->getOrderPickupTime($orderId),
+                'queue_counter'          => $statusInfo['q_counter'],
+                'kot_no'                 => $statusInfo['kot_no'],
+                'order_items'            => $statusInfo['lines'],
+                'order_items_count'      => count($statusInfo['lines']) . " "
+            ];
+        }
 
-        return [
-            'status_code'             => $status,
-            'status_description'      => $statusDescription,
-            'display_estimated_time'  => $this->hospitalityLsr->displayEstimatedDeliveryTime(),
-            'estimated_time'          => $productionTime . ' Minutes',
-            'pickup_date'             => $this->hospitalityHelper->getOrderPickupDate($orderId),
-            'pickup_time'             => $this->hospitalityHelper->getOrderPickupTime($orderId),
-            'queue_counter'           => $qCounter,
-            'kot_no'                  => $kotNo,
-            'order_items'             => $linesData,
-            'order_items_count'       => count($linesData) ." "
-        ];
+        return $results;
     }
 }

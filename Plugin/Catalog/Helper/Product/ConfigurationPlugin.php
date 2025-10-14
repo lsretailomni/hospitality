@@ -27,7 +27,7 @@ class ConfigurationPlugin
 
     public function __construct(
         LSRModel $lsr,
-        Json $serializer = null
+        ?Json $serializer = null
     ) {
         $this->lsr        = $lsr;
         $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
