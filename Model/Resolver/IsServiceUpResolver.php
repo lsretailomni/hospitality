@@ -44,7 +44,7 @@ class IsServiceUpResolver implements ResolverInterface
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null): bool
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null): bool
     {
         return $this->hospitalityLsr->isLSR($this->hospitalityLsr->getCurrentStoreId()) &&
             isset(self::CONFIG_PATHS_MAPPING[$field->getName()]) &&
