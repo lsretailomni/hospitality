@@ -37,7 +37,7 @@ class QrCodeParams implements ResolverInterface
     /**
      * @inheritdoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         if (!empty($value) && !isset($value['cart_id'])) {
             return $value;
