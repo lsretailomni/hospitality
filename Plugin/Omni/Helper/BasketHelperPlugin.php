@@ -198,8 +198,6 @@ class BasketHelperPlugin
             return null;
         }
 
-        // @codingStandardsIgnoreLine
-        $storeId = $subject->getDefaultWebStore();
         $cardId  = $oneList->getCardId();
 
         /** @var Entity\ArrayOfOneListItem $oneListItems */
@@ -225,7 +223,7 @@ class BasketHelperPlugin
                 ->setCardId($cardId)
                 ->setListType(Entity\Enum\ListType::BASKET)
                 ->setItems($listItems)
-                ->setStoreId($storeId);
+                ->setStoreId($oneList->getStoreId());
 
             if (version_compare($subject->lsr->getOmniVersion(), '4.19', '>')) {
                 $oneListRequest
@@ -237,7 +235,12 @@ class BasketHelperPlugin
             }
 
             if (version_compare($subject->lsr->getOmniVersion(), '4.24', '>')) {
-                $oneListRequest->setShipToCountryCode($oneList->getShipToCountryCode());
+                $oneListRequest->setShipToCountryCode($oneList->getShipToCountryCode() ?? null);
+            }
+
+            if ($subject->lsr->shipToParamsInBasketCalculationIsEnabled()) {
+                $oneListRequest->setShipToCounty($oneList->getShipToCounty() ?? null);
+                $oneListRequest->setShipToPostCode($oneList->getShipToPostCode() ?? null);
             }
 
             /** @var Entity\OneListCalculate $entity */
