@@ -9,6 +9,7 @@
 "Item Modifier Replication","Item Modifier Replication"
 "Recipe Replication","Recipe Replication"
 "No sales type found for the selected store","No sales type found for the selected store"
+"Check Your Order Status","Check Your Order Status"
 "Store not found.","Store not found."
 "QR Code Ordering","QR Code Ordering"
 "Could not find a cart with ID ""%cart_id""","Could not find a cart with ID ""%cart_id"""
@@ -21,9 +22,18 @@
 "Your order has been served","Your order has been served"
 "Order is cancelled","Order is cancelled"
 "Order completed","Order completed"
+"%1 modifier option %2 (%3) has quantity of %4 which is greater then currently available quantity %5. Please select different option for this modifier.","%1 modifier option %2 (%3) has quantity of %4 which is greater then currently available quantity %5. Please select different option for this modifier."
+"Product %1 has quantity of %2 which is greater then current available quantity %3. Please adjust the product quantity.","Product %1 has quantity of %2 which is greater then current available quantity %3. Please adjust the product quantity."
 "Field closed","Field closed"
 "Field opened","Field opened"
 "Field without collapse","Field without collapse"
+"Not Sent","Not Sent"
+"NAS Error","NAS Error"
+"KDS Error","KDS Error"
+Sent,Sent
+Started,Started
+Finished,Finished
+Served,Served
 "Cart %1 doesn't contain products","Cart %1 doesn't contain products"
 "The order comment could not be saved","The order comment could not be saved"
 "Comment is too long","Comment is too long"
@@ -38,6 +48,7 @@
 "Please select a date & time within store opening hours.","Please select a date & time within store opening hours."
 "Pick up Date","Pick up Date"
 "Pick up Time","Pick up Time"
+"This is an autofilled field. Please leave it as it is if you don't want to change it.","This is an autofilled field. Please leave it as it is if you don't want to change it."
 "Anonymous order address can't be prefilled.","Anonymous order address can't be prefilled."
 Save,Save
 Swatch,Swatch
@@ -47,22 +58,35 @@ Swatch,Swatch
 "Kitchen Information","Kitchen Information"
 Loading...,Loading...
 "Loading Kitchen Info...","Loading Kitchen Info..."
+"Table No:","Table No:"
 "Kitchen status service is down. Please try again by refreshing the page.","Kitchen status service is down. Please try again by refreshing the page."
 Status:,Status:
-"Estimated Time:","Estimated Time:"
+"Production Time:","Production Time:"
 Minutes,Minutes
 "Pickup Order Time:","Pickup Order Time:"
+"Kitchen Order No:","Kitchen Order No:"
+"Queue Counter:","Queue Counter:"
+"Items Ordered:","Items Ordered:"
+"Enter your order number:","Enter your order number:"
+"Check Status","Check Status"
 "* Required Fields","* Required Fields"
 "Serving Table No %1","Serving Table No %1"
+"My billing and shipping address are the same","My billing and shipping address are the same"
 "Enter comment","Enter comment"
 "Remaining characters:","Remaining characters:"
 "Enter your comment...","Enter your comment..."
 "Additional Information?","Additional Information?"
+"Email Address","Email Address"
 "Exclude Ingredients/Select Sides","Exclude Ingredients/Select Sides"
 Continue,Continue
+"Kitchen service is down. Please try again.","Kitchen service is down. Please try again."
 "Please Select","Please Select"
 "Please provide where (if suitable) you prefer to pick your order.","Please provide where (if suitable) you prefer to pick your order."
 "Please select service mode for order such as dine-in or takeaway.","Please select service mode for order such as dine-in or takeaway."
+"Please select pick up date for your order.","Please select pick up date for your order."
+"Please select pick up time for your order.","Please select pick up time for your order."
+"Please select delivery date for your order.","Please select delivery date for your order."
+"Please select delivery time for your order.","Please select delivery time for your order."
 "Hospitality Grids","Hospitality Grids"
 Deals,Deals
 "Deal Line","Deal Line"
@@ -86,6 +110,8 @@ Hospitality,Hospitality
 "Content Block for QR Code Ordering Page on classic frontend","Content Block for QR Code Ordering Page on classic frontend"
 "Content Block for QR Code Ordering Page on pwa frontend","Content Block for QR Code Ordering Page on pwa frontend"
 "Shipping and billing address attributes","Shipping and billing address attributes"
+"Kot Status for shipment creation","Kot Status for shipment creation"
+"Kot Status for invoice creation","Kot Status for invoice creation"
 Scroll,Scroll
 Website,Website
 "Deal No","Deal No"
@@ -130,3 +156,4 @@ Prompt,Prompt
 Exclusion,Exclusion
 ExclusionPrice,ExclusionPrice
 "Quantity Per","Quantity Per"
+"Kitchen Status","Kitchen Status"
