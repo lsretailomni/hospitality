@@ -71,4 +71,34 @@ class CustomerOrderInfo implements ArgumentInterface
 
         return $statusInfo;
     }
+
+    /**
+     * Get refresh interval from admin configuration
+     *
+     * @return int Interval in milliseconds
+     * @throws NoSuchEntityException
+     */
+    public function getRefreshInterval()
+    {
+        $seconds = $this->lsr->getStoreConfig(
+            LSR::REFRESH_KITCHEN_STATUS_INTERVAL,
+            $this->lsr->getCurrentStoreId()
+        );
+
+        return max((int)$seconds * 1000, 10000);
+    }
+
+    /**
+     * Check if auto refresh is enabled from admin configuration
+     *
+     * @return array|string
+     * @throws NoSuchEntityException
+     */
+    public function isAutoRefreshEnabled()
+    {
+        return $this->lsr->getStoreConfig(
+            LSR::ENABLE_REFRESH_KITCHEN_STATUS_INTERVAL,
+            $this->lsr->getCurrentStoreId()
+        );
+    }
 }

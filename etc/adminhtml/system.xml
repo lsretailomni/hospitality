@@ -292,6 +292,31 @@
                         should be set as Yes)
                     </comment>
                 </field>
+                <field id="enable_refresh_kitchen_status_interval"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="160"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Auto Refresh Kitchen Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable automatic refresh of kitchen information</comment>
+                </field>
+                <field id="refresh_kitchen_status_interval"
+                       translate="label comment"
+                       type="text" sortOrder="170"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Auto Refresh Interval (seconds)</label>
+                    <comment>How often to refresh kitchen status information. Minimum 10 seconds.</comment>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <backend_model>Ls\Hospitality\Model\Config\Backend\RefreshInterval</backend_model>
+                    <depends>
+                        <field id="enable_refresh_kitchen_status_interval">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>
