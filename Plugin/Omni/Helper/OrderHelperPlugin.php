@@ -56,7 +56,7 @@ class OrderHelperPlugin
 
     /**
      * Around plugin for preparing the order request for hospitality order
-     * 
+     *
      * @param OrderHelper $subject
      * @param callable $proceed
      * @param Order $order
@@ -606,50 +606,6 @@ class OrderHelperPlugin
         }
 
         return $response && $response->getResponseCode() == "0000" ? $response->getResponseCode() : $response;
-    }
-
-    /**
-     * Around plugin to formulate exception for order cancellation in case of hospitality
-     *
-     * @param OrderHelper $subject
-     * @param callable $proceed
-     * @param $response
-     * @param $order
-     * @return void
-     * @throws NoSuchEntityException
-     * @throws AlreadyExistsException
-     * @throws InputException
-     * @throws LocalizedException
-     */
-    public function aroundFormulateOrderCancelResponse(OrderHelper $subject, callable $proceed, $response, $order)
-    {
-        if ($subject->lsr->getCurrentIndustry($subject->basketHelper->getCorrectStoreIdFromCheckoutSession() ?? null)
-            != LSR::LS_INDUSTRY_VALUE_HOSPITALITY
-        ) {
-            return $proceed($response, $order);
-        }
-
-        if (!$response || ($response && $response->getResponseCode() != "0000")) {
-            $subject->formulateException($order);
-        }
-    }
-
-    /**
-     * After plugin to intercept method returning document_id
-     *
-     * @param OrderHelper $subject
-     * @param $result
-     * @param $salesEntry
-     * @return mixed
-     * @throws NoSuchEntityException
-     */
-    public function afterGetDocumentIdGivenSalesEntry(OrderHelper $subject, $result, $salesEntry)
-    {
-        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $result;
-        }
-
-        return $salesEntry->getId();
     }
 
     /**
