@@ -60,6 +60,7 @@ class Info extends \Ls\Customer\Block\Order\Info
         Session $customerSession,
         CountryFactory $countryFactory,
         HospitalityLsr $hospitalityLsr,
+        Escaper $escaper,
         array $data = []
     ) {
         parent::__construct(
@@ -78,6 +79,7 @@ class Info extends \Ls\Customer\Block\Order\Info
         );
 
         $this->hospitalityLsr = $hospitalityLsr;
+        $this->escaper = $escaper;
     }
 
     /**
