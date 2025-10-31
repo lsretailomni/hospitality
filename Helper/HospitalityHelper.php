@@ -924,6 +924,12 @@ class HospitalityHelper extends AbstractHelper
         $resultArray = [];
         $linesData   = [];
         $order       = $this->getOrderByDocumentId($orderId);
+        if (empty($order)) {
+            $order = $this->getOrderByMagId($orderId);
+            if ($order) {
+                $orderId = $order->getData('document_id');
+            }
+        }
         if ($order) {
             $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
             if ($qrcodeInfo) {
@@ -1024,18 +1030,34 @@ class HospitalityHelper extends AbstractHelper
                         if ($this->lsr->displayEstimatedDeliveryTime()) {
                             $productionTime = $orderStatusResult->getProductionTime();
                         }
+                        if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                            if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                                $productionTime = 0;
+                            }
+                            $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                        }
+                        $resultArray[] = [
+                            'status'             => $status,
+                            'status_description' => $statusDescription,
+                            'production_time'    => $productionTime,
+                            'q_counter'          => $qCounter,
+                            'kot_no'             => $kotNo,
+                            'lines'              => $linesData,
+                            'table_no'           => $tableNo
+                        ];
                     }
                 } else {
                     $status = $response->getHospOrderKotStatusResult()->getStatus();
-                }
-
-                if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                    if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
-                        $productionTime = 0;
+                    if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
                     }
-                    $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
+                    $resultArray[] = [
+                        'status'             => $status,
+                        'status_description' => $statusDescription,
+                        'lines'              => $linesData,
+                        'table_no'           => $tableNo
+                    ];
                 }
-
             }
         }
 
@@ -1601,6 +1623,28 @@ class HospitalityHelper extends AbstractHelper
             $order      = false;
             $order      = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
+            );
+            $orderArray = $order->getItems();
+            $order      = end($orderArray);
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
+
+        return $order;
+    }
+
+    /**
+     * Get order by magento order id
+     *
+     * @param $orderId
+     * @return false|OrderSearchResultInterface|mixed
+     */
+    public function getOrderByMagId($orderId)
+    {
+        try {
+            $order      = false;
+            $order      = $this->orderRepository->getList(
+                $this->searchCriteriaBuilder->addFilter('increment_id', $orderId)->create()
             );
             $orderArray = $order->getItems();
             $order      = end($orderArray);

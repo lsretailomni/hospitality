@@ -1,0 +1,40 @@
+<?php
+/**
+ * @var $block \Ls\Hospitality\Block\OrderStatus\Form
+ */
+?>
+<div class="order-status-form">
+    <form id="order-status-form" class="form">
+        <fieldset class="fieldset">
+            <div class="field order-id required">
+                <label class="label" for="order_id">
+                    <span><?= $block->escapeHtml(__('Enter your order number:')) ?></span>
+                </label>
+                <div class="control">
+                    <input type="text" name="orderId" id="order_id" class="input-text" required />
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button type="submit" class="action submit primary">
+                    <span><?= $block->escapeHtml(__('Check Status')) ?></span>
+                </button>
+            </div>
+        </div>
+    </form>
+    <br/>
+    <div id="order-status-result" style="display:none;"></div>
+    <div id="error" style="display:none;color:red"></div>
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "#order-status-form": {
+            "Ls_Hospitality/js/order/check-kitchen-status": {
+                "ajaxUrl": "<?= $block->escapeUrl($block->getAjaxUrl()) ?>"
+        }
+    }
+}
+</script>

@@ -19,14 +19,14 @@ foreach ($status as $statusInfo) {
         <div class="block-content">
             <?php
             if (empty($statusInfo['status'])) {
-                $statusInfo['status'] = __('Kitchen status service is down. Please try again by refreshing the page.');
+                $statusInfo['status_description'] = __('Kitchen status service is down. Please try again by refreshing the page.');
             }
             ?>
             <div class="custom-box">
                 <strong class="box-title"><span><?= /* @escapeNotVerified */
                         __('Status:') ?></span></strong>
                 <span><?= /* @escapeNotVerified */
-                    $statusInfo['status']; ?></span>
+                    $statusInfo['status_description']; ?></span>
             </div>
         </div>
         <?php if ($statusInfo['production_time'] > 0): ?>
