@@ -951,9 +951,15 @@ class HospitalityHelper extends AbstractHelper
                             $status   = $resp->getStatus();
                             $qCounter = $resp->getQueueCounter();
                             $kotNo    = $resp->getKotNo();
-
                             if ($this->lsr->displayEstimatedDeliveryTime()) {
                                 $productionTime = $resp->getProductionTime();
+                            }
+
+                            if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                                if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                                    $productionTime = 0;
+                                }
+                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
                             }
                             $lines   = $resp->getLines()->getOrderHospStatusLine();
                             $itemIds = [];
@@ -989,7 +995,8 @@ class HospitalityHelper extends AbstractHelper
                             $linesData = [];
                             foreach ($itemCounts as $itemId => $quantity) {
                                 if ($itemId) {
-                                    $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                                    $productName = isset($productMap[$itemId]) ?
+                                        $productMap[$itemId]['productName'] : $itemId;
                                     $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
                                     $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
                                     $linesData[] = [
@@ -998,8 +1005,10 @@ class HospitalityHelper extends AbstractHelper
                                         'imageUrl'      => $imageUrl,
                                         'imagePath'     => $imagePath,
                                         'quantity'      => $quantity,
-                                        'productUrl'    => $productMap[$itemId]['productUrl'],
-                                        'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                                        'productUrl'    => isset($productMap[$itemId]) ?
+                                            $productMap[$itemId]['productUrl'] : '',
+                                        'productUrlKey' => isset($productMap[$itemId]) ?
+                                            $productMap[$itemId]['productUrlKey'] . ".html" : ''
                                     ];
                                 }
                             }

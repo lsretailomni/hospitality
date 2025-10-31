@@ -77,7 +77,7 @@ class CreateEmptyCartPlugin
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null
+        ?array $value = null
     ) {
         $maskedQuoteId = $result;
         $currentUserId = $context->getUserId();
