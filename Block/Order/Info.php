@@ -15,6 +15,7 @@ use Magento\Framework\Pricing\Helper\Data as PriceHelper;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\View\Element\Template\Context;
+use \Magento\Framework\Escaper;
 
 /**
  * Overriding the Info block to change the page title on hospitality
@@ -25,6 +26,11 @@ class Info extends \Ls\Customer\Block\Order\Info
      * @var HospitalityLsr
      */
     public $hospitalityLsr;
+
+    /**
+     * @var Escaper
+     */
+    public $escaper;
 
     /**
      * @param Context $context
@@ -88,5 +94,15 @@ class Info extends \Ls\Customer\Block\Order\Info
                 $this->pageConfig->getTitle()->set(__('Order # %1', $this->getOrder()->getId()));
             }
         }
+    }
+
+    /**
+     * Get escaper
+     *
+     * @return Escaper
+     */
+    public function getEscaper()
+    {
+        return $this->escaper;
     }
 }

@@ -3,6 +3,7 @@
 /** @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel */
 
 $viewModel = $block->getData("view_model");
+$escaper   = $block->getEscaper();
 if ($viewModel->isHospitalityEnabled() == "1") :
     $ajaxUrl         = $block->getUrl('hospitality/ajax/OrderInfo');
     $order           = $block->getOrder();
@@ -12,7 +13,7 @@ if ($viewModel->isHospitalityEnabled() == "1") :
     $pickupOrderTime = '';
     $orderComment    = '';
     $storeId         = '';
-    $refreshInterval = $viewModel->getRefreshInterval(); // Get interval from admin config
+    $refreshInterval = $viewModel->getRefreshInterval();
 
     if (!empty($statusInfo)) {
         $orderId         = $statusInfo['orderId'];
@@ -31,14 +32,14 @@ if ($viewModel->isHospitalityEnabled() == "1") :
         ?>
         <div class="block block-order-details-view-loyalty ls-kitchen-order-status">
             <div class="block-title">
-                <strong><?= $block->escapeHtml(__('Kitchen Information')) ?></strong>
+                <strong><?= $escaper->escapeHtml(__('Kitchen Information')) ?></strong>
             </div>
             <div id="ls-hosp-order-info">
                 <div class="loader">
-                    <img src="<?= $block->escapeUrl($block->getViewFileUrl('images/loader-1.gif')) ?>"
-                         alt="<?= $block->escapeHtmlAttr(__('Loading...')) ?>">
+                    <img src="<?= $escaper->escapeUrl($block->getViewFileUrl('images/loader-1.gif')) ?>"
+                         alt="<?= $escaper->escapeHtmlAttr(__('Loading...')) ?>">
                     <br/>
-                    <div><?= $block->escapeHtml(__('Loading Kitchen Info...')) ?></div>
+                    <div><?= $escaper->escapeHtml(__('Loading Kitchen Info...')) ?></div>
                 </div>
             </div>
         </div>
@@ -46,24 +47,24 @@ if ($viewModel->isHospitalityEnabled() == "1") :
             {
                 "*": {
                     "Ls_Hospitality/js/view/customer/order/info": {
-                        "ajaxUrl": "<?= $block->escapeUrl($ajaxUrl) ?>",
-                        "orderId": "<?= $block->escapeHtmlAttr($orderId) ?>",
-                        "storeId": "<?= $block->escapeHtmlAttr($storeId) ?>",
-                        "pickupOrderTime": "<?= $block->escapeHtmlAttr($pickupOrderTime) ?>",
+                        "ajaxUrl": "<?= $escaper->escapeJs($ajaxUrl) ?>",
+                        "orderId": "<?= $escaper->escapeJs($orderId) ?>",
+                        "storeId": "<?= $escaper->escapeJs($storeId) ?>",
+                        "pickupOrderTime": "<?= $escaper->escapeJs($pickupOrderTime) ?>",
                         "autoRefreshEnabled": <?= $viewModel->isAutoRefreshEnabled() ? 'true' : 'false' ?>,
-                        "refreshInterval": <?= $refreshInterval ?>
-                    }
-                }
+                        "refreshInterval": <?= (int)$refreshInterval ?>
             }
+        }
+    }
         </script>
         <?php if ($orderComment): ?>
         <div class="block block-order-details-view-loyalty">
             <div class="block-title">
-                <strong><?= $block->escapeHtml(__('Additional Information')) ?></strong>
+                <strong><?= $escaper->escapeHtml(__('Additional Information')) ?></strong>
             </div>
             <div class="block-content">
                 <div class="custom-box">
-                    <span><?= $block->escapeHtml(nl2br($orderComment)) ?></span>
+                    <span><?= nl2br($escaper->escapeHtml($orderComment)) ?></span>
                 </div>
             </div>
         </div>
