@@ -10,6 +10,10 @@ define(['jquery'], function ($) {
         const centralTypeInput = $('#ls_mag_service_central_type');
         const companyNameInput = $('#ls_mag_service_company_name');
         const environmentNameInput = $('#ls_mag_service_environment_name');
+        const webServiceUri = $('#ls_mag_service_web_service_uri');
+        const odataUri = $('#ls_mag_service_odata_service_uri');
+        const usernameInput = $('#ls_mag_service_username');
+        const passwordInput = $('#ls_mag_service_password');
         // Group all related actions into one object
         const api = {
             // Gathers common data used in multiple AJAX requests
@@ -22,7 +26,11 @@ define(['jquery'], function ($) {
                     client_secret: clientSecretInput.val(),
                     central_type: centralTypeInput.val(),
                     company_name: companyNameInput.val(),
-                    environment_name: environmentNameInput.val()
+                    environment_name: environmentNameInput.val(),
+                    web_service_uri: webServiceUri.val(),
+                    odata_uri: odataUri.val(),
+                    username: usernameInput.val(),
+                    password: passwordInput.val()
                 };
             },
 
