@@ -1,14 +1,18 @@
 <?php
-/**
- * @var $block \Ls\Hospitality\Block\OrderStatus\Form
- */
+/** @var  Ls\Hospitality\Block\Order\KitchenStatus $block */
+/** @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel */
+
+$viewModel = $block->getData("view_model");
+$escaper = $block->getEscaper();
+$ajaxUrl = $block->getUrl('hospitality/ajax/OrderInfo');
+$refreshInterval = $viewModel->getRefreshInterval();
 ?>
 <div class="order-status-form">
     <form id="order-status-form" class="form">
         <fieldset class="fieldset">
             <div class="field order-id required">
                 <label class="label" for="order_id">
-                    <span><?= $block->escapeHtml(__('Enter your order number:')) ?></span>
+                    <span><?= $escaper->escapeHtml(__('Enter your order number:')) ?></span>
                 </label>
                 <div class="control">
                     <input type="text" name="orderId" id="order_id" class="input-text" required />
@@ -19,7 +23,7 @@
         <div class="actions-toolbar">
             <div class="primary">
                 <button type="submit" class="action submit primary">
-                    <span><?= $block->escapeHtml(__('Check Status')) ?></span>
+                    <span><?= $escaper->escapeHtml(__('Check Status')) ?></span>
                 </button>
             </div>
         </div>
@@ -33,8 +37,10 @@
     {
         "#order-status-form": {
             "Ls_Hospitality/js/order/check-kitchen-status": {
-                "ajaxUrl": "<?= $block->escapeUrl($block->getAjaxUrl()) ?>"
+                "ajaxUrl": "<?= $escaper->escapeUrl($block->getAjaxUrl()) ?>",
+                "autoRefreshEnabled": <?= $viewModel->isAutoRefreshEnabled() ? 'true' : 'false' ?>,
+                "refreshInterval": <?= $refreshInterval ?>
+            }
         }
     }
-}
 </script>

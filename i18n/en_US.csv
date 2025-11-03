@@ -13,6 +13,7 @@
 "Store not found.","Store not found."
 "QR Code Ordering","QR Code Ordering"
 "Could not find a cart with ID ""%cart_id""","Could not find a cart with ID ""%cart_id"""
+"Kitchen status refresh interval must be at least 10 seconds.","Kitchen status refresh interval must be at least 10 seconds."
 "Please select a static block","Please select a static block"
 "Order not sent to Kitchen","Order not sent to Kitchen"
 "Error from kitchen display system","Error from kitchen display system"
@@ -81,6 +82,8 @@ Minutes,Minutes
 Continue,Continue
 "Kitchen service is down. Please try again.","Kitchen service is down. Please try again."
 "Please Select","Please Select"
+"Refreshing Kitchen Info","Refreshing Kitchen Info"
+"Failed to load kitchen information","Failed to load kitchen information"
 "Please provide where (if suitable) you prefer to pick your order.","Please provide where (if suitable) you prefer to pick your order."
 "Please select service mode for order such as dine-in or takeaway.","Please select service mode for order such as dine-in or takeaway."
 "Please select pick up date for your order.","Please select pick up date for your order."
@@ -112,6 +115,10 @@ Hospitality,Hospitality
 "Shipping and billing address attributes","Shipping and billing address attributes"
 "Kot Status for shipment creation","Kot Status for shipment creation"
 "Kot Status for invoice creation","Kot Status for invoice creation"
+"Enable Auto Refresh Kitchen Status","Enable Auto Refresh Kitchen Status"
+"Enable automatic refresh of kitchen information","Enable automatic refresh of kitchen information"
+"Auto Refresh Interval (seconds)","Auto Refresh Interval (seconds)"
+"How often to refresh kitchen status information. Minimum 10 seconds.","How often to refresh kitchen status information. Minimum 10 seconds."
 Scroll,Scroll
 Website,Website
 "Deal No","Deal No"
