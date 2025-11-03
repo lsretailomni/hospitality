@@ -15,7 +15,7 @@ use Magento\Framework\Pricing\Helper\Data as PriceHelper;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\View\Element\Template\Context;
-use \Magento\Framework\Escaper;
+use Magento\Framework\Escaper;
 
 /**
  * Overriding the Info block to change the page title on hospitality

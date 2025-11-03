@@ -1,5 +1,5 @@
 <?php
-/** @var  Ls\Customer\Block\Order\Info|Magento\Framework\View\Element\Template $block */
+/** @var  Ls\Customer\Block\Order\Info $block */
 /** @var  Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel */
 
 $viewModel = $block->getData("view_model");
@@ -47,12 +47,12 @@ if ($viewModel->isHospitalityEnabled() == "1") :
             {
                 "*": {
                     "Ls_Hospitality/js/view/customer/order/info": {
-                        "ajaxUrl": "<?= $escaper->escapeJs($ajaxUrl) ?>",
+                        "ajaxUrl": "<?= $escaper->escapeUrl($ajaxUrl) ?>",
                         "orderId": "<?= $escaper->escapeJs($orderId) ?>",
                         "storeId": "<?= $escaper->escapeJs($storeId) ?>",
                         "pickupOrderTime": "<?= $escaper->escapeJs($pickupOrderTime) ?>",
                         "autoRefreshEnabled": <?= $viewModel->isAutoRefreshEnabled() ? 'true' : 'false' ?>,
-                        "refreshInterval": <?= $refreshInterval ?>
+                        "refreshInterval": <?= (int)$refreshInterval ?>
             }
         }
     }
