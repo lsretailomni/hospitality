@@ -4,7 +4,7 @@ namespace Ls\Hospitality\Block\Order;
 
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
-use \Magento\Framework\Escaper;
+use Magento\Framework\Escaper;
 
 /**
  * Block for Check kitchen status form
