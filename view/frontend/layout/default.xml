@@ -4,8 +4,7 @@
     <body>
         <!-- Adding Stores page Link to Footer Menu -->
         <referenceBlock name="footer_links">
-            <block class="Magento\Framework\View\Element\Html\Link" name="omni.kitchenstatus" before="-"
-                   ifconfig="ls_mag/service/base_url">
+            <block class="Ls\Hospitality\Block\Order\KitchenStatusLink" name="omni.kitchenstatus" before="-">
                 <arguments>
                     <argument name="class" xsi:type="string">ls-footer-kitchen-status</argument>
                     <argument name="label" xsi:type="string" translate="true">Kitchen Status</argument>

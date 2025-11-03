@@ -45,6 +45,7 @@ class Info extends \Ls\Customer\Block\Order\Info
      * @param Session $customerSession
      * @param CountryFactory $countryFactory
      * @param HospitalityLsr $hospitalityLsr
+     * @param Escaper $escaper
      * @param array $data
      */
     public function __construct(
