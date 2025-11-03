@@ -6,33 +6,85 @@ define([
     'use strict';
 
     return function (config, element) {
-        $(element).on('submit', function (e) {
-            e.preventDefault();
+        var ajaxUrl = config.ajaxUrl,
+            autoRefreshEnabled = config.autoRefreshEnabled || false,
+            refreshInterval = parseInt(config.refreshInterval, 10) || 30000,
+            refreshTimer = null,
+            currentOrderId = null,
+            $resultContainer = $('#order-status-result'),
+            $errorContainer = $('#error');
 
-            var formData = {
-                orderId: $('#order_id').val()
-            };
+        function loadOrderStatus(orderId) {
+            if (!orderId) {
+                return;
+            }
+
+            currentOrderId = orderId;
 
             $.ajax({
-                url: config.ajaxUrl,
+                url: ajaxUrl,
                 type: 'GET',
-                data: formData,
+                data: {
+                    orderId: orderId
+                },
                 showLoader: true,
                 success: function (response) {
-                    $('#order-status-result').html('').hide();
-                    $('#error').html('').hide();
+                    $resultContainer.html('').hide();
+                    $errorContainer.html('').hide();
+
                     if (response.output) {
-                        $('#order-status-result').html(response.output).show();
+                        $resultContainer.html(response.output).show();
+
+                        if (autoRefreshEnabled) {
+                            scheduleNextRefresh();
+                        }
                     } else if (response.error) {
-                        $('#error').html(response.error).show();
+                        $errorContainer.html(response.error).show();
+                        stopAutoRefresh();
                     } else {
-                        $('#error').html($t('Kitchen service is down. Please try again.')).show();
+                        $errorContainer.html($t('Kitchen service is down. Please try again.')).show();
+                        stopAutoRefresh();
                     }
                 },
                 error: function () {
-                    $('#error').html($t('Kitchen service is down. Please try again.')).show();
+                    $errorContainer.html($t('Kitchen service is down. Please try again.')).show();
+                    stopAutoRefresh();
                 }
             });
+        }
+
+        function scheduleNextRefresh() {
+            if (refreshTimer) {
+                clearTimeout(refreshTimer);
+            }
+
+            if (autoRefreshEnabled && currentOrderId && refreshInterval > 0) {
+                refreshTimer = setTimeout(function () {
+                    loadOrderStatus(currentOrderId);
+                }, refreshInterval);
+            }
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearTimeout(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+
+        $(element).on('submit', function (e) {
+            e.preventDefault();
+
+            var orderId = $('#order_id').val();
+
+            if (orderId) {
+                stopAutoRefresh();
+                loadOrderStatus(orderId);
+            }
+        });
+
+        $(window).on('beforeunload', function () {
+            stopAutoRefresh();
         });
     };
 });
