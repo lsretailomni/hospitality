@@ -159,4 +159,11 @@
         <plugin name="validate_qty" type="Ls\Hospitality\Plugin\Magento\Quote\Model\Quote\ItemPlugin"
                 sortOrder="1"/>
     </type>
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="ls_order_id" xsi:type="string">sales_order.ls_order_id</item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

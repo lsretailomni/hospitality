@@ -8,4 +8,8 @@
     <event name="email_order_set_template_vars_before">
         <observer name="order_add_custom_field_data" instance="Ls\Hospitality\Observer\EmailTemplateVars"/>
     </event>
+    <event name="checkout_onepage_controller_success_action">
+        <observer name="ls_hospitality_save_order_id"
+                  instance="Ls\Hospitality\Observer\OrderObserver"/>
+    </event>
 </config>

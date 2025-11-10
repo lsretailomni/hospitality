@@ -68,9 +68,20 @@ foreach ($status as $statusInfo) {
                 <div class="custom-box">
                     <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
-                __('Queue Counter:') ?></span></strong>
+                __('Order Id:') ?></span></strong>
                     <span><?= /* @escapeNotVerified */
                         $statusInfo['q_counter']; ?></span>
+                </div>
+            </div>
+        <?php endif; ?>
+        <?php if ($statusInfo['receipt_no']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Receipt No:') ?></span></strong>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['receipt_no']; ?></span>
                 </div>
             </div>
         <?php endif; ?>
