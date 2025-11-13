@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-    <event name="checkout_onepage_controller_success_action">
-        <observer name="ls_hospitality_save_order_id"
-                  instance="Ls\Hospitality\Observer\OrderObserver"/>
-    </event>
-</config>
