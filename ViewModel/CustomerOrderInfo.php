@@ -58,8 +58,14 @@ class CustomerOrderInfo implements ArgumentInterface
             $webStore           = $this->lsr->getActiveWebStore();
             $documentId         = $this->checkoutSession->getLastDocumentId();
             $pickupDateTimeslot = $this->checkoutSession->getPickupDateTimeslot();
-            if (!empty($order) && empty($documentId) && method_exists($order, 'getDocumentId')) {
+
+            if (!empty($order)) {
                 $documentId = $order->getDocumentId();
+                if (!empty($documentId)) {
+                    if ($this->checkoutSession->getLastDocumentId()) {
+                        $this->checkoutSession->unsLastDocumentId();
+                    }
+                }
             }
 
             if (!empty($documentId)) {
