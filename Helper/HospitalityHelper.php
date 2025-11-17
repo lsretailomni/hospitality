@@ -976,7 +976,7 @@ class HospitalityHelper extends AbstractHelper
                                 if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                                     $productionTime = 0;
                                 }
-                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                             }
                             $lines   = $resp->getLines()->getOrderHospStatusLine();
                             $itemIds = [];
@@ -1053,7 +1053,7 @@ class HospitalityHelper extends AbstractHelper
                             if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                                 $productionTime = 0;
                             }
-                            $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                            $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                         }
                         $resultArray[] = [
                             'status'             => $status,
@@ -1069,7 +1069,7 @@ class HospitalityHelper extends AbstractHelper
                 } else {
                     $status = $response->getHospOrderKotStatusResult()->getStatus();
                     if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                     }
                     $resultArray[] = [
                         'status'             => $status,
