@@ -47,4 +47,10 @@
     <type name="Ls\Customer\ViewModel\ItemRenderer">
         <plugin name="ls_hospitality_customer_viewmodel_itemrenderer" type="Ls\Hospitality\Plugin\Customer\ViewModel\ItemRendererPlugin"/>
     </type>
+    <type name="Ls\Customer\Block\Onepage\Success">
+        <plugin name="ls_hospitality_document_id_to_order_id" type="Ls\Hospitality\Plugin\Block\OnePage\SuccessPlugin" sortOrder="10"/>
+    </type>
+    <type name="Ls\Omni\Observer\OrderObserver">
+        <plugin name="ls_hospitality_order_observer" type="Ls\Hospitality\Plugin\Omni\Observer\OrderObserverPlugin" sortOrder="100"/>
+    </type>
 </config>

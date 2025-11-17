@@ -96,4 +96,10 @@
             </argument>
         </arguments>
     </virtualType>
+    <type name="Ls\Omni\Controller\Adminhtml\Order\Request">
+        <plugin name="ls_hospitality_order_request_plugin" type="Ls\Hospitality\Plugin\Omni\Controller\Adminhtml\RequestPlugin" sortOrder="10"/>
+    </type>
+    <type name="Ls\Replication\Cron\SyncOrders">
+        <plugin name="ls_hospitality_sync_orders_plugin" type="Ls\Hospitality\Plugin\Replication\Cron\SyncOrdersPlugin" sortOrder="10"/>
+    </type>
 </config>

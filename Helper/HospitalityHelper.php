@@ -50,6 +50,7 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\Information;
@@ -57,6 +58,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product\Url;
+use Magento\Sales\Model\ResourceModel\Order;
 use Zend_Db_Select_Exception;
 
 /**
@@ -219,6 +221,11 @@ class HospitalityHelper extends AbstractHelper
     public $productUrlBuilder;
 
     /**
+     * @var Order
+     */
+    private $orderResourceModel;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -252,6 +259,7 @@ class HospitalityHelper extends AbstractHelper
      * @param CustomerSession $customerSession
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
+     * @param Order $orderResourceModel
      */
     public function __construct(
         Context $context,
@@ -287,6 +295,7 @@ class HospitalityHelper extends AbstractHelper
         CustomerSession $customerSession,
         ImageHelper $imageHelper,
         Url $productUrlBuilder,
+        Order $orderResourceModel
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -321,6 +330,7 @@ class HospitalityHelper extends AbstractHelper
         $this->customerSession                            = $customerSession;
         $this->imageHelper                                = $imageHelper;
         $this->productUrlBuilder                          = $productUrlBuilder;
+        $this->orderResourceModel                         = $orderResourceModel;
     }
 
     /**
@@ -920,10 +930,16 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
-        $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = '';
+        $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = $receiptNo = '';
         $resultArray = [];
         $linesData   = [];
-        $order       = $this->getOrderByDocumentId($orderId);
+        $order       = $this->getOrderByOrderId($orderId);
+        if (!empty($order)) {
+            $orderId = $order->getData('document_id');
+        }
+        if (empty($order)) {
+            $order = $this->getOrderByDocumentId($orderId);
+        }
         if (empty($order)) {
             $order = $this->getOrderByMagId($orderId);
             if ($order) {
@@ -948,9 +964,10 @@ class HospitalityHelper extends AbstractHelper
                         $orderStatusResult->getOrderHospStatus() : null;
                     if (is_array($orderHospStatus)) {
                         foreach ($orderHospStatus as $resp) {
-                            $status   = $resp->getStatus();
-                            $qCounter = $resp->getQueueCounter();
-                            $kotNo    = $resp->getKotNo();
+                            $status    = $resp->getStatus();
+                            $qCounter  = $resp->getQueueCounter();
+                            $kotNo     = $resp->getKotNo();
+                            $receiptNo = $resp->getReceiptNo();
                             if ($this->lsr->displayEstimatedDeliveryTime()) {
                                 $productionTime = $resp->getProductionTime();
                             }
@@ -959,7 +976,7 @@ class HospitalityHelper extends AbstractHelper
                                 if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                                     $productionTime = 0;
                                 }
-                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                             }
                             $lines   = $resp->getLines()->getOrderHospStatusLine();
                             $itemIds = [];
@@ -1019,13 +1036,15 @@ class HospitalityHelper extends AbstractHelper
                                 'q_counter'          => $qCounter,
                                 'kot_no'             => $kotNo,
                                 'lines'              => $linesData,
-                                'table_no'           => $tableNo
+                                'table_no'           => $tableNo,
+                                'receipt_no'         => $receiptNo
                             ];
                         }
                     } else {
-                        $status   = $orderStatusResult->getStatus();
-                        $qCounter = $orderStatusResult->getQueueCounter();
-                        $kotNo    = $orderStatusResult->getKotNo();
+                        $status    = $orderStatusResult->getStatus();
+                        $qCounter  = $orderStatusResult->getQueueCounter();
+                        $kotNo     = $orderStatusResult->getKotNo();
+                        $receiptNo = $orderStatusResult->getReceiptNo();
 
                         if ($this->lsr->displayEstimatedDeliveryTime()) {
                             $productionTime = $orderStatusResult->getProductionTime();
@@ -1034,7 +1053,7 @@ class HospitalityHelper extends AbstractHelper
                             if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                                 $productionTime = 0;
                             }
-                            $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                            $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                         }
                         $resultArray[] = [
                             'status'             => $status,
@@ -1043,13 +1062,14 @@ class HospitalityHelper extends AbstractHelper
                             'q_counter'          => $qCounter,
                             'kot_no'             => $kotNo,
                             'lines'              => $linesData,
-                            'table_no'           => $tableNo
+                            'table_no'           => $tableNo,
+                            'receipt_no'         => $receiptNo
                         ];
                     }
                 } else {
                     $status = $response->getHospOrderKotStatusResult()->getStatus();
                     if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status]->getText();
+                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                     }
                     $resultArray[] = [
                         'status'             => $status,
@@ -1634,6 +1654,29 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get orders by order id
+     *
+     * @param $documentId
+     * @param $all
+     * @return false|\Magento\Sales\Api\Data\OrderInterface|OrderSearchResultInterface | \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrderByOrderId($documentId)
+    {
+        try {
+            $order      = false;
+            $order      = $this->orderRepository->getList(
+                $this->searchCriteriaBuilder->addFilter('ls_order_id', $documentId)->create()
+            );
+            $orderArray = $order->getItems();
+            $order      = end($orderArray);
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
+
+        return $order;
+    }
+
+    /**
      * Get order by magento order id
      *
      * @param $orderId
@@ -1916,5 +1959,58 @@ class HospitalityHelper extends AbstractHelper
     public function getJson()
     {
         return $this->serializerJson;
+    }
+
+    /**
+     * Set hospitality order id
+     *
+     * @param OrderInterface $order
+     * @param bool $updateSession
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function saveHospOrderId(OrderInterface $order, $updateSession = true)
+    {
+        if ($this->lsr->isHospitalityStore($order->getStoreId())) {
+            try {
+                if ($updateSession) {
+                    $this->qrCodeHelper->getCheckoutSessionObject()->unsLastOrderId();
+                }
+                $documentId = $order->getDocumentId();
+
+                if ($documentId) {
+                    $webStore      = $this->lsr->getActiveWebStore();
+                    $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore);
+
+                    if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
+                        $receiptNo = $statusDetails[0]['q_counter'];
+                        $order->setData('ls_order_id', $receiptNo);
+                        if ($updateSession) {
+                            $this->qrCodeHelper->getCheckoutSessionObject()->setLastOrderId($receiptNo);
+                        }
+                        $this->orderResourceModel->save($order);
+                    }
+                }
+            } catch (\Exception $e) {
+                $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Get orders with document_id set and ls_order_id null
+     *
+     * @param int $storeId
+     * @return \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrdersWithDocumentIdWithoutLsOrderId($storeId)
+    {
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('store_id', $storeId, 'eq')
+            ->addFilter('document_id', true, 'notnull')
+            ->addFilter('ls_order_id', true, 'null')
+            ->create();
+
+        return $this->orderRepository->getList($searchCriteria)->getItems();
     }
 }
