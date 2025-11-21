@@ -40,4 +40,9 @@
                 type="Ls\Hospitality\Plugin\Model\Resolver\PlaceOrderPlugin"
                 sortOrder="2"/>
     </type>
+    <type name="Magento\InventoryGraphQl\Model\Resolver\StockStatusProvider">
+        <plugin name="ls_hospitality_stock_status_graphql"
+                type="Ls\Hospitality\Plugin\InventoryGraphQl\Model\Resolver\StockStatusProviderPlugin"
+                sortOrder="10"/>
+    </type>
 </config>

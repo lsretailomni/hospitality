@@ -354,4 +354,37 @@ class CheckAvailability
 
         return $customOption;
     }
+
+    /**
+     * Check if modifiers are available in current availability response
+     *
+     * @param $customOption
+     * @return boolean
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailabilityForGraphQl(&$customOption)
+    {
+        if (!$customOption) {
+            return $customOption;
+        }
+        $modifier = current($this->hospitalityHelper->getModifierByDescription($customOption['title']));
+        if (!$modifier) {
+            return true;
+        }
+        $checkAvailabilityCollection = $this->checkCatalogAvailability();
+
+        $modifierItemId = $modifier->getTriggerCode();
+        $unitOfMeasure  = $modifier->getUnitOfMeasure();
+
+        if (isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])) {
+            $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
+            if ($availableQty <= 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return true;
+    }
 }

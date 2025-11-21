@@ -42,6 +42,9 @@ class PlaceOrderPlugin
             $result['order']['pickup_time'] = $this->hospitalityHelper->getOrderPickupTime(
                 $result['order']['document_id']
             );
+            $result['order']['document_id'] = $this->hospitalityHelper->getLsOrderIdByDocumentId(
+                $result['order']['document_id']
+            );
         }
 
         return $result;

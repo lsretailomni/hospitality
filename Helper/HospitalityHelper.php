@@ -1433,6 +1433,19 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get ls_order_id given document_id
+     *
+     * @param string $documentId
+     * @return mixed
+     */
+    public function getLsOrderIdByDocumentId($documentId)
+    {
+        $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
+        $lsOrderId = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
+        return !empty($lsOrderId) ? $lsOrderId : $documentId;
+    }
+
+    /**
      * Get order pickup date
      *
      * @param string $documentId

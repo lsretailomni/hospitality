@@ -5,10 +5,12 @@ interface CustomizableOptionInterface {
 type CustomizableMultipleValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
+    is_available: Boolean @doc(description: "Indicates whether the option is available (true) or not (false).") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\IsOptionAvailable")
 }
 type CustomizableDropDownValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
+    is_available: Boolean @doc(description: "Indicates whether the option is available (true) or not (false).") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\IsOptionAvailable")
 }
 
 type StoreConfig {
