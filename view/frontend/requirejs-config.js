@@ -22,6 +22,9 @@ var config = {
             'Magento_Checkout/js/model/shipping-save-processor/payload-extender': {
                 'Ls_Hospitality/js/model/shipping-save-processor/default': true
             },
+            'Magento_Ui/js/form/element/abstract': {
+                'Ls_Hospitality/js/form/element/region-text-mixin': true
+            },
             'Magento_Ui/js/form/element/region': {
                 'Ls_Hospitality/js/form/element/region-mixin': true
             },
