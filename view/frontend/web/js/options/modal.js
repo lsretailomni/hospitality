@@ -30,18 +30,10 @@ define([
             modalTitleClass: '.custom-options-modal .modal-title',
         },
 
-        /**
-         * Widget initialization
-         * @private
-         */
         _create: function () {
             this._createCustomOptions();
         },
 
-        /**
-         * Adding widget events
-         * @private
-         */
         _init: function () {
             let self = this,
                 body = $('body');
@@ -56,10 +48,19 @@ define([
                 popupContainer.empty().append(content);
                 popupContainer.find(self.options.customOptionValuesContainer).show();
                 $(self.options.modalTitleClass).empty().append($(this).find('.title').html());
+
+                // Apply unavailable styles
+                self._applyAvailabilityStyles(popupContainer);
+
                 popupContainer.modal('openModal');
             });
 
             body.on('click', self.options.customOptionValuesOption, function () {
+                // Prevent selection if unavailable
+                if ($(this).attr('data-available') === 'false') {
+                    return false;
+                }
+
                 let parent = $(this).closest(self.options.customOptionValuesContainer),
                     valueId = $(this).data('custom-value-id'),
                     optionId = parent.data('custom-option-id'),
@@ -98,10 +99,16 @@ define([
             });
         },
 
-        /**
-         * Create Custom Options
-         * @private
-         */
+        _applyAvailabilityStyles: function (container) {
+            let self = this;
+
+            container.find(self.options.customOptionValuesOption).each(function () {
+                if ($(this).attr('data-available') === 'false') {
+                    $(this).addClass('unavailable');
+                }
+            });
+        },
+
         _createCustomOptions: function () {
             let self = this,
                 body = $('body');
@@ -123,6 +130,9 @@ define([
                         }
                     });
                 });
+
+                // Apply initial styles
+                self._applyAvailabilityStyles(body);
             }
         }
     });

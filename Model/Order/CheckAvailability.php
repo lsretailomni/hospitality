@@ -9,6 +9,7 @@ use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\HospAvailabilityResponse;
 use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Helper\ItemHelper;
+use \Ls\Omni\Helper\CacheHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\Helper\Context;
@@ -51,6 +52,11 @@ class CheckAvailability
     private $checkoutSession;
 
     /**
+     * @var CacheHelper
+     */
+    private $cacheHelper;
+
+    /**
      * @param Context $context
      * @param ProductRepositoryInterface $productRepository
      * @param LSR $lsr
@@ -66,6 +72,7 @@ class CheckAvailability
         ItemHelper $itemHelper,
         HospitalityHelper $hospitalityHelper,
         CheckoutSession $checkoutSession,
+        CacheHelper $cacheHelper,
         LoggerInterface $logger
     ) {
         $this->productRepository = $productRepository;
@@ -73,6 +80,7 @@ class CheckAvailability
         $this->itemHelper        = $itemHelper;
         $this->hospitalityHelper = $hospitalityHelper;
         $this->checkoutSession   = $checkoutSession;
+        $this->cacheHelper       = $cacheHelper;
         $this->logger            = $logger;
     }
 
@@ -181,9 +189,9 @@ class CheckAvailability
             foreach ($options as $option) {
                 if (isset($option['ls_modifier_recipe_id'])
                     && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX) {
-                    $qty            = 1;
-                    $modifier       = current($this->hospitalityHelper->getModifierByDescription($option['value']));
-                    if(!$modifier) {
+                    $qty      = 1;
+                    $modifier = current($this->hospitalityHelper->getModifierByDescription($option['value']));
+                    if (!$modifier) {
                         return;
                     }
                     $modifierItemId = $modifier->getTriggerCode();
@@ -256,5 +264,127 @@ class CheckAvailability
                 }
             }
         }
+    }
+
+    /**
+     * Check items availability based on store id
+     *
+     * @param $storeId
+     * @return array|bool
+     * @throws NoSuchEntityException
+     */
+    public function checkCatalogAvailability($storeId = null)
+    {
+        if ($storeId) {
+            $this->lsr->setStoreId($storeId);
+        }
+
+        $webStore = $this->lsr->getActiveWebStore();
+        $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
+
+        $cachedData = $this->cacheHelper->getCachedContent($cacheKey);
+        if ($cachedData) {
+            return $cachedData;
+        }
+
+        $availabilityRequestArray = [];
+        $responseResult           = $this->availability(
+            $webStore,
+            $availabilityRequestArray
+        );
+
+        $availabilityMap = [];
+        if ($responseResult) {
+            foreach ($responseResult as $result) {
+                $itemId                         = $result->getNumber();
+                $uom                            = $result->getUnitOfMeasure();
+                $qty                            = (int)$result->getQuantity();
+                $availabilityMap[$itemId][$uom] = $qty;
+            }
+        }
+
+        $this->cacheHelper->persistContentInCache(
+            $cacheKey,
+            $availabilityMap,
+            [LSR::LS_HOSP_CHECK_AVAILABILITY],
+            1800
+        );
+
+        return $availabilityMap;
+    }
+
+    /**
+     * Check if modifiers are available in current availability response
+     *
+     * @param $customOption
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailability(&$customOption)
+    {
+        if (!$customOption) {
+            return $customOption;
+        }
+
+        if (isset($customOption['ls_modifier_recipe_id'])
+            && $customOption['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX) {
+            if ($customOption->getValues() == null) {
+                return $customOption;
+            }
+            $checkAvailabilityCollection = $this->checkCatalogAvailability();
+            foreach ($customOption->getValues() as &$value) {
+                $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
+                if (!$modifier) {
+                    continue;
+                }
+
+                $modifierItemId = $modifier->getTriggerCode();
+                $unitOfMeasure  = $modifier->getUnitOfMeasure();
+
+                if (isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])) {
+                    $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
+                    if ($availableQty <= 0) {
+                        $value['is_available'] = false;
+                    } else {
+                        $value['is_available'] = true;
+                    }
+                }
+            }
+        }
+
+        return $customOption;
+    }
+
+    /**
+     * Check if modifiers are available in current availability response
+     *
+     * @param $customOption
+     * @return boolean
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailabilityForGraphQl(&$customOption)
+    {
+        if (!$customOption) {
+            return $customOption;
+        }
+        $modifier = current($this->hospitalityHelper->getModifierByDescription($customOption['title']));
+        if (!$modifier) {
+            return true;
+        }
+        $checkAvailabilityCollection = $this->checkCatalogAvailability();
+
+        $modifierItemId = $modifier->getTriggerCode();
+        $unitOfMeasure  = $modifier->getUnitOfMeasure();
+
+        if (isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])) {
+            $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
+            if ($availableQty <= 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return true;
     }
 }

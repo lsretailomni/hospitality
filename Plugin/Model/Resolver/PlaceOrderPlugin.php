@@ -35,13 +35,17 @@ class PlaceOrderPlugin
      */
     public function afterResolve($subject, $result)
     {
-        if (isset($result['order']) && isset($result['order']['document_id'])) {
+        if (isset($result['order']) && isset($result['order']['order_number'])) {
+            $order                          = $this->hospitalityHelper->getOrderByMagId(
+                $result['order']['order_number']
+            );
             $result['order']['pickup_date'] = $this->hospitalityHelper->getOrderPickupDate(
-                $result['order']['document_id']
+                $order->getDocumentId()
             );
             $result['order']['pickup_time'] = $this->hospitalityHelper->getOrderPickupTime(
-                $result['order']['document_id']
+                $order->getDocumentId()
             );
+            $result['order']['document_id'] = $order->getLsOrderId() ?: $order->getDocumentId();
         }
 
         return $result;

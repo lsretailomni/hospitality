@@ -178,4 +178,9 @@
         <plugin name="ls_update_shipment_email_modification" type="Ls\Hospitality\Plugin\Omni\Email\Sender\ShipmentSender"
                 sortOrder="2"/>
     </type>
+    <type name="Magento\Catalog\Model\Product">
+        <plugin name="ls_hospitality_product_availability"
+                type="Ls\Hospitality\Plugin\Catalog\Model\ProductAvailabilityPlugin"
+                sortOrder="10"/>
+    </type>
 </config>

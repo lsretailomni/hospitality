@@ -8,4 +8,7 @@
     <event name="email_order_set_template_vars_before">
         <observer name="order_add_custom_field_data" instance="Ls\Hospitality\Observer\EmailTemplateVars"/>
     </event>
+    <event name="catalog_product_is_salable_after">
+        <observer name="ls_hospitality_check_currrent_availability" instance="Ls\Hospitality\Observer\CurrentAvailabilityObserver" />
+    </event>
 </config>
