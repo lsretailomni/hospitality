@@ -1987,7 +1987,7 @@ class HospitalityHelper extends AbstractHelper
         if ($this->lsr->isHospitalityStore($order->getStoreId())) {
             try {
                 if ($updateSession) {
-                    $this->qrCodeHelper->getCheckoutSessionObject()->unsLastOrderId();
+                    $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
                 }
                 $documentId = $order->getDocumentId();
 
@@ -1999,7 +1999,7 @@ class HospitalityHelper extends AbstractHelper
                         $receiptNo = $statusDetails[0]['q_counter'];
                         $order->setData('ls_order_id', $receiptNo);
                         if ($updateSession) {
-                            $this->qrCodeHelper->getCheckoutSessionObject()->setLastOrderId($receiptNo);
+                            $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
                         }
                         $this->orderResourceModel->save($order);
                     }
