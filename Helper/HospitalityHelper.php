@@ -1453,6 +1453,19 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get ls_order_id given document_id
+     *
+     * @param string $documentId
+     * @return mixed
+     */
+    public function getLsOrderIdByDocumentId($documentId)
+    {
+        $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
+        $lsOrderId = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
+        return !empty($lsOrderId) ? $lsOrderId : $documentId;
+    }
+
+    /**
      * Get order pickup date
      *
      * @param string $documentId
@@ -1974,7 +1987,7 @@ class HospitalityHelper extends AbstractHelper
         if ($this->lsr->isHospitalityStore($order->getStoreId())) {
             try {
                 if ($updateSession) {
-                    $this->qrCodeHelper->getCheckoutSessionObject()->unsLastOrderId();
+                    $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
                 }
                 $documentId = $order->getDocumentId();
 
@@ -1986,7 +1999,7 @@ class HospitalityHelper extends AbstractHelper
                         $receiptNo = $statusDetails[0]['q_counter'];
                         $order->setData('ls_order_id', $receiptNo);
                         if ($updateSession) {
-                            $this->qrCodeHelper->getCheckoutSessionObject()->setLastOrderId($receiptNo);
+                            $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
                         }
                         $this->orderResourceModel->save($order);
                     }
