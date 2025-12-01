@@ -957,7 +957,10 @@ class HospitalityHelper extends AbstractHelper
             foreach ($order->getAllVisibleItems() as $orderItem) {
                 $itemId = $orderItem->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
                 if ($itemId) {
-                    $itemQtyMap[$itemId] = $orderItem->getQtyOrdered();
+                    if (!isset($itemQtyMap[$itemId])) {
+                        $itemQtyMap[$itemId] = 0;
+                    }
+                    $itemQtyMap[$itemId] += $orderItem->getQtyOrdered();
                 }
             }
 
@@ -1459,19 +1462,6 @@ class HospitalityHelper extends AbstractHelper
     {
         $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
         return ($magentoOrder) ? $magentoOrder->getData('pickup_date_timeslot') : '';
-    }
-
-    /**
-     * Get ls_order_id given document_id
-     *
-     * @param string $documentId
-     * @return mixed
-     */
-    public function getLsOrderIdByDocumentId($documentId)
-    {
-        $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
-        $lsOrderId    = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
-        return !empty($lsOrderId) ? $lsOrderId : $documentId;
     }
 
     /**
