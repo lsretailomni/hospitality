@@ -928,6 +928,14 @@ class HospitalityHelper extends AbstractHelper
      * @return array
      * @throws NoSuchEntityException
      */
+    /**
+     * Get status detail from status mapping
+     *
+     * @param $orderId
+     * @param $storeId
+     * @return array
+     * @throws NoSuchEntityException
+     */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
         $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = $receiptNo = '';
@@ -952,6 +960,15 @@ class HospitalityHelper extends AbstractHelper
                 $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
                 $tableNo      = $qrcodeParams['table_no'];
             }
+
+            $itemQtyMap = [];
+            foreach ($order->getAllVisibleItems() as $orderItem) {
+                $itemId = $orderItem->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                if ($itemId) {
+                    $itemQtyMap[$itemId] = $orderItem->getQtyOrdered();
+                }
+            }
+
             $response = $this->getKitchenOrderStatus(
                 $orderId,
                 $storeId
@@ -983,7 +1000,7 @@ class HospitalityHelper extends AbstractHelper
                             foreach ($lines as $line) {
                                 $itemIds[] = $line->getNumber();
                             }
-                            // Fetch product details once
+
                             $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
                             $productMap   = [];
                             foreach ($productsData as $product) {
@@ -1021,7 +1038,7 @@ class HospitalityHelper extends AbstractHelper
                                         'productName'   => $productName,
                                         'imageUrl'      => $imageUrl,
                                         'imagePath'     => $imagePath,
-                                        'quantity'      => $quantity,
+                                        'quantity'      => (int)(isset($itemQtyMap[$itemId]) ? $itemQtyMap[$itemId] : $quantity),
                                         'productUrl'    => isset($productMap[$itemId]) ?
                                             $productMap[$itemId]['productUrl'] : '',
                                         'productUrlKey' => isset($productMap[$itemId]) ?
@@ -1461,7 +1478,7 @@ class HospitalityHelper extends AbstractHelper
     public function getLsOrderIdByDocumentId($documentId)
     {
         $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
-        $lsOrderId = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
+        $lsOrderId    = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
         return !empty($lsOrderId) ? $lsOrderId : $documentId;
     }
 

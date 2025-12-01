@@ -55,12 +55,9 @@ define([
                         var $contentContainer = $container.find('.hosp-info-container');
 
                         if ($contentContainer.length) {
-                            var $newContent = $response.find('.hosp-info-container');
-                            if ($newContent.length) {
-                                $contentContainer.replaceWith($newContent);
-                            }
+                            $contentContainer.replaceWith($response);
                         } else {
-                            $container.html(response.output);
+                            $container.html($response);
                             ensureLoaderExists();
                         }
 
