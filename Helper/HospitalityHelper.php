@@ -928,14 +928,6 @@ class HospitalityHelper extends AbstractHelper
      * @return array
      * @throws NoSuchEntityException
      */
-    /**
-     * Get status detail from status mapping
-     *
-     * @param $orderId
-     * @param $storeId
-     * @return array
-     * @throws NoSuchEntityException
-     */
     public function getKitchenOrderStatusDetails($orderId, $storeId)
     {
         $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = $receiptNo = '';
