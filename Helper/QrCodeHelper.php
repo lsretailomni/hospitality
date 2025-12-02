@@ -33,6 +33,7 @@ class QrCodeHelper extends AbstractHelper
         Context $context,
         public CustomerSession $customerSession,
         public CheckoutSession $checkoutSession,
+        public CollectionFactory $storeCollection,
         public LSR $lsr,
         public CartRepositoryInterface $quoteRepository,
         public SerializerJson $serializerJson,
@@ -102,7 +103,7 @@ class QrCodeHelper extends AbstractHelper
         $collection = $this->storeCollection
             ->create()
             ->addFieldToFilter('scope_id', $this->lsr->getCurrentWebsiteId())
-            ->addFieldToFilter('no', $storeId);
+            ->addFieldToFilter('nav_id', $storeId);
         if ($collection->getSize() > 0) {
             $check = true;
         }
