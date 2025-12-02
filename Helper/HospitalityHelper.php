@@ -1991,6 +1991,7 @@ class HospitalityHelper extends AbstractHelper
                 $documentId = $order->getDocumentId();
 
                 if ($documentId) {
+                    $this->lsr->setStoreId($order->getStoreId());
                     $webStore      = $this->lsr->getActiveWebStore();
                     $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore);
 

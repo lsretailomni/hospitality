@@ -2,6 +2,20 @@
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
 $status   = $block->getData('data');
+if(empty($status)) {
+    ?>
+    <div class="hosp-info-container">
+        <div class="block-content">
+            <div class="custom-box">
+            <strong class="box-title"><span><?= /* @escapeNotVerified */
+                    __('Status:') ?></span></strong>
+            <span><?= /* @escapeNotVerified */
+                __("Your order is currently processing. Please don't close this page. Once the order is processed 
+                you will see the required information for the order such as Order Id and Kitchen status."); ?></span>
+        </div>
+    </div>
+    <?php
+}
 foreach ($status as $statusInfo) {
     ?>
     <div class="hosp-info-container">
