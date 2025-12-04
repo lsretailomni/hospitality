@@ -1805,15 +1805,20 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * Get Product Image URL
-     *
+     * 
      * @param $product
-     * @return string
+     * @return string|null
      */
     public function getProductImageUrl($product)
     {
-        return $this->imageHelper->init($product, 'product_small_image')
-            ->setImageFile($product->getSmallImage())
-            ->getUrl();
+        if(!$product->getSmallImage()) {
+            return $this->imageHelper->init($product, 'product_small_image')
+                ->setImageFile($product->getSmallImage())
+                ->getUrl();
+        }
+        
+        return null;
+        
     }
 
 
