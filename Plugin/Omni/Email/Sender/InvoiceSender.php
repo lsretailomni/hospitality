@@ -2,12 +2,10 @@
 
 namespace Ls\Hospitality\Plugin\Omni\Email\Sender;
 
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order\Invoice;
 use \Ls\Hospitality\Model\LSR;
 
-/**
- * Class InvoiceSender
- */
 class InvoiceSender
 {
     /**
@@ -25,11 +23,14 @@ class InvoiceSender
     }
 
     /**
+     * Around plugin for invoice email sender to replace increment id with ls order id for hospitality stores
+     *
      * @param $subject
      * @param $proceed
      * @param Invoice $invoice
      * @param $forceSyncMode
      * @return mixed
+     * @throws NoSuchEntityException
      */
     public function aroundSend($subject, $proceed, Invoice $invoice, $forceSyncMode = false)
     {
@@ -40,7 +41,10 @@ class InvoiceSender
             }
             $result = $proceed($invoice, $forceSyncMode);
             $invoice->getOrder()->setIncrementId($incrementId);
+        } else {
+            $result = $proceed($invoice, $forceSyncMode);
         }
+
         return $result;
     }
 }
