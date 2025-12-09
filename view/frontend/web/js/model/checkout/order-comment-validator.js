@@ -1,88 +1,74 @@
-define(
-    [
-        'jquery',
-        'Magento_Customer/js/model/customer',
-        'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/model/url-builder',
-        'mage/url',
-        'Magento_Checkout/js/model/error-processor',
-        'Magento_Ui/js/model/messageList',
-        'mage/translate'
-    ],
-    function ($, customer, quote, urlBuilder, urlFormatter, errorProcessor, messageContainer, __) {
-        'use strict';
+define([
+    'jquery',
+    'Magento_Customer/js/model/customer',
+    'Magento_Checkout/js/model/quote',
+    'Magento_Checkout/js/model/url-builder',
+    'mage/url',
+    'mage/storage',
+    'Magento_Checkout/js/model/error-processor',
+    'Magento_Ui/js/model/messageList',
+    'mage/translate'
+], function ($, customer, quote, urlBuilder, urlFormatter, storage, errorProcessor, messageList, $t) {
+    'use strict';
 
-        return {
-            validate: function () {
-                var isCustomer = customer.isLoggedIn();
-                var form = this.getForm();
+    return function validateOrderComment() {
 
-                var comment = form.find('.input-text.order-comment').val();
-                if (comment) {
-                    if (this.hasMaxLength() && comment.length > this.getMaxLength()) {
-                        messageContainer.addErrorMessage({message: __("Comment is too long")});
-                        return false;
-                    }
-                }
+        var deferred = $.Deferred();
 
-                var quoteId = quote.getQuoteId();
+        var form = $('.payment-method input[name="payment[method]"]:checked')
+            .parents('.payment-method')
+            .find('form.order-comment-form');
 
-                var url;
-                if (isCustomer) {
-                    url = urlBuilder.createUrl('/carts/mine/set-order-comment', {})
-                } else {
-                    url = urlBuilder.createUrl('/guest-carts/:cartId/set-order-comment', {cartId: quoteId});
-                }
+        if (!form.length) {
+            form = $('form.order-comment-form');
+        }
 
-                var payload = {
-                    cartId: quoteId,
-                    orderComment: {
-                        comment: comment
-                    }
-                };
+        var comment = form.find('.input-text.order-comment').val();
+        var isCustomer = customer.isLoggedIn();
+        var quoteId = quote.getQuoteId();
 
-                if (!payload.orderComment.comment) {
-                    return true;
-                }
+        // No comment → OK
+        if (!comment) {
+            deferred.resolve();
+            return deferred.promise();
+        }
 
-                var result = true;
+        // Length validation
+        if (window.checkoutConfig.max_length > 0 &&
+            comment.length > window.checkoutConfig.max_length) {
 
-                $.ajax({
-                    url: urlFormatter.build(url),
-                    data: JSON.stringify(payload),
-                    global: false,
-                    contentType: 'application/json',
-                    type: 'PUT',
-                    async: false
-                }).done(
-                    function (response) {
-                        result = true;
-                    }
-                ).fail(
-                    function (response) {
-                        result = false;
-                        errorProcessor.process(response);
-                    }
-                );
+            messageList.addErrorMessage({ message: $t('Comment is too long') });
+            deferred.reject();
+            return deferred.promise();
+        }
 
-                return result;
-            },
-            getForm: function () {
-                var form = $('.payment-method input[name="payment[method]"]:checked')
-                    .parents('.payment-method')
-                    .find('form.order-comment-form')
-                if (!form.length) {
-                    form = $('form.order-comment-form');
-                }
+        // Build API URL
+        var url = isCustomer
+            ? urlBuilder.createUrl('/carts/mine/set-order-comment', {})
+            : urlBuilder.createUrl('/guest-carts/:cartId/set-order-comment', { cartId: quoteId });
 
-                return form;
-            },
-            hasMaxLength: function () {
-                return window.checkoutConfig.max_length > 0;
-            },
-            getMaxLength: function () {
-                return window.checkoutConfig.max_length;
-            }
+        // Payload
+        var payload = {
+            cartId: quoteId,
+            orderComment: { comment: comment }
         };
-    }
-);
+
+        // Async call
+        $.ajax({
+            url: urlFormatter.build(url),
+            type: 'PUT',
+            data: JSON.stringify(payload),
+            contentType: 'application/json',
+            global: false
+        })
+            .done(function () {
+                deferred.resolve();
+            })
+            .fail(function (response) {
+                errorProcessor.process(response);
+                deferred.reject();
+            });
+
+        return deferred.promise();
+    };
+});

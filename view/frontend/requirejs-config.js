@@ -36,6 +36,9 @@ var config = {
             },
             'Magento_Ui/js/view/messages': {
                 'Ls_Hospitality/js/view/messages-mixin': true
+            },
+            'Magento_Checkout/js/action/place-order': {
+                'Ls_Hospitality/js/mixin/order-comment-place-order-mixin' : true
             }
         }
     },
