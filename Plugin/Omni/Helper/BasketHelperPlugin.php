@@ -401,7 +401,7 @@ class BasketHelperPlugin
 
             $orderEntity->setCardId($customer->getData('lsr_cardid'));
         }
-        $orderDetails            = $subject->getOrderLinesQuote($quote);
+        $orderDetails            = $subject->getOrderLinesQuote($quote, $order);
         $orderLinesArray         = $orderDetails['orderLinesArray'];
         $orderDiscountLinesArray = $orderDetails['orderDiscountLinesArray'];
         $orderEntity->setOrderLines($orderLinesArray);
@@ -411,21 +411,24 @@ class BasketHelperPlugin
 
     /**
      * Get Order Lines and Discount Lines
-     *
+     * 
      * @param BasketHelper $subject
      * @param callable $proceed
      * @param Quote $quote
+     * @param $order
      * @return array
      * @throws InvalidEnumException
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function aroundGetOrderLinesQuote(
         BasketHelper $subject,
         callable $proceed,
-        Quote $quote
+        Quote $quote,
+        $order
     ) {
         if ($subject->lsr->getCurrentIndustry($quote->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($quote);
+            return $proceed($quote, $order);
         }
 
         $basketResponse  = $quote->getBasketResponse();
@@ -434,6 +437,10 @@ class BasketHelperPlugin
         if (!empty($basketResponse)) {
             // phpcs:ignore Magento2.Security.InsecureFunction.FoundWithAlternative
             $basketData     = unserialize($basketResponse);
+            $discountsArray = $basketData->getOrderDiscountLines();
+            $itemsArray     = $basketData->getOrderLines();
+        } else {
+            $basketData     = $subject->calculateOneListFromOrder($order);
             $discountsArray = $basketData->getOrderDiscountLines();
             $itemsArray     = $basketData->getOrderLines();
         }
