@@ -211,8 +211,7 @@ class OrderHelperPlugin
         $shipmentFeeId      = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
 
         $shipmentTaxPercent = $subject->getShipmentTaxPercent($order->getStore());
-        $shippingAmount     = $order->getShippingAmount();
-        $orderLinesArr      = $orderLines->getOrderHospLine();
+        $shippingAmount     = $order->getShippingAmount();        
         
         if (isset($shipmentTaxPercent) && $shippingAmount > 0) {
             $netPriceFormula = 1 + $shipmentTaxPercent / 100;
@@ -232,9 +231,8 @@ class OrderHelperPlugin
                 ->setPriceModified(true)
                 ->setDiscountAmount($order->getShippingDiscountAmount());
             
-            array_push($orderLinesArr, $shipmentOrderLine);
+            array_push($orderLines, $shipmentOrderLine);
         }
-        $orderLines->setOrderHospLine($orderLinesArr);
         return $orderLines;
     }
 

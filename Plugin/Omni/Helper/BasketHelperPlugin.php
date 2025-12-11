@@ -442,7 +442,7 @@ class BasketHelperPlugin
         } else {
             $basketData     = $subject->calculateOneListFromOrder($order);
             $discountsArray = $basketData->getOrderDiscountLines();
-            $itemsArray     = $basketData->getOrderLines();
+            $itemsArray     = $basketData->getOrderLines()->getOrderHospLine();
         }
 
         $quoteItems = $quote->getAllVisibleItems();
