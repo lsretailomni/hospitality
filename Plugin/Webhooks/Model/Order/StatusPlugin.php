@@ -70,6 +70,7 @@ class StatusPlugin
         $mgOrder       = $this->hospitalityHelper->getOrderByDocumentId($data['OrderId']);
         $magentoOrders = is_array($mgOrder) ? $mgOrder : [$mgOrder];
         $dataInfo      = $data;
+        
         foreach ($magentoOrders as $magOrder) {
             if (!empty($magOrder) && $this->lsr->isHospitalityStore($magOrder->getStoreId())) {
                 if (count($magentoOrders) > 1) {
@@ -87,6 +88,11 @@ class StatusPlugin
                     LSR::SC_SHIPMENT_KOTSTATUS,
                     $storeId
                 );
+
+                $incrementId = $magOrder->getIncrementId();
+                if (!empty($magOrder->getLsOrderId())) {
+                    $magOrder->setDocumentId($magOrder->getLsOrderId());
+                }   
 
                 if (isset($data['orderKOTStatus']) && $invoiceKotStatus == $data['orderKOTStatus']
                     && $magOrder->canInvoice()) {
