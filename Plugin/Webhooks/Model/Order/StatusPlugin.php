@@ -89,11 +89,6 @@ class StatusPlugin
                     $storeId
                 );
 
-                $incrementId = $magOrder->getIncrementId();
-                if (!empty($magOrder->getLsOrderId())) {
-                    $magOrder->setDocumentId($magOrder->getLsOrderId());
-                }   
-
                 if (isset($data['orderKOTStatus']) && $invoiceKotStatus == $data['orderKOTStatus']
                     && $magOrder->canInvoice()) {
                     $subject->payment->generateInvoice($data, true, $magOrder);
