@@ -16,20 +16,7 @@
                                                     <item name="children" xsi:type="array">
                                                         <!-- The name of the form the field belongs to -->
                                                         <item name="shipping-address-fieldset" xsi:type="array">
-                                                            <item name="children" xsi:type="array">
-                                                                <!-- the field you are customizing -->
-                                                                <item name="firstname" xsi:type="array">
-                                                                    <item name="config" xsi:type="array">
-                                                                        <!-- Assigning a new template -->
-                                                                        <item name="elementTmpl" xsi:type="string">Ls_Hospitality/form/element/input_field</item>
-                                                                    </item>
-                                                                </item>
-                                                                <item name="lastname" xsi:type="array">
-                                                                    <item name="config" xsi:type="array">
-                                                                        <!-- Assigning a new template -->
-                                                                        <item name="elementTmpl" xsi:type="string">Ls_Hospitality/form/element/input_field</item>
-                                                                    </item>
-                                                                </item>
+                                                            <item name="children" xsi:type="array">                                                                
                                                                 <item name="country_id" xsi:type="array">
                                                                     <item name="config" xsi:type="array">
                                                                         <!-- Assigning a new template -->
