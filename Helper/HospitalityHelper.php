@@ -1977,17 +1977,13 @@ class HospitalityHelper extends AbstractHelper
      * Set hospitality order id
      *
      * @param OrderInterface $order
-     * @param bool $updateSession
      * @return void
      * @throws NoSuchEntityException
      */
-    public function saveHospOrderId(OrderInterface $order, $updateSession = true)
+    public function saveHospOrderId(OrderInterface $order)
     {
         if ($this->lsr->isHospitalityStore($order->getStoreId())) {
             try {
-                if ($updateSession) {
-                    $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
-                }
                 $documentId = $order->getDocumentId();
 
                 if ($documentId) {
@@ -1996,10 +1992,7 @@ class HospitalityHelper extends AbstractHelper
 
                     if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
                         $receiptNo = $statusDetails[0]['q_counter'];
-                        $order->setData('ls_order_id', $receiptNo);
-                        if ($updateSession) {
-                            $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
-                        }
+                        $order->setData('ls_order_id', $receiptNo);                        
                         $this->orderResourceModel->save($order);
                     }
                 }

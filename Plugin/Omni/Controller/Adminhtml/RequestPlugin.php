@@ -45,7 +45,7 @@ class RequestPlugin
     {
         $orderId = $subject->getRequest()->getParam('order_id');
         $order = $this->orderRepository->get($orderId);
-        $this->hospitalityHelper->saveHospOrderId($order, false);
+        $this->hospitalityHelper->saveHospOrderId($order);
         return $result;
     }
 }

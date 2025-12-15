@@ -16,7 +16,7 @@ class SuccessPlugin
     public function aroundPrepareBlockData(Success $subject, callable $proceed)
     {
         $proceed();
-        $orderId    = $subject->getCheckoutSession()->getLastRealOrder()->getLastLsOrderId();
+        $orderId    = $subject->getCheckoutSession()->getLastRealOrder()->getLsOrderId();
 
         if ($orderId) {
             $subject->addData(
