@@ -24,6 +24,7 @@ use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -226,6 +227,11 @@ class HospitalityHelper extends AbstractHelper
     private $orderResourceModel;
 
     /**
+     * @var OrderSender
+     */
+    protected $orderSender;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -295,7 +301,8 @@ class HospitalityHelper extends AbstractHelper
         CustomerSession $customerSession,
         ImageHelper $imageHelper,
         Url $productUrlBuilder,
-        Order $orderResourceModel
+        Order $orderResourceModel,
+        OrderSender $orderSender,
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -331,6 +338,7 @@ class HospitalityHelper extends AbstractHelper
         $this->imageHelper                                = $imageHelper;
         $this->productUrlBuilder                          = $productUrlBuilder;
         $this->orderResourceModel                         = $orderResourceModel;
+        $this->orderSender                                = $orderSender;
     }
 
     /**
@@ -928,7 +936,7 @@ class HospitalityHelper extends AbstractHelper
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getKitchenOrderStatusDetails($orderId, $storeId)
+    public function getKitchenOrderStatusDetails($orderId, $storeId, $updateSession = true)
     {
         $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = $receiptNo = '';
         $resultArray = [];
@@ -1091,6 +1099,20 @@ class HospitalityHelper extends AbstractHelper
                     ];
                 }
             }
+        }
+
+        if (!empty($resultArray) && isset($resultArray[0]['q_counter']) && empty($order->getLsOrderId())) {
+            $receiptNo = $resultArray[0]['q_counter'];
+            $order->setData('ls_order_id', $receiptNo);
+            if ($updateSession) {
+                $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
+                $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
+            }
+            
+            // Send the order confirmation email
+            $this->orderSender->send($order);
+            $order->hasSentNewEmail(true);
+            $this->orderResourceModel->save($order);
         }
 
         return $resultArray;
@@ -1805,15 +1827,20 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * Get Product Image URL
-     *
+     * 
      * @param $product
-     * @return string
+     * @return string|null
      */
     public function getProductImageUrl($product)
     {
-        return $this->imageHelper->init($product, 'product_small_image')
-            ->setImageFile($product->getSmallImage())
-            ->getUrl();
+        if($product->getSmallImage()) {
+            return $this->imageHelper->init($product, 'product_small_image')
+                ->setImageFile($product->getSmallImage())
+                ->getUrl();
+        }
+        
+        return null;
+        
     }
 
 
@@ -1992,7 +2019,7 @@ class HospitalityHelper extends AbstractHelper
 
                     if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
                         $receiptNo = $statusDetails[0]['q_counter'];
-                        $order->setData('ls_order_id', $receiptNo);                        
+                        $order->setData('ls_order_id', $receiptNo);
                         $this->orderResourceModel->save($order);
                     }
                 }

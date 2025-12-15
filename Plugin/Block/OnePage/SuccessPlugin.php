@@ -24,6 +24,6 @@ class SuccessPlugin
                     'order_id'         => $orderId
                 ]
             );
-        }
+        }        
     }
 }
