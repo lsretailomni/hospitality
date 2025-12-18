@@ -1107,11 +1107,7 @@ class HospitalityHelper extends AbstractHelper
             if ($updateSession) {
                 $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
                 $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
-            }
-            
-            // Send the order confirmation email
-            $this->orderSender->send($order);
-            $order->hasSentNewEmail(true);
+            } 
             $this->orderResourceModel->save($order);
         }
 
