@@ -18,6 +18,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Phrase;
+use Psr\Log\LoggerInterface;
 use Zend_Log_Exception;
 
 /**
@@ -61,11 +62,17 @@ class DataAssignObserver implements ObserverInterface
     private $basketHelper;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @param StoreHelper $storeHelper
      * @param CheckAvailability $checkAvailability
      * @param Http $request
      * @param LSR $lsr
      * @param LSRAlias $lsrAlias
+     * @param LoggerInterface $logger
      * @param QrCodeHelper $qrCodeHelper
      */
     public function __construct(
@@ -75,6 +82,7 @@ class DataAssignObserver implements ObserverInterface
         Http $request,
         LSR $lsr,
         LSRAlias $lsrAlias,
+        LoggerInterface $logger,
         QrCodeHelper $qrCodeHelper
     ) {
         $this->storeHelper       = $storeHelper;
@@ -83,6 +91,7 @@ class DataAssignObserver implements ObserverInterface
         $this->request           = $request;
         $this->lsr               = $lsr;
         $this->lsrAlias          = $lsrAlias;
+        $this->logger            = $logger;
         $this->qrCodeHelper      = $qrCodeHelper;
     }
 
