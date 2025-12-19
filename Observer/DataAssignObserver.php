@@ -174,7 +174,8 @@ class DataAssignObserver implements ObserverInterface
     public function validateBasketResponse($order)
     {
         $oneListCalculation = $this->basketHelper->getOneListCalculationFromCheckoutSession();
-
+        $websiteId          = $this->lsrAlias->getCurrentWebsiteId();
+        $errMsg             = $this->lsrAlias->getWebsiteConfig(LSR::LS_ERROR_MESSAGE_ON_BASKET_FAIL, $websiteId);
         /*
         * Adding condition to only process if LSR is enabled.
         */
@@ -184,14 +185,19 @@ class DataAssignObserver implements ObserverInterface
             $this->lsrAlias->getOrderIntegrationOnFrontend()
         )) {
             if (empty($oneListCalculation) && empty($order->getDocumentId())) {
-                $websiteId = $this->lsrAlias->getCurrentWebsiteId();
-                $errMsg = $this->lsrAlias->getWebsiteConfig(LSR::LS_ERROR_MESSAGE_ON_BASKET_FAIL, $websiteId);
                 $this->logger->critical($errMsg);
                 if ($this->lsrAlias->getDisableProcessOnBasketFailFlag()) {
                     throw new InputException(
                         __($errMsg)
                     );
                 }
+            }
+        } else {
+            $this->logger->critical($errMsg);
+            if ($this->lsrAlias->getDisableProcessOnBasketFailFlag()) {
+                throw new InputException(
+                    __($errMsg)
+                );
             }
         }
     }
