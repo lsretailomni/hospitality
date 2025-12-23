@@ -1107,7 +1107,7 @@ class HospitalityHelper extends AbstractHelper
             if ($updateSession) {
                 $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
                 $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
-            } 
+            }
             $this->orderResourceModel->save($order);
         }
 
@@ -1823,20 +1823,20 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * Get Product Image URL
-     * 
+     *
      * @param $product
      * @return string|null
      */
     public function getProductImageUrl($product)
     {
-        if($product->getSmallImage()) {
+        if ($product->getSmallImage()) {
             return $this->imageHelper->init($product, 'product_small_image')
                 ->setImageFile($product->getSmallImage())
                 ->getUrl();
         }
-        
+
         return null;
-        
+
     }
 
 
@@ -2040,5 +2040,28 @@ class HospitalityHelper extends AbstractHelper
             ->create();
 
         return $this->orderRepository->getList($searchCriteria)->getItems();
+    }
+
+
+    /**
+     * Verifies the validity of basket data and determines if order creation should be disabled.
+     *
+     * @param mixed $basketData The basket data to be verified.
+     * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     */
+    public function verifyBasketSync($basketData)
+    {
+        if (!$this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+            return false;
+        }
+
+        $websiteId              = $this->lsr->getCurrentWebsiteId();
+        $disableOrderCreateFlag = $this->lsr->getWebsiteConfig(LSR::LS_DISABLE_ORDER_CREATE_ON_BASKET_FAIL, $websiteId);
+
+        if ($disableOrderCreateFlag == 1 && $basketData == null) {
+            return false;
+        }
+
+        return true;
     }
 }

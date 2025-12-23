@@ -10,6 +10,9 @@
                 <item_modifier_batch_size>200</item_modifier_batch_size>
                 <item_recipe_batch_size>200</item_recipe_batch_size>
             </replication>
+            <ls_order_management>
+                <disable_order_create_on_basket_fail>1</disable_order_create_on_basket_fail>
+            </ls_order_management>
             <hospitality>
                 <service_mode_status>0</service_mode_status>
                 <service_mode_options>Dine-in,Takeaway</service_mode_options>
