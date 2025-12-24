@@ -70,6 +70,7 @@ class StatusPlugin
         $mgOrder       = $this->hospitalityHelper->getOrderByDocumentId($data['OrderId']);
         $magentoOrders = is_array($mgOrder) ? $mgOrder : [$mgOrder];
         $dataInfo      = $data;
+        
         foreach ($magentoOrders as $magOrder) {
             if (!empty($magOrder) && $this->lsr->isHospitalityStore($magOrder->getStoreId())) {
                 if (count($magentoOrders) > 1) {

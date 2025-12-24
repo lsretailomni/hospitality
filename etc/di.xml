@@ -183,4 +183,12 @@
                 type="Ls\Hospitality\Plugin\Catalog\Model\ProductAvailabilityPlugin"
                 sortOrder="10"/>
     </type>
+    <type name="Magento\Checkout\Api\GuestShippingInformationManagementInterface">
+        <plugin name="ls_hospitality_calculate_basket_guest"
+                type="Ls\Hospitality\Plugin\Api\ShippingInformationManagementInterfacePlugin" sortOrder="2"/>
+    </type>
+    <type name="Magento\Checkout\Api\ShippingInformationManagementInterface">
+        <plugin name="ls_hospitality_calculate_basket_customer"
+                type="Ls\Hospitality\Plugin\Api\ShippingInformationManagementInterfacePlugin" sortOrder="2"/>
+    </type>
 </config>

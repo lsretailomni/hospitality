@@ -38,7 +38,7 @@ class SyncOrdersPlugin
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
-                $this->hospitalityHelper->saveHospOrderId($order, false);
+                $this->hospitalityHelper->saveHospOrderId($order);
             }
         }
         return $result;

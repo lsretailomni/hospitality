@@ -46,6 +46,10 @@ class PlaceOrderPlugin
                 $order->getDocumentId()
             );
             $result['order']['document_id'] = $order->getLsOrderId() ?: $order->getDocumentId();
+            
+            if (is_null($result['order']['document_id'])) {
+                $result['order']['document_id'] = $order->getIncrementId();
+            }
         }
 
         return $result;
