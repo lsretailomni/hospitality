@@ -5,11 +5,9 @@ namespace Ls\Hospitality\Helper;
 use Exception;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
-use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\Url\DecoderInterface;
-use Magento\PageCache\Model\Cache\Type as FullPageCache;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -44,6 +42,7 @@ class QrCodeHelper extends AbstractHelper
     public $lsr;
 
     /**
+     *
      * @var CartRepositoryInterface
      */
     public $quoteRepository;
@@ -59,11 +58,6 @@ class QrCodeHelper extends AbstractHelper
     public $urlDecoder;
 
     /**
-     * @var TypeListInterface
-     */
-    private $cacheTypeList;
-
-    /**
      * @param CustomerSession $customerSession
      * @param CheckoutSession $checkoutSession
      * @param CollectionFactory $storeCollection
@@ -72,7 +66,6 @@ class QrCodeHelper extends AbstractHelper
      * @param SerializerJson $serializerJson
      * @param Context $context
      * @param DecoderInterface $urlDecoder
-     * @param TypeListInterface $cacheTypeList
      */
     public function __construct(
         CustomerSession $customerSession,
@@ -82,8 +75,7 @@ class QrCodeHelper extends AbstractHelper
         CartRepositoryInterface $quoteRepository,
         SerializerJson $serializerJson,
         Context $context,
-        DecoderInterface $urlDecoder,
-        TypeListInterface $cacheTypeList
+        DecoderInterface $urlDecoder
     ) {
         parent::__construct($context);
         $this->customerSession = $customerSession;
@@ -93,7 +85,6 @@ class QrCodeHelper extends AbstractHelper
         $this->quoteRepository = $quoteRepository;
         $this->serializerJson  = $serializerJson;
         $this->urlDecoder      = $urlDecoder;
-        $this->cacheTypeList   = $cacheTypeList;
     }
 
     /**
@@ -217,11 +208,8 @@ class QrCodeHelper extends AbstractHelper
     public function removeQrCodeParams($cartId)
     {
         $quote = $this->quoteRepository->getActive($cartId);
-        $quote->setData(LSR::LS_QR_CODE_ORDERING, null);
+        $quote->setData(LSR::LS_QR_CODE_ORDERING);
         $this->quoteRepository->save($quote);
-
-        // Clear Full Page Cache for GraphQL queries
-        $this->cacheTypeList->cleanType(FullPageCache::TYPE_IDENTIFIER);
     }
 
     /**

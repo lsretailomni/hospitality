@@ -102,6 +102,7 @@ type KitchenInformation {
     pickup_time: String @doc(description: "Order pickup time.")
     queue_counter: String @doc(description: "Queue Counter.")
     kot_no: String @doc(description: "Kitchen Order Number.")
+    receipt_no: String @doc(description: "Receipt Number.")
     order_items : [OrderItems] @doc(description : "Order Items.")
 }
 
