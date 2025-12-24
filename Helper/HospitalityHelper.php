@@ -1108,10 +1108,6 @@ class HospitalityHelper extends AbstractHelper
                 $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
                 $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
             }
-            
-            // Send the order confirmation email
-            $this->orderSender->send($order);
-            $order->hasSentNewEmail(true);
             $this->orderResourceModel->save($order);
         }
 
@@ -1827,20 +1823,20 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * Get Product Image URL
-     * 
+     *
      * @param $product
      * @return string|null
      */
     public function getProductImageUrl($product)
     {
-        if($product->getSmallImage()) {
+        if ($product->getSmallImage()) {
             return $this->imageHelper->init($product, 'product_small_image')
                 ->setImageFile($product->getSmallImage())
                 ->getUrl();
         }
-        
+
         return null;
-        
+
     }
 
 
@@ -2004,20 +2000,24 @@ class HospitalityHelper extends AbstractHelper
      * Set hospitality order id
      *
      * @param OrderInterface $order
-     * @param bool $updateSession
      * @return void
      * @throws NoSuchEntityException
      */
-    public function saveHospOrderId(OrderInterface $order, $updateSession = true)
+    public function saveHospOrderId(OrderInterface $order)
     {
         if ($this->lsr->isHospitalityStore($order->getStoreId())) {
             try {
                 $documentId = $order->getDocumentId();
 
                 if ($documentId) {
-                    $this->lsr->setStoreId($order->getStoreId());
                     $webStore      = $this->lsr->getActiveWebStore();
-                    $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore, $updateSession);                    
+                    $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore);
+
+                    if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
+                        $receiptNo = $statusDetails[0]['q_counter'];
+                        $order->setData('ls_order_id', $receiptNo);
+                        $this->orderResourceModel->save($order);
+                    }
                 }
             } catch (\Exception $e) {
                 $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
@@ -2040,5 +2040,28 @@ class HospitalityHelper extends AbstractHelper
             ->create();
 
         return $this->orderRepository->getList($searchCriteria)->getItems();
+    }
+
+
+    /**
+     * Verifies the validity of basket data and determines if order creation should be disabled.
+     *
+     * @param mixed $basketData The basket data to be verified.
+     * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     */
+    public function verifyBasketSync($basketData)
+    {
+        if (!$this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+            return false;
+        }
+
+        $websiteId              = $this->lsr->getCurrentWebsiteId();
+        $disableOrderCreateFlag = $this->lsr->getWebsiteConfig(LSR::LS_DISABLE_ORDER_CREATE_ON_BASKET_FAIL, $websiteId);
+
+        if ($disableOrderCreateFlag == 1 && $basketData == null) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -293,4 +293,17 @@ class LSR extends \Ls\Core\Model\LSR
 
         return $this->getStoreConfig(self::DISABLE_INVENTORY_CHECKING, $storeId);
     }
+
+
+    /**
+     * Determines if order creation shoulbe be blocked on basket calculation fail.
+     *
+     * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     * @throws NoSuchEntityException
+     */
+    public function getDisableProcessOnBasketFailFlag()
+    {
+        $websiteId = $this->getCurrentWebsiteId();
+        return $this->getWebsiteConfig(LSR::LS_DISABLE_ORDER_CREATE_ON_BASKET_FAIL, $websiteId);
+    }
 }

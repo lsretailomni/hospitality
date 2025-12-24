@@ -14,6 +14,29 @@
                                             <item name="children" xsi:type="array">
                                                 <item name="shippingAddress" xsi:type="array">
                                                     <item name="children" xsi:type="array">
+                                                        <!-- The name of the form the field belongs to -->
+                                                        <item name="shipping-address-fieldset" xsi:type="array">
+                                                            <item name="children" xsi:type="array">                                                                
+                                                                <item name="country_id" xsi:type="array">
+                                                                    <item name="config" xsi:type="array">
+                                                                        <!-- Assigning a new template -->
+                                                                        <item name="elementTmpl" xsi:type="string">Ls_Hospitality/form/element/select_field</item>
+                                                                    </item>
+                                                                </item>
+                                                                <item name="region_id" xsi:type="array">
+                                                                    <item name="config" xsi:type="array">
+                                                                        <!-- Assigning a new template -->
+                                                                        <item name="elementTmpl" xsi:type="string">Ls_Hospitality/form/element/select_field</item>
+                                                                    </item>
+                                                                </item>
+                                                                <item name="region" xsi:type="array">
+                                                                    <item name="config" xsi:type="array">
+                                                                        <!-- Assigning a new template -->
+                                                                        <item name="elementTmpl" xsi:type="string">Ls_Hospitality/form/element/input_field</item>
+                                                                    </item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
                                                         <item name="shippingAdditional" xsi:type="array">
                                                             <item name="component" xsi:type="string">uiComponent</item>
                                                             <item name="displayArea" xsi:type="string">shippingAdditional</item>

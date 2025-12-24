@@ -6,15 +6,19 @@ use Carbon\Carbon;
 use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
+use \Ls\Omni\Helper\BasketHelper;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
+use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\Phrase;
+use Psr\Log\LoggerInterface;
 use Zend_Log_Exception;
 
 /**
@@ -26,10 +30,12 @@ class DataAssignObserver implements ObserverInterface
      * @var Http
      */
     private Http $request;
+
     /**
      * @var LSR
      */
     private LSR $lsr;
+
     /**
      * @var StoreHelper
      */
@@ -46,23 +52,39 @@ class DataAssignObserver implements ObserverInterface
     private $qrCodeHelper;
 
     /**
+     * @var BasketHelper
+     */
+    private $basketHelper;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @param StoreHelper $storeHelper
+     * @param BasketHelper $basketHelper
      * @param CheckAvailability $checkAvailability
      * @param Http $request
      * @param LSR $lsr
+     * @param LoggerInterface $logger
      * @param QrCodeHelper $qrCodeHelper
      */
     public function __construct(
         StoreHelper $storeHelper,
+        BasketHelper $basketHelper,
         CheckAvailability $checkAvailability,
         Http $request,
         LSR $lsr,
+        LoggerInterface $logger,
         QrCodeHelper $qrCodeHelper
     ) {
         $this->storeHelper       = $storeHelper;
+        $this->basketHelper      = $basketHelper;
         $this->checkAvailability = $checkAvailability;
         $this->request           = $request;
         $this->lsr               = $lsr;
+        $this->logger            = $logger;
         $this->qrCodeHelper      = $qrCodeHelper;
     }
 
@@ -81,6 +103,7 @@ class DataAssignObserver implements ObserverInterface
         $order          = $observer->getOrder();
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
         $email          = $quote->getBillingAddress()->getEmail();
+
         if ($email != $order->getCustomerEmail()) {
             $order->setCustomerEmail($email);
         }
@@ -104,6 +127,10 @@ class DataAssignObserver implements ObserverInterface
 
         if ($quote->getData(LSR::LS_QR_CODE_ORDERING)) {
             $order->setData(LSR::LS_QR_CODE_ORDERING, $quote->getData(LSR::LS_QR_CODE_ORDERING));
+        }
+
+        if ($this->lsr->isHospitalityStore()) {
+            $this->validateBasketResponse($order);
         }
 
         if ($this->lsr->isHospitalityStore()) {
@@ -136,6 +163,48 @@ class DataAssignObserver implements ObserverInterface
         }
 
         return $this;
+    }
+
+    /**
+     * Validates the basket response during order processing.
+     *
+     * @param object $order The order object to validate the basket response for.
+     *                      It must have a method `getDocumentId()` to retrieve document details.
+     * @return void
+     * @throws InputException If basket validation fails and the process is configured to disable further execution.
+     */
+    public function validateBasketResponse($order)
+    {
+        if (!$this->lsr->isHospitalityStore() || !$this->lsr->getDisableProcessOnBasketFailFlag()) {
+            return;
+        }
+
+        $shouldValidate = !$this->lsr->isLSR(
+            $this->lsr->getCurrentStoreId(),
+            false,
+            $this->lsr->getOrderIntegrationOnFrontend()
+        );
+
+        if (!$shouldValidate) {
+            $oneListCalculation = $this->basketHelper->getOneListCalculationFromCheckoutSession();
+
+            if (!empty($oneListCalculation) || !empty($order->getDocumentId())) {
+                return;
+            }
+        }
+
+        $websiteId = $this->lsr->getCurrentWebsiteId();
+        $errMsg    = $this->lsr->getWebsiteConfig(LSR::LS_ERROR_MESSAGE_ON_BASKET_FAIL, $websiteId);
+
+        $this->logger->critical($errMsg);
+
+        $isGraphQl = str_contains($this->request->getOriginalPathInfo(), "graphql");
+
+        if ($isGraphQl) {
+            throw new GraphQlInputException(__($errMsg));
+        }
+
+        throw new InputException(__($errMsg));
     }
 
     /**
