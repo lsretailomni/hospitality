@@ -59,19 +59,20 @@ class ItemPlugin
      */
     public function afterAddQty(Item $subject, $result)
     {
-        if ($this->lsr->isLSR($this->lsr->getCurrentStoreId()) &&
-            (!$result->getParentItem()) &&
-            $this->lsr->isHospitalityStore()
-        ) {
-            $this->checkAvailability->validateQty(true, $result->getQty(), $result);
-        } elseif ($this->lsr->isHospitalityStore()) {
-            $websiteId          = $this->lsrAlias->getCurrentWebsiteId();
-            $errMsg             = $this->lsrAlias->getWebsiteConfig(LSR::LS_ERROR_MESSAGE_ON_BASKET_FAIL, $websiteId);
-            $this->logger->critical($errMsg);
-            if ($this->lsrAlias->getDisableProcessOnBasketFailFlag()) {
-                throw new InputException(
-                    __($errMsg)
-                );
+        if ($this->lsr->isHospitalityStore()) {
+            if (!$this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+                $websiteId          = $this->lsrAlias->getCurrentWebsiteId();
+                $errMsg             = $this->lsrAlias->getWebsiteConfig(LSR::LS_ERROR_MESSAGE_ON_BASKET_FAIL, $websiteId);
+                $this->logger->critical($errMsg);
+                if ($this->lsrAlias->getDisableProcessOnBasketFailFlag()) {
+                    throw new InputException(
+                        __($errMsg)
+                    );
+                }
+            }
+            
+            if (!$result->getParentItem()) {
+                $this->checkAvailability->validateQty(true, $result->getQty(), $result);
             }
         }
         return $result;
