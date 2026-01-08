@@ -117,8 +117,9 @@ jobs:
       - script: |
           cd $(magentoDirectory)
           mkdir -p artifacts/lsretail/lsmag-two
-          cp -a /home/vsts/work/1/s/. $(magentoDirectory)/artifacts/lsretail/lsmag-two/
-          mkdir -p ../magento_$(magentoVersion)_$(phpVersion)/artifacts/lsretail/hospitality
+          cp -a /home/vsts/work/1/repos/lsmag-two/. $(magentoDirectory)/artifacts/lsretail/lsmag-two/
+          mkdir -p artifacts/lsretail/hospitality
+          cp -a /home/vsts/work/1/repos/hospitality/. $(magentoDirectory)/artifacts/lsretail/hospitality/
           composer init --name=lsretail/magento2 --type=project --require magento/product-community-edition:$(magentoVersion) --require $(composerName):$(composerVersion) --require-dev phpunit/phpunit:$(phpunitVersion) --require-dev allure-framework/allure-phpunit:'^3.1' --repository '{"type": "composer", "url": "https://repo.magento.com/"}' --repository '{"type": "path", "url": "artifacts/*/*", "options": {"symlink": true}}' -s alpha -n
           composer config use-include-path true
           composer config --no-plugins allow-plugins true
@@ -154,7 +155,8 @@ jobs:
 
       - script: |
           cd $(magentoDirectory)
-          php -d memory_limit=-1 ../magento_$(magentoVersion)_$(phpVersion)/bin/magento deploy:mode:set production
+          php -d memory_limit=-1
+          bin/magento deploy:mode:set production
         displayName: 'Magento Production mode Testing'
 
       - script: |
