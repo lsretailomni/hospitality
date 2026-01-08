@@ -51,6 +51,43 @@ jobs:
           magentoDirectory: "/var/www/html"
 
     steps:
+      - script: |
+          CORE_MODULE_REST_API_URL=$(CORE_MODULE_REST_API_URL)
+          PERSONAL_ACCESS_TOKEN=$(PERSONAL_ACCESS_TOKEN)
+          B64_PAT=$(printf ":%s" "$PERSONAL_ACCESS_TOKEN" | base64 | tr -d '\n')
+          response=$(curl --http1.1 -X GET -H "Authorization: Basic ${B64_PAT}" "${CORE_MODULE_REST_API_URL}")
+          count=0
+          for k in $(jq '.value[].name' <<< "$response"); do
+           if [ "${k:1:-1}" == $BRANCH_NAME ]; then
+            ((count++));
+           fi
+          done
+          if [ $count -eq 1 ];then
+           echo "Branch name $BRANCH_NAME already exists."
+           echo "##vso[task.setvariable variable=BRANCH_EXISTS;]true"
+          else
+           echo "Branch name $BRANCH_NAME doesn't exist. Therefore falling back to master"
+           echo "##vso[task.setvariable variable=BRANCH_EXISTS;]false"
+          fi
+        displayName: 'Check if same branch name exists in lsmag-two repo'
+      - checkout: self
+        path: repos/hospitality
+
+      - script: |
+          cd /home/vsts/work/1/repos/
+          CORE_MODULE_REPO_URL=$(CORE_MODULE_REPO_URL)
+          AUTH=$(echo -n ":$(PERSONAL_ACCESS_TOKEN)" | openssl base64 | tr -d '\n')
+          git -c http.$CORE_MODULE_REPO_URL.extraheader="AUTHORIZATION: basic $AUTH" clone $CORE_MODULE_REPO_URL --branch $(DERIVED_NAME) lsmag-two
+        condition: eq(variables['BRANCH_EXISTS'], 'true')
+        displayName: 'Checkout core module feature branch'
+
+      - script: |
+          cd /home/vsts/work/1/repos/
+          CORE_MODULE_REPO_URL=$(CORE_MODULE_REPO_URL)
+          AUTH=$(echo -n ":$(PERSONAL_ACCESS_TOKEN)" | openssl base64 | tr -d '\n')
+          git -c http.$CORE_MODULE_REPO_URL.extraheader="AUTHORIZATION: basic $AUTH" clone $CORE_MODULE_REPO_URL --branch master lsmag-two
+        condition: eq(variables['BRANCH_EXISTS'], 'false')
+        displayName: 'Checkout core module master branch'
 
       - script: |
           sudo apt-get update
