@@ -192,8 +192,7 @@ jobs:
 
       - script: |
           cd $(magentoDirectory)
-          php -d memory_limit=-1
-          bin/magento deploy:mode:set production
+          php -d memory_limit=-1 bin/magento deploy:mode:set production
         displayName: 'Magento Production mode Testing'
 
       - script: |
