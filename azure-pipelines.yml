@@ -199,15 +199,8 @@ jobs:
           cd $(magentoDirectory)
           cp artifacts/lsretail/hospitality/dev/tests/unit/azure-pipelines-phpunit.xml dev/tests/unit/
           cd dev/tests/unit
-          php ../../../vendor/bin/phpunit -c azure-pipelines-phpunit.xml --log-junit $(magentoDirectory)/junit-report_$(magentoVersion)_$(phpVersion).xml
+          php ../../../vendor/bin/phpunit -c azure-pipelines-phpunit.xml --coverage-clover  $(magentoDirectory)/report/coverage.xml
         displayName: 'Ls Retail Modules Unit Tests Validation'
-
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: 'junit-report_$(magentoVersion)_$(phpVersion).xml'
-          searchFolder: '$(magentoDirectory)'
-        displayName: 'Ls Retail Modules Unit Tests results Publishing'
 
       - task: Bash@3
         displayName: "Output Magento Logs"
@@ -226,3 +219,9 @@ jobs:
             else
               echo "Log directory does not exist."
             fi
+
+      - task: PublishCodeCoverageResults@2
+        inputs:
+          summaryFileLocation: '$(magentoDirectory)/report/coverage.xml'
+        displayName: 'Ls Retail Modules Tests result Publishing'
+        condition: always()
