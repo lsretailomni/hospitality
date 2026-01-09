@@ -204,6 +204,7 @@ jobs:
 
       - task: Bash@3
         displayName: "Output Magento Logs"
+        condition: always()
         inputs:
           targetType: 'inline'
           script: |
