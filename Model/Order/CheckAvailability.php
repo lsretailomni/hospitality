@@ -331,7 +331,8 @@ class CheckAvailability
             if ($customOption->getValues() == null) {
                 return $customOption;
             }
-            $checkAvailabilityCollection = $this->checkCatalogAvailability();
+            $storeId = $this->lsr->getCurrentStoreId();
+            $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
             foreach ($customOption->getValues() as &$value) {
                 $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
                 if (!$modifier) {
@@ -371,7 +372,8 @@ class CheckAvailability
         if (!$modifier) {
             return true;
         }
-        $checkAvailabilityCollection = $this->checkCatalogAvailability();
+        $storeId = $this->lsr->getCurrentStoreId();
+        $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
 
         $modifierItemId = $modifier->getTriggerCode();
         $unitOfMeasure  = $modifier->getUnitOfMeasure();

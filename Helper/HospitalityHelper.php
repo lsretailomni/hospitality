@@ -11,6 +11,7 @@ use \Ls\Omni\Client\Ecommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
 use \Ls\Omni\Client\ResponseInterface;
+use Ls\Omni\Helper\CacheHelper;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
@@ -232,6 +233,11 @@ class HospitalityHelper extends AbstractHelper
     protected $orderSender;
 
     /**
+     * @var CacheHelper
+     */
+    public $cacheHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -266,6 +272,8 @@ class HospitalityHelper extends AbstractHelper
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
      * @param Order $orderResourceModel
+     * @param OrderSender $orderSender
+     * @param CacheHelper $cacheHelper
      */
     public function __construct(
         Context $context,
@@ -303,6 +311,7 @@ class HospitalityHelper extends AbstractHelper
         Url $productUrlBuilder,
         Order $orderResourceModel,
         OrderSender $orderSender,
+        CacheHelper $cacheHelper
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -339,6 +348,7 @@ class HospitalityHelper extends AbstractHelper
         $this->productUrlBuilder                          = $productUrlBuilder;
         $this->orderResourceModel                         = $orderResourceModel;
         $this->orderSender                                = $orderSender;
+        $this->cacheHelper                                = $cacheHelper;
     }
 
     /**
@@ -1836,9 +1846,7 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return null;
-
     }
-
 
     /**
      * Format items for sales entries
@@ -2005,24 +2013,55 @@ class HospitalityHelper extends AbstractHelper
      */
     public function saveHospOrderId(OrderInterface $order)
     {
-        if ($this->lsr->isHospitalityStore($order->getStoreId())) {
-            try {
-                $documentId = $order->getDocumentId();
+        try {
+            $documentId = $order->getDocumentId();
 
-                if ($documentId) {
-                    $webStore      = $this->lsr->getActiveWebStore();
-                    $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore);
+            if ($documentId) {
+                $webStore      = $this->lsr->getActiveWebStore();
+                $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore);
 
-                    if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
-                        $receiptNo = $statusDetails[0]['q_counter'];
-                        $order->setData('ls_order_id', $receiptNo);
-                        $this->orderResourceModel->save($order);
-                    }
+                if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
+                    $receiptNo = $statusDetails[0]['q_counter'];
+                    $order->setData('ls_order_id', $receiptNo);
+                    $this->orderResourceModel->save($order);
                 }
-            } catch (\Exception $e) {
-                $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
             }
+        } catch (\Exception $e) {
+            $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Do housekeeping for given order
+     *
+     * @param OrderInterface $order
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function doHouseKeepingForGivenOrder(OrderInterface $order)
+    {
+        if ($this->lsr->isHospitalityStore($order->getStoreId())) {
+            $this->saveHospOrderId($order);
+            $this->clearCheckAvailabilityCachedContent($order->getStoreId());
+            $productIds = [];
+            foreach ($order->getAllVisibleItems() as $item) {
+                $productIds[] = $item->getProductId();
+            }
+
+            $this->replicationHelper->flushFpcCacheAgainstIds($productIds);
+        }
+    }
+
+    /**
+     * Clear check availability cached content
+     *
+     * @param int $storeId
+     * @return void
+     */
+    public function clearCheckAvailabilityCachedContent($storeId)
+    {
+        $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
+        $this->cacheHelper->removeCachedContent($cacheKey);
     }
 
     /**
@@ -2042,12 +2081,12 @@ class HospitalityHelper extends AbstractHelper
         return $this->orderRepository->getList($searchCriteria)->getItems();
     }
 
-
     /**
      * Verifies the validity of basket data and determines if order creation should be disabled.
      *
      * @param mixed $basketData The basket data to be verified.
      * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     * @throws NoSuchEntityException
      */
     public function verifyBasketSync($basketData)
     {
