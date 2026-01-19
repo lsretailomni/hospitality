@@ -183,12 +183,8 @@ class SyncInventoryPlugin
             }
         }
 
-        if (!empty($cacheTagsToClean)) {
+        if (!empty($cachedProductIdsToClean)) {
             $this->replicationHelper->flushFpcCacheAgainstIds($cachedProductIdsToClean);
-            $this->logger->info(sprintf(
-                'Cleared FPC for %d products',
-                count($cacheTagsToClean)
-            ));
         }
 
         $this->resetMissingUnavailableProducts($processedProductIds, $storeId, $cacheTagsToClean);
