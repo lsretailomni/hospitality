@@ -124,7 +124,7 @@ class SyncInventoryPlugin
         }
 
         $processedProductIds = [];
-        $cacheTagsToClean    = [];
+        $cachedProductIdsToClean = [];
 
         foreach ($availabilityMap as $itemId => $uomData) {
             foreach ($uomData as $uom => $quantity) {
@@ -166,7 +166,7 @@ class SyncInventoryPlugin
                 }
 
                 $processedProductIds[] = $product->getId();
-                $cachedProductIdsToClean = [];
+
                 if ($quantity <= 0) {
                     if ($product->getData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE) != 1) {
                         $product->setData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE, 1);
@@ -187,7 +187,7 @@ class SyncInventoryPlugin
             $this->replicationHelper->flushFpcCacheAgainstIds($cachedProductIdsToClean);
         }
 
-        $this->resetMissingUnavailableProducts($processedProductIds, $storeId, $cacheTagsToClean);
+        $this->resetMissingUnavailableProducts($processedProductIds, $storeId);
     }
 
     /**
@@ -195,11 +195,10 @@ class SyncInventoryPlugin
      *
      * @param $processedProductIds
      * @param $storeId
-     * @param $cacheTagsToClean
      * @return void
      * @throws \Exception
      */
-    private function resetMissingUnavailableProducts($processedProductIds, $storeId, &$cacheTagsToClean)
+    private function resetMissingUnavailableProducts($processedProductIds, $storeId)
     {
         $collection = $this->productCollectionFactory->create();
         $collection->setStoreId($storeId);
