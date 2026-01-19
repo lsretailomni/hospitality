@@ -128,7 +128,6 @@ class CheckAvailability
     {
         $checkAvailabilityCollection = [];
         $availabilityRequestArray    = [];
-        $lineNo                      = null;
 
         if ($this->lsr->isCheckAvailabilityEnabled()) {
             if ($isItem == true) {
@@ -226,7 +225,7 @@ class CheckAvailability
      * @param array $checkAvailabilityCollection
      * @param array $responseResult
      * @return void
-     * @throws ValidatorException
+     * @throws ValidatorException|NoSuchEntityException
      */
     public function processResponse(
         $checkAvailabilityCollection,
@@ -259,6 +258,7 @@ class CheckAvailability
                             $resultQty
                         );
                     }
+                    $this->hospitalityHelper->clearCheckAvailabilityCachedContent($this->lsr->getStoreId());
 
                     throw new ValidatorException(__($message));
                 }

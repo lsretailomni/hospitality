@@ -101,7 +101,7 @@ class SyncInventoryPlugin
         } catch (\Exception $e) {
             $this->logger->error('Failed to update availability: ' . $e->getMessage());
         }
-
+        $this->lsr->setStoreId(null);
         return $result;
     }
 
@@ -166,27 +166,25 @@ class SyncInventoryPlugin
                 }
 
                 $processedProductIds[] = $product->getId();
-
+                $cachedProductIdsToClean = [];
                 if ($quantity <= 0) {
                     if ($product->getData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE) != 1) {
                         $product->setData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE, 1);
                         $this->productResourceModel->saveAttribute($product, LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE);
-                        $cacheTagsToClean[] = Product::CACHE_TAG . '_' . $product->getId();
-                        $cacheTagsToClean[] = Product::CACHE_PRODUCT_CATEGORY_TAG. '_' . $product->getId();
+                        $cachedProductIdsToClean[] = $product->getId();
                     }
                 } else {
                     if ($product->getData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE) != 0) {
                         $product->setData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE, 0);
                         $this->productResourceModel->saveAttribute($product, LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE);
-                        $cacheTagsToClean[] = Product::CACHE_TAG . '_' . $product->getId();
-                        $cacheTagsToClean[] = Product::CACHE_PRODUCT_CATEGORY_TAG. '_' . $product->getId();
+                        $cachedProductIdsToClean[] = $product->getId();
                     }
                 }
             }
         }
 
         if (!empty($cacheTagsToClean)) {
-            $this->cache->clean($cacheTagsToClean);
+            $this->replicationHelper->flushFpcCacheAgainstIds($cachedProductIdsToClean);
             $this->logger->info(sprintf(
                 'Cleared FPC for %d products',
                 count($cacheTagsToClean)
@@ -230,16 +228,16 @@ class SyncInventoryPlugin
         }
 
         $resetCount = 0;
+        $cachedProductIdsToClean = [];
         foreach ($collection as $product) {
             $product->setData(LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE, 0); // Reset to available
             $this->productResourceModel->saveAttribute($product, LSR::LS_CURRENT_AVAILABILITY_ATTRIBUTE);
-            $cacheTagsToClean[] = Product::CACHE_TAG . '_' . $product->getId();
-            $cacheTagsToClean[] = Product::CACHE_PRODUCT_CATEGORY_TAG. '_' . $product->getId();
+            $cachedProductIdsToClean[] = $product->getId();
             $resetCount++;
         }
 
         if ($resetCount > 0) {
-            $this->cache->clean($cacheTagsToClean);
+            $this->replicationHelper->flushFpcCacheAgainstIds($cachedProductIdsToClean);
             $this->logger->info(sprintf(
                 'Reset %d previously unavailable products to available and cleared cache',
                 $resetCount

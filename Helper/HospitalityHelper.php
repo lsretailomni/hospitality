@@ -2048,7 +2048,7 @@ class HospitalityHelper extends AbstractHelper
                 $productIds[] = $item->getProductId();
             }
 
-            $this->replicationHelper->flushFpcCacheAgainstIds($productIds);
+            $this->clearFpcCacheForGivenProducts($productIds);
         }
     }
 
@@ -2062,6 +2062,17 @@ class HospitalityHelper extends AbstractHelper
     {
         $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
         $this->cacheHelper->removeCachedContent($cacheKey);
+    }
+
+    /**
+     * Clear FPC cache for given products
+     *
+     * @param array $productIds
+     * @return void
+     */
+    public function clearFpcCacheForGivenProducts($productIds)
+    {
+        $this->replicationHelper->flushFpcCacheAgainstIds($productIds);
     }
 
     /**
