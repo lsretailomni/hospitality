@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Ls\Hospitality\Model\Resolver\Product;
 
-use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
-use Magento\Catalog\Model\Product\Option;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
@@ -14,24 +13,16 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 class IsOptionAvailable implements ResolverInterface
 {
     /**
-     * @var HospitalityHelper
-     */
-    private $hospitalityHelper;
-
-    /**
      * @var CheckAvailability
      */
     private $checkAvailability;
 
     /**
-     * @param HospitalityHelper $hospitalityHelper
      * @param CheckAvailability $checkAvailability
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper,
         CheckAvailability $checkAvailability
     ) {
-        $this->hospitalityHelper = $hospitalityHelper;
         $this->checkAvailability = $checkAvailability;
     }
 
@@ -45,6 +36,7 @@ class IsOptionAvailable implements ResolverInterface
      * @param array|null $args
      * @return bool
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @throws NoSuchEntityException
      */
     public function resolve(
         Field $field,

@@ -55,10 +55,10 @@ class OrderObserverPlugin
             if (empty($order->getIncrementId())) {
                 $orderIds = $observer->getEvent()->getOrderIds();
                 if (!empty($orderIds)) {
-                    $this->hospitalityHelper->saveHospOrderId($order);
+                    $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
                 }
             } else {
-                $this->hospitalityHelper->saveHospOrderId($order);
+                $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
             }
         } catch (\Exception $e) {
             $this->logger->error('Error saving hospitality order ID: ' . $e->getMessage());

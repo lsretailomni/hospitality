@@ -5,6 +5,7 @@ namespace Ls\Hospitality\Plugin\Omni\Controller\Adminhtml;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Omni\Controller\Adminhtml\Order\Request;
 use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
 /**
@@ -40,12 +41,14 @@ class RequestPlugin
      * @param Request $subject
      * @param Redirect $result
      * @return Redirect
+     * @throws NoSuchEntityException
      */
     public function afterExecute(Request $subject, $result)
     {
         $orderId = $subject->getRequest()->getParam('order_id');
         $order = $this->orderRepository->get($orderId);
-        $this->hospitalityHelper->saveHospOrderId($order);
+        $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
+
         return $result;
     }
 }

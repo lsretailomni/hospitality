@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Plugin\Replication\Cron;
 
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Replication\Cron\SyncOrders;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Plugin for SyncOrders cron
@@ -30,6 +31,7 @@ class SyncOrdersPlugin
      * @param SyncOrders $subject
      * @param array $result
      * @return array
+     * @throws NoSuchEntityException
      */
     public function afterExecute(SyncOrders $subject, $result)
     {
@@ -38,7 +40,7 @@ class SyncOrdersPlugin
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
-                $this->hospitalityHelper->saveHospOrderId($order);
+                $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
             }
         }
         return $result;

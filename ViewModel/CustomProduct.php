@@ -75,9 +75,11 @@ class CustomProduct implements ArgumentInterface
     }
 
     /**
-     * Current Product has options
+     * Check modifier availability
      *
-     * @return int|void
+     * @param $option
+     * @return bool
+     * @throws NoSuchEntityException
      */
     public function checkModifierAvailable(&$option)
     {
