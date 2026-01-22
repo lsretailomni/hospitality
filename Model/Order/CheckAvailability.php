@@ -128,7 +128,6 @@ class CheckAvailability
     {
         $checkAvailabilityCollection = [];
         $availabilityRequestArray    = [];
-        $lineNo                      = null;
 
         if ($this->lsr->isCheckAvailabilityEnabled()) {
             if ($isItem == true) {
@@ -226,7 +225,7 @@ class CheckAvailability
      * @param array $checkAvailabilityCollection
      * @param array $responseResult
      * @return void
-     * @throws ValidatorException
+     * @throws ValidatorException|NoSuchEntityException
      */
     public function processResponse(
         $checkAvailabilityCollection,
@@ -259,6 +258,7 @@ class CheckAvailability
                             $resultQty
                         );
                     }
+                    $this->hospitalityHelper->clearCheckAvailabilityCachedContent($this->lsr->getStoreId());
 
                     throw new ValidatorException(__($message));
                 }
@@ -331,7 +331,8 @@ class CheckAvailability
             if ($customOption->getValues() == null) {
                 return $customOption;
             }
-            $checkAvailabilityCollection = $this->checkCatalogAvailability();
+            $storeId = $this->lsr->getCurrentStoreId();
+            $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
             foreach ($customOption->getValues() as &$value) {
                 $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
                 if (!$modifier) {
@@ -371,7 +372,8 @@ class CheckAvailability
         if (!$modifier) {
             return true;
         }
-        $checkAvailabilityCollection = $this->checkCatalogAvailability();
+        $storeId = $this->lsr->getCurrentStoreId();
+        $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
 
         $modifierItemId = $modifier->getTriggerCode();
         $unitOfMeasure  = $modifier->getUnitOfMeasure();
