@@ -1006,7 +1006,14 @@ class HospitalityHelper extends AbstractHelper
                                 if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                                     $productionTime = 0;
                                 }
-                                $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
+
+                                $centralStatusMsg = $resp->getStatusMessage();
+                                if (!empty($centralStatusMsg)) {
+                                    $statusDescription = __($centralStatusMsg);
+                                } else {
+                                    $fallbackStatusMsg = $this->lsr->kitchenStatusMapping()[$status] ?? '';
+                                    $statusDescription = __($fallbackStatusMsg);
+                                }
                             }
                             $lines   = $resp->getLines()->getOrderHospStatusLine();
                             $itemIds = [];
