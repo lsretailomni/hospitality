@@ -121,7 +121,8 @@ class OrderInfo implements HttpGetActionInterface
                 $defaultHtml = '<div class="hosp-info-container">' .
                     '<div class="block-content">' .
                     '<div class="custom-box">' .
-                    '<span>' . __('We are processing your payment and will notify you once payment has been processed.') . '</span>' .
+                    '<span>' . __('Your order is currently processing. Please dont close this page. Once the order is processed 
+                you will see the required information for the order such as Order Id and Kitchen status.') . '</span>' .
                     '</div>' .
                     '</div>' .
                     '</div>';
