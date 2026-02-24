@@ -414,7 +414,6 @@ class BasketHelperPlugin
      * 
      * @param BasketHelper $subject
      * @param callable $proceed
-     * @param Quote $quote
      * @param $order
      * @return array
      * @throws InvalidEnumException
@@ -424,11 +423,10 @@ class BasketHelperPlugin
     public function aroundGetOrderLinesQuote(
         BasketHelper $subject,
         callable $proceed,
-        Quote $quote,
-        $order
+        Quote $quote
     ) {
         if ($subject->lsr->getCurrentIndustry($quote->getStoreId()) != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-            return $proceed($quote, $order);
+            return $proceed($quote);
         }
 
         $basketResponse  = $quote->getBasketResponse();
