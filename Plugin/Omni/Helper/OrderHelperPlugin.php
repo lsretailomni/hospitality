@@ -128,7 +128,7 @@ class OrderHelperPlugin
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
                 if ($isClickCollect) {
-                    $salesType = $this->lsr->getTakeAwaySalesType();
+                    $salesType = $this->lsr->getTakeAwaySalesType($order->getStore()->getWebsiteId());
                     if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
                         $salesType = $qrCodeParams['sales_type'];
                     }
