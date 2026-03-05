@@ -14,7 +14,7 @@ class OrderSender
      * @var LSR
      */
     private $lsr;
-    
+
     /**
      * @var HospitalityHelper
      */
@@ -27,7 +27,7 @@ class OrderSender
         LSR $lsr,
         HospitalityHelper $hospitalityHelper,
     ) {
-        $this->lsr = $lsr;
+        $this->lsr               = $lsr;
         $this->hospitalityHelper = $hospitalityHelper;
     }
 
@@ -45,8 +45,8 @@ class OrderSender
     {
         if ($this->lsr->isHospitalityStore($order->getStoreId())) {
             $incrementId = $order->getIncrementId();
-            if (!empty($order->getLsOrderId())) {                
-                $order->setIncrementId($order->getLsOrderId());                
+            if (!empty($order->getLsOrderId())) {
+                $order->setIncrementId($order->getLsOrderId());
             } else {
                 //Block sending order confirmation email if order does not have Q counter no
                 return false;

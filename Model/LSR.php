@@ -135,15 +135,19 @@ class LSR extends \Ls\Core\Model\LSR
     /**
      * Get take away sales type
      *
+     * @param $websiteId
      * @return mixed
      * @throws NoSuchEntityException
      */
-    public function getTakeAwaySalesType()
+    public function getTakeAwaySalesType($websiteId = null)
     {
+        if ($websiteId === null) {
+            $websiteId = $this->storeManager->getStore()->getWebsiteId();
+        }
         return $this->scopeConfig->getValue(
             self::TAKEAWAY_SALES_TYPE,
             ScopeInterface::SCOPE_WEBSITES,
-            $this->storeManager->getStore()->getWebsiteId()
+            $websiteId
         );
     }
 

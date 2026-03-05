@@ -128,7 +128,7 @@ class OrderHelperPlugin
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
                 if ($isClickCollect) {
-                    $salesType = $this->lsr->getTakeAwaySalesType();
+                    $salesType = $this->lsr->getTakeAwaySalesType($order->getStore()->getWebsiteId());
                     if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
                         $salesType = $qrCodeParams['sales_type'];
                     }
@@ -153,7 +153,8 @@ class OrderHelperPlugin
                 ->setName($billToName)
                 ->setBillToName($billToName)
                 ->setExternalId($order->getIncrementId())
-                ->setAddress($shipToAddress);
+                ->setAddress($shipToAddress)
+                ->setDocumentRegTime($this->date->date($dateTimeFormat, $order->getCreatedAt()));
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
