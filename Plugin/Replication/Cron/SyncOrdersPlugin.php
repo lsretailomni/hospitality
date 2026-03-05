@@ -47,9 +47,9 @@ class SyncOrdersPlugin
         OrderRepositoryInterface $orderRepository
     ) {
         $this->hospitalityHelper = $hospitalityHelper;
-        $this->orderSender = $orderSender;
-        $this->logger = $logger;
-        $this->orderRepository = $orderRepository;
+        $this->orderSender       = $orderSender;
+        $this->logger            = $logger;
+        $this->orderRepository   = $orderRepository;
     }
 
     /**
@@ -70,7 +70,7 @@ class SyncOrdersPlugin
                 $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
                 try {
                     $reloadedOrder = $this->orderRepository->get($order->getEntityId());
-                    if (!$reloadedOrder->getEmailSent()) {
+                    if (!$reloadedOrder->getEmailSent() && !empty($reloadedOrder->getData('ls_order_id'))) {
                         $this->orderSender->send($reloadedOrder);
                         $this->logger->info(
                             sprintf(
