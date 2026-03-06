@@ -334,15 +334,17 @@ class CheckAvailability
             $storeId = $this->lsr->getCurrentStoreId();
             $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
             foreach ($customOption->getValues() as &$value) {
+                $modifierItemId = "";
+                $unitOfMeasure  = "";
                 $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
-                if (!$modifier) {
-                    continue;
+                $source   = $modifier ?: current($this->hospitalityHelper->getDealLineByDescription($value['title']));
+
+                if ($source) {
+                    $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
+                    $unitOfMeasure  = $source->getUnitOfMeasure();
                 }
 
-                $modifierItemId = $modifier->getTriggerCode();
-                $unitOfMeasure  = $modifier->getUnitOfMeasure();
-
-                if (isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])) {
+                if ($modifierItemId && $unitOfMeasure && isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])) {
                     $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
                     if ($availableQty <= 0) {
                         $value['is_available'] = false;
