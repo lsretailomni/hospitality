@@ -712,7 +712,6 @@ class HospitalityHelper extends AbstractHelper
         return $modifier->getItems();
     }
 
-
     /**
      * Get custom options from quote item
      *
@@ -723,7 +722,6 @@ class HospitalityHelper extends AbstractHelper
     {
         return $this->configurationHelper->getCustomOptions($quoteItem);
     }
-
 
     /**
      * @param $recipeNo
@@ -740,7 +738,6 @@ class HospitalityHelper extends AbstractHelper
 
         return $modifier->getItems();
     }
-
 
     /**
      * @param $store
