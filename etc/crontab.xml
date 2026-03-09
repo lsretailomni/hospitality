@@ -42,4 +42,10 @@
             <schedule>*/4 * * * *</schedule>
         </job>
     </group>
+
+    <group id="sync_data">
+        <job name="sync_orders" instance="Ls\Replication\Cron\SyncOrders" method="execute">
+            <schedule>*/1 * * * *</schedule>
+        </job>
+    </group>
 </config>
