@@ -68,27 +68,6 @@ class SyncOrdersPlugin
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
-                try {
-                    $reloadedOrder = $this->orderRepository->get($order->getEntityId());
-                    if (!$reloadedOrder->getEmailSent() && !empty($reloadedOrder->getData('ls_order_id'))) {
-                        $this->orderSender->send($reloadedOrder);
-                        $this->logger->info(
-                            sprintf(
-                                'Order confirmation email sent for order #%s (LS Order ID: %s)',
-                                $reloadedOrder->getIncrementId(),
-                                $reloadedOrder->getData('ls_order_id') ?: 'N/A'
-                            )
-                        );
-                    }
-                } catch (\Exception $e) {
-                    $this->logger->error(
-                        sprintf(
-                            'Failed to send order confirmation email for order #%s: %s',
-                            $order->getIncrementId(),
-                            $e->getMessage()
-                        )
-                    );
-                }
             }
         }
         return $result;
