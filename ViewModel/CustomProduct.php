@@ -4,6 +4,7 @@ namespace Ls\Hospitality\ViewModel;
 
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR as LSRModel;
+use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
@@ -27,18 +28,26 @@ class CustomProduct implements ArgumentInterface
     public $assetRepository;
 
     /**
+     * @var CheckAvailability
+     */
+    public $checkAvailability;
+
+    /**
      * @param LSRModel $lsr
      * @param HospitalityHelper $hospitalityHelper
+     * @param CheckAvailability $checkAvailability
      * @param Repository $assetRepository
      */
     public function __construct(
         LSRModel $lsr,
         HospitalityHelper $hospitalityHelper,
+        CheckAvailability $checkAvailability,
         Repository $assetRepository
     ) {
         $this->lsr               = $lsr;
         $this->hospitalityHelper = $hospitalityHelper;
         $this->assetRepository   = $assetRepository;
+        $this->checkAvailability = $checkAvailability;
     }
 
     /**
@@ -82,5 +91,17 @@ class CustomProduct implements ArgumentInterface
                     ->storeManager
                     ->getStore()
                     ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA).$swatch;
+    }
+
+    /**
+     * Check modifier availability
+     *
+     * @param $option
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailable(&$option)
+    {
+        return $this->checkAvailability->checkModifierAvailability($option);
     }
 }

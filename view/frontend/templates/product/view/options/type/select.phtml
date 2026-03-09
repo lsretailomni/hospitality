@@ -12,6 +12,9 @@ $_option = $block->getOption();
 $class = ($_option->getIsRequire()) ? ' required' : '';
 $viewModel = $block->getData('view_model');
 $criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOptions();
+if ($criteria) {
+    $_option = $viewModel->checkModifierAvailable($_option);
+}
 ?>
 <div class="<?= $criteria ? 'custom-field ' : ''?>field<?= $escaper->escapeHtmlAttr($class) ?>">
     <label class="label" for="select_<?= $escaper->escapeHtmlAttr($_option->getId()) ?>">
@@ -43,13 +46,18 @@ $criteria = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOpt
                     <ul>
                         <li class="option default"><?= $escaper->escapeHtml(__('-- Please Select --')) ?></li>
                         <?php foreach($_option->getValues() as $val) :?>
-                            <li class="option"
+                            <?php
+                            $isAvailable = isset($val['is_available']) ? $val['is_available'] : true;
+                            $title = $escaper->escapeHtml($val->getTitle());
+                            ?>
+                            <li class="option<?= !$isAvailable ? ' unavailable' : '' ?>"
                                 data-custom-value-id="<?= $escaper->escapeHtmlAttr($val->getOptionTypeId()) ?>">
                                 <div class="image-container">
                                     <img class="notlazy" src="<?= $viewModel->getMediaUrl($val->getSwatch())?>"
-                                         alt="<?= $escaper->escapeHtml($val->getTitle()) ?>"/>
+                                         alt="<?= $title ?>"/>
                                 </div>
-                                <p class="title"><?= $escaper->escapeHtml($val->getTitle()) ?></p>
+                                <p class="title"><?= $title ?></p>
+                                <p class="title2"><?= !$isAvailable ? '<span class="sold-out-label">' . $escaper->escapeHtml(__('Out of Stock')) . '</span>' : '' ?></p>
                             </li>
                         <?php endforeach;?>
                     </ul>

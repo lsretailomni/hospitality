@@ -128,19 +128,25 @@ class CheckAvailability
         $item,
         &$checkAvailabilityCollection
     ) {
+        $product = $item->getProduct();
         $options = $this->hospitalityHelper->getCustomOptionsFromQuoteItem($item);
         if ($options) {
             foreach ($options as $option) {
-                if (isset($option['ls_modifier_recipe_id'])
-                    && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX) {
+                if ((isset($option['ls_modifier_recipe_id']) ||
+                        $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
+                    && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX
+                ) {
                     $qty = 1;
                     $modifier = current($this->hospitalityHelper->getModifierByDescription($option['value']));
-                    if (!$modifier) {
-                        return;
+                    $source   = $modifier ?:
+                        current($this->hospitalityHelper->getDealLineByDescription($option['value']));
+                    $modifierItemId = "";
+                    $unitOfMeasure  = "";
+                    if ($source) {
+                        $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
+                        $unitOfMeasure  = $source->getUnitOfMeasure();
                     }
-                    $modifierItemId = $modifier->getTriggerCode();
-                    $code           = $modifier->getCode();
-                    $unitOfMeasure  = $modifier->getUnitOfMeasure();
+                    $code  = $modifier ? $source->getCode() : $source->getDealLineCode();
 
                     if (in_array($modifierItemId, $checkAvailabilityCollection)) {
                         $qty = $checkAvailabilityCollection[$modifierItemId]['qty'] + $qty;
@@ -148,7 +154,7 @@ class CheckAvailability
 
                     $checkAvailabilityCollection[$modifierItemId] = [
                         'item_id' => $modifierItemId,
-                        'name' => $modifier->getDescription(),
+                        'name' => $source->getDescription(),
                         'product_name' => $item->getName(),
                         'qty' => $qty,
                         'is_modifier' => true,
@@ -212,5 +218,127 @@ class CheckAvailability
                 }
             }
         }
+    }
+
+    /**
+     * Check if modifiers are available in current availability response
+     *
+     * @param $customOption
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailability(&$customOption)
+    {
+        if (!$customOption) {
+            return $customOption;
+        }
+
+        if (isset($customOption['ls_modifier_recipe_id'])
+            && $customOption['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX) {
+            if ($customOption->getValues() == null) {
+                return $customOption;
+            }
+            $storeId = $this->lsr->getCurrentStoreId();
+            $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
+            foreach ($customOption->getValues() as &$value) {
+                $modifierItemId = "";
+                $unitOfMeasure  = "";
+                $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
+                $source   = $modifier ?: current($this->hospitalityHelper->getDealLineByDescription($value['title']));
+
+                if ($source) {
+                    $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
+                    $unitOfMeasure  = $source->getUnitOfMeasure();
+                }
+
+                if ($modifierItemId &&
+                    $unitOfMeasure &&
+                    isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])
+                ) {
+                    $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
+                    if ($availableQty <= 0) {
+                        $value['is_available'] = false;
+                    } else {
+                        $value['is_available'] = true;
+                    }
+                }
+            }
+        }
+
+        return $customOption;
+    }
+
+    /**
+     * Check items availability based on store id
+     *
+     * @param $storeId
+     * @return array|bool
+     * @throws NoSuchEntityException
+     */
+    public function checkCatalogAvailability($storeId = null)
+    {
+        if ($storeId) {
+            $this->lsr->setStoreId($storeId);
+        }
+
+        $webStore = $this->lsr->getActiveWebStore();
+
+        $availabilityRequestArray = [];
+        $responseResult           = $this->availability(
+            $webStore,
+            $availabilityRequestArray
+        );
+
+        $availabilityMap = [];
+        if ($responseResult) {
+            foreach ($responseResult as $result) {
+                $itemId                         = $result['No.'];
+                $uom                            = $result['Unit of Measure'];
+                $qty                            = (int)$result['Available Qty.'];
+                $availabilityMap[$itemId][$uom] = $qty;
+            }
+        }
+
+        return $availabilityMap;
+    }
+
+    /**
+     * Check if modifiers are available in current availability response
+     *
+     * @param $customOption
+     * @return boolean
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailabilityForGraphQl(&$customOption)
+    {
+        if (!$customOption) {
+            return $customOption;
+        }
+
+        $modifier = current($this->hospitalityHelper->getModifierByDescription($customOption['title']));
+        $source   = $modifier ?: current($this->hospitalityHelper->getDealLineByDescription($customOption['title']));
+        $modifierItemId = "";
+        $unitOfMeasure  = "";
+        if ($source) {
+            $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
+            $unitOfMeasure  = $source->getUnitOfMeasure();
+        }
+
+        $storeId = $this->lsr->getCurrentStoreId();
+        $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
+
+        if ($modifierItemId &&
+            $unitOfMeasure &&
+            isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])
+        ) {
+            $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
+            if ($availableQty <= 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return true;
     }
 }

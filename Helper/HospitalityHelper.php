@@ -577,6 +577,23 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get Deal Lines by description
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function getDealLineByDescription($value)
+    {
+        $modifier = $this->replHierarchyHospDealLineRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('Description', $value)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
+
+    /**
      * Get custom options from quote item
      *
      * @param $quoteItem
