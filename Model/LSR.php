@@ -68,6 +68,9 @@ class LSR extends \Ls\Core\Model\LSR
     public const SC_SUCCESS_PROCESS_TRANSLATION = 'ls_mag/replication/success_process_translation';
     public const SC_PROCESS_TRANSLATION_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_translation';
 
+    //Cache Key
+    const LS_HOSP_CHECK_AVAILABILITY = 'LS_HOSP_CHECK_AVAILABILITY_';
+
     /**
      * Check service mode is enabled
      *

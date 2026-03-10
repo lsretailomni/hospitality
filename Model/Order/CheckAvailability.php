@@ -4,6 +4,7 @@ namespace Ls\Hospitality\Model\Order;
 
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Omni\Helper\CacheHelper;
 use \Ls\Omni\Helper\Data;
 use \Ls\Omni\Helper\ItemHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -27,7 +28,9 @@ class CheckAvailability
      * @param CheckoutSession $checkoutSession
      * @param LoggerInterface $logger
      * @param Data $dataHelper
+     * @param CacheHelper $cacheHelper
      */
+     
     public function __construct(
         public ProductRepositoryInterface $productRepository,
         public LSR $lsr,
@@ -35,7 +38,8 @@ class CheckAvailability
         public HospitalityHelper $hospitalityHelper,
         public CheckoutSession $checkoutSession,
         public LoggerInterface $logger,
-        public Data $dataHelper
+        public Data $dataHelper,
+        public CacheHelper $cacheHelper,
     ) {
     }
 
@@ -282,7 +286,13 @@ class CheckAvailability
         }
 
         $webStore = $this->lsr->getActiveWebStore();
+        $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
 
+        $cachedData = $this->cacheHelper->getCachedContent($cacheKey);
+        if ($cachedData) {
+            return $cachedData;
+        }
+        
         $availabilityRequestArray = [];
         $responseResult           = $this->availability(
             $webStore,
@@ -298,6 +308,13 @@ class CheckAvailability
                 $availabilityMap[$itemId][$uom] = $qty;
             }
         }
+
+        $this->cacheHelper->persistContentInCache(
+            $cacheKey,
+            $availabilityMap,
+            [LSR::LS_HOSP_CHECK_AVAILABILITY],
+            1800
+        );
 
         return $availabilityMap;
     }
