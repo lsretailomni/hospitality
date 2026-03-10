@@ -17,6 +17,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
 use Psr\Log\LoggerInterface;
+use Magento\Catalog\Model\ResourceModel\Product\Option\CollectionFactory as OptionCollectionFactory;
 
 /**
  * Checking current availability of items, deals and modifiers.
@@ -57,17 +58,25 @@ class CheckAvailability
     private $cacheHelper;
 
     /**
+     * @var OptionCollectionFactory
+     */
+    public $optionCollectionFactory;
+
+    /**
      * @param Context $context
      * @param ProductRepositoryInterface $productRepository
+     * @param OptionCollectionFactory $optionCollectionFactory
      * @param LSR $lsr
      * @param ItemHelper $itemHelper
      * @param HospitalityHelper $hospitalityHelper
      * @param CheckoutSession $checkoutSession
+     * @param CacheHelper $cacheHelper
      * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
         ProductRepositoryInterface $productRepository,
+        OptionCollectionFactory $optionCollectionFactory,
         LSR $lsr,
         ItemHelper $itemHelper,
         HospitalityHelper $hospitalityHelper,
@@ -76,12 +85,13 @@ class CheckAvailability
         LoggerInterface $logger
     ) {
         $this->productRepository = $productRepository;
-        $this->lsr               = $lsr;
-        $this->itemHelper        = $itemHelper;
+        $this->optionCollectionFactory = $optionCollectionFactory;
+        $this->lsr = $lsr;
+        $this->itemHelper = $itemHelper;
         $this->hospitalityHelper = $hospitalityHelper;
-        $this->checkoutSession   = $checkoutSession;
-        $this->cacheHelper       = $cacheHelper;
-        $this->logger            = $logger;
+        $this->checkoutSession = $checkoutSession;
+        $this->cacheHelper = $cacheHelper;
+        $this->logger = $logger;
     }
 
     /**
@@ -93,8 +103,8 @@ class CheckAvailability
      */
     public function availability($storeId, $availabilityRequestArray)
     {
-        $response          = null;
-        $request           = new Operation\CheckAvailability();
+        $response = null;
+        $request = new Operation\CheckAvailability();
         $availabilityArray = new Entity\ArrayOfHospAvailabilityRequest();
         $availabilityArray->setHospAvailabilityRequest($availabilityRequestArray);
         $availability = new Entity\CheckAvailability();
@@ -127,15 +137,15 @@ class CheckAvailability
     public function validateQty($isItem = false, $qty = null, $item = null)
     {
         $checkAvailabilityCollection = [];
-        $availabilityRequestArray    = [];
+        $availabilityRequestArray = [];
 
         if ($this->lsr->isCheckAvailabilityEnabled()) {
             if ($isItem == true) {
-                $items      = [$item];
+                $items = [$item];
                 $itemsCount = 1;
             } else {
                 $itemsCount = $this->checkoutSession->getQuote()->getItemsCount();
-                $items      = $this->checkoutSession->getQuote()->getAllVisibleItems();
+                $items = $this->checkoutSession->getQuote()->getAllVisibleItems();
             }
             if ($itemsCount > 0) {
                 foreach ($items as $item) {
@@ -148,8 +158,8 @@ class CheckAvailability
                     }
                     $checkAvailabilityCollection[$itemId] = [
                         'item_id' => $itemId,
-                        'name'    => $item->getName(),
-                        'qty'     => $itemQty
+                        'name' => $item->getName(),
+                        'qty' => $itemQty
                     ];
                     $this->setModifiersForCheckingAvailability(
                         $item,
@@ -192,29 +202,29 @@ class CheckAvailability
                     && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX
                 ) {
                     $itemId = $option->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
-                    $qty      = 1;
+                    $qty = 1;
                     $modifier = current($this->hospitalityHelper->getModifierByDescription($option['value']));
-                    $source   = $modifier ?:
+                    $source = $modifier ?:
                         current($this->hospitalityHelper->getDealLineByDescription($option['value'], $itemId));
                     $modifierItemId = "";
-                    $unitOfMeasure  = "";
+                    $unitOfMeasure = "";
                     if ($source) {
                         $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
-                        $unitOfMeasure  = $source->getUnitOfMeasure();
+                        $unitOfMeasure = $source->getUnitOfMeasure();
                     }
-                    $code  = $modifier ? $source->getCode() : $source->getDealLineCode();
+                    $code = $modifier ? $source->getCode() : $source->getDealLineCode();
 
                     if (in_array($modifierItemId, $checkAvailabilityCollection)) {
                         $qty = $checkAvailabilityCollection[$modifierItemId]['qty'] + $qty;
                     }
 
                     $checkAvailabilityCollection[$modifierItemId] = [
-                        'item_id'      => $modifierItemId,
-                        'name'         => $source->getDescription(),
+                        'item_id' => $modifierItemId,
+                        'name' => $source->getDescription(),
                         'product_name' => $item->getName(),
-                        'qty'          => $qty,
-                        'is_modifier'  => true,
-                        'code'         => $code
+                        'qty' => $qty,
+                        'is_modifier' => true,
+                        'code' => $code
                     ];
 
                     $availabilityRequest = new Entity\HospAvailabilityRequest();
@@ -241,15 +251,15 @@ class CheckAvailability
         $message = '';
         foreach ($responseResult as $result) {
             if (in_array($result->getNumber(), array_column($checkAvailabilityCollection, 'item_id'))) {
-                $qty       = $checkAvailabilityCollection[$result->getNumber()]['qty'];
+                $qty = $checkAvailabilityCollection[$result->getNumber()]['qty'];
                 $resultQty = (int)$result->getQuantity();
                 if ($qty > $resultQty || $resultQty == 0) {
                     $name = $checkAvailabilityCollection[$result->getNumber()]['name'];
 
                     if (isset($checkAvailabilityCollection[$result->getNumber()]['is_modifier'])) {
-                        $code        = $checkAvailabilityCollection[$result->getNumber()]['code'];
+                        $code = $checkAvailabilityCollection[$result->getNumber()]['code'];
                         $productName = $checkAvailabilityCollection[$result->getNumber()]['product_name'];
-                        $message     .= __(
+                        $message .= __(
                             '%1 modifier option %2 (%3) has quantity of %4 which is greater then currently available quantity %5. Please select different option for this modifier.',
                             $productName,
                             $code,
@@ -295,7 +305,7 @@ class CheckAvailability
         }
 
         $availabilityRequestArray = [];
-        $responseResult           = $this->availability(
+        $responseResult = $this->availability(
             $webStore,
             $availabilityRequestArray
         );
@@ -303,9 +313,9 @@ class CheckAvailability
         $availabilityMap = [];
         if ($responseResult) {
             foreach ($responseResult as $result) {
-                $itemId                         = $result->getNumber();
-                $uom                            = $result->getUnitOfMeasure();
-                $qty                            = (int)$result->getQuantity();
+                $itemId = $result->getNumber();
+                $uom = $result->getUnitOfMeasure();
+                $qty = (int)$result->getQuantity();
                 $availabilityMap[$itemId][$uom] = $qty;
             }
         }
@@ -343,14 +353,14 @@ class CheckAvailability
             $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
             foreach ($customOption->getValues() as &$value) {
                 $modifierItemId = "";
-                $unitOfMeasure  = "";
+                $unitOfMeasure = "";
                 $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
-                $source   = $modifier ?:
+                $source = $modifier ?:
                     current($this->hospitalityHelper->getDealLineByDescription($value['title'], $itemId));
 
                 if ($source) {
                     $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
-                    $unitOfMeasure  = $source->getUnitOfMeasure();
+                    $unitOfMeasure = $source->getUnitOfMeasure();
                 }
 
                 if ($modifierItemId &&
@@ -373,24 +383,23 @@ class CheckAvailability
     /**
      * Check if modifiers are available in current availability response
      *
-     * @param $customOption
+     * @param array $customOptionValue
      * @return boolean
      * @throws NoSuchEntityException
      */
-    public function checkModifierAvailabilityForGraphQl(&$customOption)
+    public function checkModifierAvailabilityForGraphQl(&$customOptionValue)
     {
-        if (!$customOption) {
-            return $customOption;
-        }
-        $itemId = $customOption->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
-        $modifier = current($this->hospitalityHelper->getModifierByDescription($customOption['title']));
-        $source   = $modifier ?:
-            current($this->hospitalityHelper->getDealLineByDescription($customOption['title'], $itemId));
+        $itemId = $this->getItemIdFromCustomOption($customOptionValue);
+        $title = $customOptionValue['title'] ?? $customOptionValue['default_title'] ?? '';
+        $modifier = current($this->hospitalityHelper->getModifierByDescription($title));
+        $source = $modifier ?:
+            current($this->hospitalityHelper->getDealLineByDescription($title, $itemId));
+
         $modifierItemId = "";
-        $unitOfMeasure  = "";
+        $unitOfMeasure = "";
         if ($source) {
             $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
-            $unitOfMeasure  = $source->getUnitOfMeasure();
+            $unitOfMeasure = $source->getUnitOfMeasure();
         }
 
         $storeId = $this->lsr->getCurrentStoreId();
@@ -401,13 +410,34 @@ class CheckAvailability
             isset($checkAvailabilityCollection[$modifierItemId][$unitOfMeasure])
         ) {
             $availableQty = (int)$checkAvailabilityCollection[$modifierItemId][$unitOfMeasure];
-            if ($availableQty <= 0) {
-                return false;
-            } else {
-                return true;
-            }
+            return $availableQty > 0;
         }
 
         return true;
+    }
+
+    /**
+     * Get LS Item ID from custom option array using option_id to find parent product
+     *
+     * @param array $customOptionValue
+     * @return string|null
+     */
+    private function getItemIdFromCustomOption($customOptionValue)
+    {
+        try {
+            if (!empty($customOptionValue['option_id'])) {
+                $optionCollection = $this->optionCollectionFactory->create();
+                $optionCollection->addFieldToFilter('option_id', $customOptionValue['option_id']);
+                $option = $optionCollection->getFirstItem();
+
+                if ($option && $option->getProductId()) {
+                    $product = $this->productRepository->getById($option->getProductId());
+                    return $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                }
+            }
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
+        return null;
     }
 }
