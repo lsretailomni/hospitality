@@ -707,7 +707,7 @@ class HospitalityHelper extends AbstractHelper
         $modifier = $this->replHierarchyHospDealLineRepository->getList(
             $this->searchCriteriaBuilder
                 ->addFilter('Description', $value)
-                ->addFilter('ItemNo', $itemId)
+                ->addFilter('DealNo', $itemId)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
