@@ -695,6 +695,25 @@ class HospitalityHelper extends AbstractHelper
         return $modifier->getItems();
     }
 
+    /**
+     * Get Deal Lines by description
+     *
+     * @param $value
+     * @param $itemId
+     * @return mixed
+     */
+    public function getDealLineByDescription($value, $itemId)
+    {
+        $modifier = $this->replHierarchyHospDealLineRepository->getList(
+            $this->searchCriteriaBuilder
+                ->addFilter('Description', $value)
+                ->addFilter('DealNo', $itemId)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
 
     /**
      * Get custom options from quote item
@@ -706,7 +725,6 @@ class HospitalityHelper extends AbstractHelper
     {
         return $this->configurationHelper->getCustomOptions($quoteItem);
     }
-
 
     /**
      * @param $recipeNo
@@ -723,7 +741,6 @@ class HospitalityHelper extends AbstractHelper
 
         return $modifier->getItems();
     }
-
 
     /**
      * @param $store
