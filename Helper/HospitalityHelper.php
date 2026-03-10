@@ -1126,6 +1126,17 @@ class HospitalityHelper extends AbstractHelper
                 $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
             }
             $this->orderResourceModel->save($order);
+            $reloadedOrder = $this->orderRepository->get($order->getEntityId());
+            if (!$reloadedOrder->getEmailSent()) {
+               $this->orderSender->send($order);
+                $this->_logger->info(
+                    sprintf(
+                        'Order confirmation email sent for order #%s (LS Order ID: %s)',
+                        $order->getIncrementId(),
+                        $order->getData('ls_order_id') ?: 'N/A'
+                    )
+                );
+            }
         }
 
         return $resultArray;
