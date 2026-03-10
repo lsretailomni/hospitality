@@ -191,10 +191,11 @@ class CheckAvailability
                         $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                     && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX
                 ) {
+                    $itemId = $option->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
                     $qty      = 1;
                     $modifier = current($this->hospitalityHelper->getModifierByDescription($option['value']));
                     $source   = $modifier ?:
-                        current($this->hospitalityHelper->getDealLineByDescription($option['value']));
+                        current($this->hospitalityHelper->getDealLineByDescription($option['value'], $itemId));
                     $modifierItemId = "";
                     $unitOfMeasure  = "";
                     if ($source) {
@@ -337,13 +338,15 @@ class CheckAvailability
             if ($customOption->getValues() == null) {
                 return $customOption;
             }
+            $itemId = $customOption->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
             $storeId = $this->lsr->getCurrentStoreId();
             $checkAvailabilityCollection = $this->checkCatalogAvailability($storeId);
             foreach ($customOption->getValues() as &$value) {
                 $modifierItemId = "";
                 $unitOfMeasure  = "";
                 $modifier = current($this->hospitalityHelper->getModifierByDescription($value['title']));
-                $source   = $modifier ?: current($this->hospitalityHelper->getDealLineByDescription($value['title']));
+                $source   = $modifier ?:
+                    current($this->hospitalityHelper->getDealLineByDescription($value['title'], $itemId));
 
                 if ($source) {
                     $modifierItemId = $modifier ? $source->getTriggerCode() : $source->getItemNo();
@@ -379,9 +382,10 @@ class CheckAvailability
         if (!$customOption) {
             return $customOption;
         }
-
+        $itemId = $customOption->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
         $modifier = current($this->hospitalityHelper->getModifierByDescription($customOption['title']));
-        $source   = $modifier ?: current($this->hospitalityHelper->getDealLineByDescription($customOption['title']));
+        $source   = $modifier ?:
+            current($this->hospitalityHelper->getDealLineByDescription($customOption['title'], $itemId));
         $modifierItemId = "";
         $unitOfMeasure  = "";
         if ($source) {

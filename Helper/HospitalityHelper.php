@@ -699,12 +699,15 @@ class HospitalityHelper extends AbstractHelper
      * Get Deal Lines by description
      *
      * @param $value
+     * @param $itemId
      * @return mixed
      */
-    public function getDealLineByDescription($value)
+    public function getDealLineByDescription($value, $itemId)
     {
         $modifier = $this->replHierarchyHospDealLineRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('Description', $value)
+            $this->searchCriteriaBuilder
+                ->addFilter('Description', $value)
+                ->addFilter('ItemNo', $itemId)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
