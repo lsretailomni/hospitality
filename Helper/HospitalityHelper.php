@@ -580,12 +580,15 @@ class HospitalityHelper extends AbstractHelper
      * Get Deal Lines by description
      *
      * @param $value
+     * @param $itemId
      * @return mixed
      */
-    public function getDealLineByDescription($value)
+    public function getDealLineByDescription($value, $itemId)
     {
         $modifier = $this->replHierarchyHospDealLineRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('Description', $value)
+            $this->searchCriteriaBuilder
+                ->addFilter('Description', $value)
+                ->addFilter('DealNo', $itemId)
                 ->setPageSize(1)->setCurrentPage(1)
                 ->create()
         );
@@ -1359,6 +1362,20 @@ class HospitalityHelper extends AbstractHelper
         $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
         return ($magentoOrder) ? $magentoOrder->getData('pickup_date_timeslot') : '';
     }
+
+    /**
+     * Get ls_order_id given document_id
+     *
+     * @param string $documentId
+     * @return mixed
+     */
+    public function getLsOrderIdByDocumentId($documentId)
+    {
+        $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
+        $lsOrderId = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
+        return !empty($lsOrderId) ? $lsOrderId : $documentId;
+    }
+
 
     /**
      * Get order pickup date

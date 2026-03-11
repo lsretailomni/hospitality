@@ -96,4 +96,11 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <!-- Plugin on SyncInventory -->
+    <type name="Ls\Replication\Cron\SyncInventory">
+        <plugin name="ls_hospitality_sync_inventory"
+                type="Ls\Hospitality\Plugin\Replication\Cron\SyncInventoryPlugin"
+                sortOrder="10"/>
+    </type>
 </config>

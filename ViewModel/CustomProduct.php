@@ -13,41 +13,17 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 class CustomProduct implements ArgumentInterface
 {
     /**
-     * @var LSRModel
-     */
-    public $lsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var Repository
-     */
-    public $assetRepository;
-
-    /**
-     * @var CheckAvailability
-     */
-    public $checkAvailability;
-
-    /**
      * @param LSRModel $lsr
      * @param HospitalityHelper $hospitalityHelper
      * @param CheckAvailability $checkAvailability
      * @param Repository $assetRepository
      */
     public function __construct(
-        LSRModel $lsr,
-        HospitalityHelper $hospitalityHelper,
-        CheckAvailability $checkAvailability,
-        Repository $assetRepository
+        public LSRModel $lsr,
+        public HospitalityHelper $hospitalityHelper,
+        public CheckAvailability $checkAvailability,
+        public Repository $assetRepository
     ) {
-        $this->lsr               = $lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->assetRepository   = $assetRepository;
-        $this->checkAvailability = $checkAvailability;
     }
 
     /**

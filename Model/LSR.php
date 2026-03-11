@@ -17,6 +17,7 @@ class LSR extends \Ls\Core\Model\LSR
     public const LSR_RECIPE_PREFIX = 'ls_rec';
     public const LS_ORDER_COMMENT = 'ls_order_comment';
     public const LS_QR_CODE_ORDERING = 'ls_qr_code_ordering';
+    const LS_CURRENT_AVAILABILITY_ATTRIBUTE = 'lsr_current_availability'; //unavailable = 1, available = 0
 
     //Hospitality configuration
     public const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
