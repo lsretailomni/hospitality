@@ -67,6 +67,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product\Url;
 use Zend_Db_Select_Exception;
+use Magento\Sales\Model\ResourceModel\Order;
 
 /**
  * Useful helper functions for Hospitality
@@ -155,6 +156,7 @@ class HospitalityHelper extends AbstractHelper
         public ImageHelper $imageHelper,
         public Url $productUrlBuilder,
         public CacheHelper $cacheHelper,
+        public Order $orderResourceModel,
     ) {
         parent::__construct($context);
     }
@@ -1784,5 +1786,65 @@ class HospitalityHelper extends AbstractHelper
     {
         $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
         $this->cacheHelper->removeCachedContent($cacheKey);
+    }
+
+    /**
+     * Do housekeeping for given order
+     *
+     * @param OrderInterface $order
+     * @return void
+     * @throws NoSuchEntityException|GuzzleException
+     */
+    public function doHouseKeepingForGivenOrder(OrderInterface $order)
+    {
+        if ($this->lsr->isHospitalityStore($order->getStoreId())) {
+            $this->saveHospOrderId($order);
+            $this->clearCheckAvailabilityCachedContent($order->getStoreId());
+            $productIds = [];
+            foreach ($order->getAllVisibleItems() as $item) {
+                $productIds[] = $item->getProductId();
+            }
+
+            $this->clearFpcCacheForGivenProducts($productIds);
+        }
+    }
+
+    /**
+     * Clear FPC cache for given products
+     *
+     * @param array $productIds
+     * @return void
+     */
+    public function clearFpcCacheForGivenProducts($productIds)
+    {
+        $this->replicationHelper->flushFpcCacheAgainstIds($productIds);
+    }
+
+    /**
+     * Set hospitality order id
+     *
+     * @param OrderInterface $order
+     * @return void
+     * @throws NoSuchEntityException|GuzzleException
+     */
+    public function saveHospOrderId(OrderInterface $order)
+    {
+        try {
+            $documentId = $order->getDocumentId();
+
+            if ($documentId) {
+                $this->lsr->setStoreId($order->getStoreId());
+                $webStore      = $this->lsr->getActiveWebStore();
+                $statusDetails = $this->getKitchenOrderStatusDetails($documentId, $webStore);
+
+                if (!empty($statusDetails) && isset($statusDetails[0]['q_counter'])) {
+                    $receiptNo = $statusDetails[0]['q_counter'];
+                    $order->setData('ls_order_id', $receiptNo);
+                    $this->orderResourceModel->save($order);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
+        }
     }
 }
