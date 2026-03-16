@@ -28,6 +28,7 @@ use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use \Ls\Omni\Helper\CacheHelper;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -117,6 +118,7 @@ class HospitalityHelper extends AbstractHelper
      * @param CustomerSession $customerSession
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
+     * @param CacheHelper $cacheHelper
      */
     public function __construct(
         Context $context,
@@ -152,6 +154,7 @@ class HospitalityHelper extends AbstractHelper
         public CustomerSession $customerSession,
         public ImageHelper $imageHelper,
         public Url $productUrlBuilder,
+        public CacheHelper $cacheHelper,
     ) {
         parent::__construct($context);
     }
@@ -1769,5 +1772,17 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return $itemsArray;
+    }
+
+    /**
+     * Clear check availability cached content
+     *
+     * @param int $storeId
+     * @return void
+     */
+    public function clearCheckAvailabilityCachedContent($storeId)
+    {
+        $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
+        $this->cacheHelper->removeCachedContent($cacheKey);
     }
 }
