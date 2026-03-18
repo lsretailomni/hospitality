@@ -338,7 +338,7 @@ class CheckAvailability
 
         $modifierItemId = "";
         $unitOfMeasure  = "";
-        $itemId         = $customOption->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+        $itemId         = $this->getItemIdFromCustomOption($customOption);
         $modifier       = current($this->hospitalityHelper->getModifierByDescription($customOption['title']));
         $source         = $modifier ?: current($this->hospitalityHelper->getDealLineByDescription($customOption['title'], $itemId));
 
@@ -363,5 +363,30 @@ class CheckAvailability
         }
 
         return true;
+    }
+
+    /**
+     * Get LS Item ID from custom option array using option_id to find parent product
+     *
+     * @param array $customOptionValue
+     * @return string|null
+     */
+    private function getItemIdFromCustomOption($customOptionValue)
+    {
+        try {
+            if (!empty($customOptionValue['option_id'])) {
+                $optionCollection = $this->optionCollectionFactory->create();
+                $optionCollection->addFieldToFilter('option_id', $customOptionValue['option_id']);
+                $option = $optionCollection->getFirstItem();
+
+                if ($option && $option->getProductId()) {
+                    $product = $this->productRepository->getById($option->getProductId());
+                    return $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
+        return null;
     }
 }
