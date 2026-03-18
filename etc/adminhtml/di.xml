@@ -103,4 +103,7 @@
                 type="Ls\Hospitality\Plugin\Replication\Cron\SyncInventoryPlugin"
                 sortOrder="10"/>
     </type>
+    <type name="Ls\Omni\Controller\Adminhtml\Order\Request">
+        <plugin name="ls_hospitality_order_request_plugin" type="Ls\Hospitality\Plugin\Omni\Controller\Adminhtml\RequestPlugin" sortOrder="10"/>
+    </type>
 </config>

@@ -45,4 +45,7 @@
                 type="Ls\Hospitality\Plugin\InventoryGraphQl\Model\Resolver\StockStatusProviderPlugin"
                 sortOrder="10"/>
     </type>
+    <type name="Ls\Omni\Observer\OrderObserver">
+        <plugin name="ls_hospitality_order_observer" type="Ls\Hospitality\Plugin\Omni\Observer\OrderObserverPlugin" sortOrder="100"/>
+    </type>
 </config>

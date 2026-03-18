@@ -32,7 +32,7 @@ class CheckAvailability
      * @param CacheHelper $cacheHelper
      * @param OptionCollectionFactory $optionCollectionFactory
      */
-     
+
     public function __construct(
         public ProductRepositoryInterface $productRepository,
         public LSR $lsr,
@@ -144,7 +144,7 @@ class CheckAvailability
                     && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX
                 ) {
                     $qty      = 1;
-                    $itemId   = $option->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                    $itemId   = $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
                     $modifier = current($this->hospitalityHelper->getModifierByDescription($option['value']));
                     $source   = $modifier ?:
                         current($this->hospitalityHelper->getDealLineByDescription($option['value'], $itemId));
@@ -166,7 +166,8 @@ class CheckAvailability
                         'product_name' => $item->getName(),
                         'qty' => $qty,
                         'is_modifier' => true,
-                        'code' => $code
+                        'code' => $code,
+                        'uom' => $unitOfMeasure,
                     ];
                 }
             }
@@ -219,7 +220,7 @@ class CheckAvailability
                                 $resultQty
                             );
                         }
-
+                        $this->hospitalityHelper->clearCheckAvailabilityCachedContent($this->lsr->getStoreId());
                         throw new ValidatorException(__($message));
                     }
                 }
@@ -296,7 +297,7 @@ class CheckAvailability
         if ($cachedData) {
             return $cachedData;
         }
-        
+
         $availabilityRequestArray = [];
         $responseResult           = $this->availability(
             $webStore,

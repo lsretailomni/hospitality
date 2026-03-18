@@ -5,4 +5,7 @@
         <plugin name="save_quote_as_virtual"
                 type="Ls\Hospitality\Plugin\Quote\Model\QuotePlugin"/>
     </type>
+    <type name="Ls\Omni\Observer\OrderObserver">
+        <plugin name="ls_hospitality_order_observer" type="Ls\Hospitality\Plugin\Omni\Observer\OrderObserverPlugin" sortOrder="100"/>
+    </type>
 </config>
