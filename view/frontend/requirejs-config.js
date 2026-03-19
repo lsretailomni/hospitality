@@ -1,12 +1,16 @@
 var config = {
     paths: {
-        'options-modal': 'Ls_Hospitality/js/options/modal'
+        'options-modal': 'Ls_Hospitality/js/options/modal',
+        'imageGrayscale': 'Ls_Hospitality/js/view/image-grayscale'
     },
     shim: {
         'options-modal': {
             deps: ['jquery']
         }
     },
+    deps: [
+        'Ls_Hospitality/js/view/image-grayscale'
+    ],
     config: {
         mixins: {
             'Magento_Checkout/js/view/shipping': {

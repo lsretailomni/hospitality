@@ -159,4 +159,9 @@
         <plugin name="validate_qty" type="Ls\Hospitality\Plugin\Magento\Quote\Model\Quote\ItemPlugin"
                 sortOrder="1"/>
     </type>
+    <type name="Magento\Catalog\Model\Product">
+        <plugin name="ls_hospitality_product_availability"
+                type="Ls\Hospitality\Plugin\Catalog\Model\ProductAvailabilityPlugin"
+                sortOrder="10"/>
+    </type>
 </config>

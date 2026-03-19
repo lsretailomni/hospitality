@@ -17,6 +17,7 @@ class LSR extends \Ls\Core\Model\LSR
     public const LSR_RECIPE_PREFIX = 'ls_rec';
     public const LS_ORDER_COMMENT = 'ls_order_comment';
     public const LS_QR_CODE_ORDERING = 'ls_qr_code_ordering';
+    const LS_CURRENT_AVAILABILITY_ATTRIBUTE = 'lsr_current_availability'; //unavailable = 1, available = 0
 
     //Hospitality configuration
     public const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
@@ -67,6 +68,9 @@ class LSR extends \Ls\Core\Model\LSR
     public const SC_ITEM_DEAL_HTML_JOB_CODE = 'repl_deal_html_translation';
     public const SC_SUCCESS_PROCESS_TRANSLATION = 'ls_mag/replication/success_process_translation';
     public const SC_PROCESS_TRANSLATION_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_translation';
+
+    //Cache Key
+    const LS_HOSP_CHECK_AVAILABILITY = 'LS_HOSP_CHECK_AVAILABILITY_';
 
     /**
      * Check service mode is enabled
