@@ -8,6 +8,22 @@
                     <item name="components" xsi:type="array">
                         <item name="checkout" xsi:type="array">
                             <item name="children" xsi:type="array">
+                                <item name="sidebar" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="summary" xsi:type="array">
+                                            <item name="children" xsi:type="array">
+                                                <item name="tips" xsi:type="array">
+                                                    <item name="component" xsi:type="string">Ls_Hospitality/js/view/tips</item>
+                                                    <item name="sortOrder" xsi:type="string">25</item>
+                                                    <item name="displayArea" xsi:type="string">summary</item>
+                                                    <item name="config" xsi:type="array">
+                                                        <item name="template" xsi:type="string">Ls_Hospitality/checkout/tips</item>
+                                                    </item>
+                                                </item>
+                                            </item>
+                                        </item>
+                                    </item>
+                                </item>
                                 <item name="steps" xsi:type="array">
                                     <item name="children" xsi:type="array">
                                         <item name="shipping-step" xsi:type="array">
@@ -82,6 +98,25 @@
                                             <item name="children" xsi:type="array">
                                                 <item name="payment" xsi:type="array">
                                                     <item name="children" xsi:type="array">
+                                                        <item name="renders" xsi:type="array">
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="tip_total" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Ls_Hospitality/js/view/checkout/summary/tip</item>
+                                                                    <item name="config" xsi:type="array">
+                                                                        <item name="template" xsi:type="string">Ls_Hospitality/checkout/summary/tip</item>
+                                                                    </item>
+                                                                    <item name="methods" xsi:type="array">
+                                                                        <item name="ls_tip_total_payment"
+                                                                              xsi:type="array">
+                                                                            <item name="isBillingAddressRequired"
+                                                                                  xsi:type="boolean">true
+                                                                            </item>
+                                                                        </item>
+                                                                    </item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
+
                                                         <item name="payments-list" xsi:type="array">
                                                             <item name="children" xsi:type="array">
                                                                 <item name="before-place-order" xsi:type="array">

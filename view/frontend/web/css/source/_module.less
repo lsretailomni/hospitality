@@ -170,6 +170,105 @@
     .ls-field-hide {
       display: none !important;
     }
+
+    // Tips UI styles for checkout
+    .ls-hospitality-tips {
+      margin: 14px 0 6px;
+
+      .ls-tips-label {
+        display: block;
+        font-weight: 600;
+        font-size: 1.05rem;
+        margin-bottom: 8px;
+        color: @text__color; // fallback to theme text color
+      }
+
+      .ls-tips-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .ls-tip-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        transition: all 0.12s ease-in-out;
+        font-size: 0.95rem;
+        color: #333;
+
+        input[type="radio"] {
+          width: 16px;
+          height: 16px;
+          margin: 0;
+        }
+
+        &:hover {
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+          transform: translateY(-1px);
+        }
+
+        &.active {
+          background: #f7fbff;
+          border-color: #b8d7ff;
+        }
+      }
+
+      .ls-tip-other {
+        display: inline-flex;
+        align-items: center;
+
+        input[type="text"] {
+          width: 120px;
+          padding: 6px 8px;
+          border: 1px solid #dcdcdc;
+          border-radius: 4px;
+          font-size: 0.95rem;
+        }
+      }
+    }
+
+    .ls-tip-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: 0.95rem;
+
+      .ls-tip-summary-label {
+        color: #777;
+        font-weight: 500;
+      }
+
+      .ls-tip-summary-value {
+        color: #111;
+        font-weight: 600;
+      }
+    }
+
+    // Responsive: stack options on small screens
+    .media-width('max', @screen__s) {
+      .ls-hospitality-tips {
+        .ls-tips-options {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .ls-tip-option {
+          width: 100%;
+        }
+
+        .ls-tip-other input[type="text"] {
+          width: 100%;
+        }
+      }
+    }
   }
 
   .ls-kitchen-order-status {
