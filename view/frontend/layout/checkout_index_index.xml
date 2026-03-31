@@ -20,6 +20,16 @@
                                                         <item name="template" xsi:type="string">Ls_Hospitality/checkout/tips</item>
                                                     </item>
                                                 </item>
+                                                <item name="totals" xsi:type="array">
+                                                    <item name="children" xsi:type="array">
+                                                        <item name="ls_tips_selected" xsi:type="array">
+                                                            <item name="component" xsi:type="string">
+                                                                Ls_Hospitality/js/view/totals/tips-selected
+                                                            </item>
+                                                            <item name="sortOrder" xsi:type="string">4</item>
+                                                        </item>
+                                                    </item>
+                                                </item>
                                             </item>
                                         </item>
                                     </item>

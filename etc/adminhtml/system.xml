@@ -130,17 +130,24 @@
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
                 
-                <field id="tips_enable" translate="label" type="select" sortOrder="1" showInDefault="1"
+                <field id="tips_enabled" translate="label" type="select" sortOrder="1" showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
                     <label>Enable Tips Feature</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>                
-                <field id="enable_custom_tips" translate="label" type="select" sortOrder="2"
+                <field id="tips_item_id" translate="label" type="text" sortOrder="2"
                        showInDefault="1"
                        showInWebsite="1" showInStore="1">
-                    <label>Enable Custom Tips</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <label>Tips Item Id</label>                    
+                    <depends>
+                        <field id="*/*/tips_enable">1</field>
+                    </depends>
+                </field>
+                <field id="tips_line_type" translate="label" type="text" sortOrder="3"
+                       showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Tips LineType</label>
                     <depends>
                         <field id="*/*/tips_enable">1</field>
                     </depends>
