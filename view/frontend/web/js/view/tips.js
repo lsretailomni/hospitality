@@ -11,15 +11,21 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Ls_Hospitality/checkout/tips'
+            template: 'Ls_Hospitality/checkout/tips',
+            tipsEnabled: false
         },
 
         initialize: function () {
             this._super();
 
+            // Check if tips are enabled via configuration
+            if (!this.tipsEnabled) {
+                return this;
+            }
+
             console.log('Ls_Hospitality/checkout/tips component initialized');
 
-            // Example options - replace or extend to load from server or checkout config
+            // Example options - replace to load from server or checkout config
             this.options = ko.observableArray([
                 {label: 'No tip', value: 0},
                 {label: '5%', value: 5},
@@ -83,7 +89,7 @@ define([
                         if (typeof callback === 'function') callback(null, res);
                     }).fail(function (err) {
                         console.warn('getTotalsAction failed after saveTip', err);
-                        // Attempt customerData reload anyway
+                        // Attempt customerData reload
                         try { customerData.reload(['cart', 'checkout-data'], true); } catch (e) { console.warn(e); }
                         if (typeof callback === 'function') callback(err, res);
                     });
@@ -93,7 +99,7 @@ define([
                 });
             }
 
-            // keep shared label updated
+            // save to quote on tip selection
             this.selected.subscribe(function (val) {
                 var amount = 0;
                 if (val === 'other') {
@@ -114,13 +120,12 @@ define([
                     if (err) {
                         console.error('Failed to save tip', err);
                         return;
-                    }
-                    // Single attempt to update totals and refresh customer-data
+                    }                    
                     updateTotals(res && res.grand_total !== undefined ? res.grand_total : undefined);
                 });
             });
 
-            // when custom value changes and 'other' selected, trigger save
+            // save on custom value selection
             this.customValue.subscribe(function (v) {
                 if (tipsState.selected() === 'other') {
                     var amount = parseFloat(v) || 0;

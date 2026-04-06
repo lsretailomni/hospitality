@@ -39,6 +39,9 @@ class LSR extends \Ls\Core\Model\LSR
     const DISABLE_INVENTORY_CHECKING = 'ls_mag/hospitality/disable_inventory_checking';
     const ENABLE_REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/enable_refresh_kitchen_status_interval';
     const REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/refresh_kitchen_status_interval';
+    const TIPS_ENABLE = 'ls_mag/hospitality/tips_enabled';
+    const TIPS_ITEM_ID = 'ls_mag/hospitality/tips_item_id';
+    const TIPS_LINE_TYPE = 'ls_mag/hospitality/tips_line_type';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
