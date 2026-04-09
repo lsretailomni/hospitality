@@ -11,8 +11,6 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -20,27 +18,6 @@ use Psr\Log\LoggerInterface;
  */
 class SaveTip extends Action implements HttpPostActionInterface
 {
-    /** @var JsonFactory */
-    private $resultJsonFactory;
-
-    /** @var RequestInterface */
-    public $request;
-
-    /** @var HospitalityHelper */
-    public $hospitalityHelper;
-
-    /** @var CheckoutSession */
-    private $checkoutSession;
-    
-    /** @var CartRepositoryInterface */
-    public $quoteRepository;
-
-    /** @var QuoteResource */
-    private $quoteResource;
-
-    /** @var LoggerInterface */
-    private $logger;
-
     /**
      * SaveTip constructor.
      *
@@ -49,28 +26,17 @@ class SaveTip extends Action implements HttpPostActionInterface
      * @param RequestInterface $request
      * @param HospitalityHelper $hospitalityHelper
      * @param CheckoutSession $checkoutSession
-     * @param CartRepositoryInterface $quoteRepository
-     * @param QuoteResource $quoteResource
      * @param LoggerInterface $logger
      */
     public function __construct(
-        Context $context,
-        JsonFactory $resultJsonFactory,
-        RequestInterface $request,
-        HospitalityHelper $hospitalityHelper,
-        CheckoutSession $checkoutSession,
-        CartRepositoryInterface $quoteRepository,
-        QuoteResource $quoteResource,
-        LoggerInterface $logger
+        public Context $context,
+        private JsonFactory $resultJsonFactory,
+        public RequestInterface $request,
+        public HospitalityHelper $hospitalityHelper,
+        public CheckoutSession $checkoutSession,
+        private LoggerInterface $logger
     ) {
         parent::__construct($context);
-        $this->resultJsonFactory = $resultJsonFactory;
-        $this->request = $request;
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->checkoutSession = $checkoutSession;
-        $this->quoteRepository = $quoteRepository;
-        $this->quoteResource = $quoteResource;
-        $this->logger = $logger;
     }
 
     /**
@@ -101,7 +67,6 @@ class SaveTip extends Action implements HttpPostActionInterface
             // Normalize numeric value
             $tipAmount = 0.0;
             if ($tipParam !== null && $tipParam !== '') {
-                // Ensure dot decimal and cast
                 $tipAmount = (float)str_replace([','], ['.'], $tipParam);
             }
 
@@ -121,63 +86,31 @@ class SaveTip extends Action implements HttpPostActionInterface
                     'message' => __('Quote not available')
                 ]);
             }
+            
+            $quote = $this->hospitalityHelper->saveTipsToQuote($quote, $tipAmount);
+            
+            if($quote) {
+                // Return success and updated totals to allow frontend to refresh summary
+                $grandTotal = (float)$quote->getGrandTotal();
+                $baseGrandTotal = (float)$quote->getBaseGrandTotal();
+                $savedTip = $quote->getData('ls_tip_amount');
+                $savedBaseTip = $quote->getData('base_ls_tip_amount');
 
-            // Save both ls_tip_amount
-            try {
-                $quote->setData('ls_tip_amount', $tipAmount);
-                $quote->setData('base_ls_tip_amount', $tipAmount);
-
-                // Ensure totals are recollected
-                $quote->collectTotals();
-
-                // Log before save
-                $this->logger->info('SaveTip: saving quote id=' . $quote->getId() . ' tip=' . $tipAmount);
-
-                // Save via repository first
-                $this->quoteRepository->save($quote);
-
-                // Also persist directly via resource model to ensure columns are written
-                try {
-                    $this->quoteResource->save($quote);
-                } catch (\Throwable $innerEx) {
-                    $this->logger->warning('Quote resource save failed: ' . $innerEx->getMessage());
-                }
-
-                // Persist specific columns (in case repository/resource mapping differs)
-                try {
-                    $this->quoteResource->saveAttribute($quote, 'ls_tip_amount');
-                    $this->quoteResource->saveAttribute($quote, 'base_ls_tip_amount');
-                } catch (\Throwable $innerEx) {
-                    // Log but continue
-                    $this->logger->warning('Could not save quote attribute via resource: ' . $innerEx->getMessage());
-                }
-
-                // Reload the quote from repository to ensure saved values are persisted
-                $quote = $this->quoteRepository->get($quote->getId());               
-
-            } catch (\Throwable $e) {
-                $this->logger->error('Failed saving tip to quote: ' . $e->getMessage());
+                return $resultJson->setData([
+                    'success' => true,
+                    'message' => __('Tip amount saved successfully.'),
+                    'tip' => $tipAmount,
+                    'saved_tip' => $savedTip,
+                    'saved_base_tip' => $savedBaseTip,
+                    'grand_total' => $grandTotal,
+                    'base_grand_total' => $baseGrandTotal
+                ]);
+            } else {   
                 return $resultJson->setData([
                     'success' => false,
-                    'message' => __('Failed to save tip to quote: %1', $e->getMessage())
+                    'message' => __('Could not save tip. Please try again later.')
                 ]);
-            }
-
-            // Return success and updated totals to allow frontend to refresh summary
-            $grandTotal = (float)$quote->getGrandTotal();
-            $baseGrandTotal = (float)$quote->getBaseGrandTotal();
-            $savedTip = $quote->getData('ls_tip_amount');
-            $savedBaseTip = $quote->getData('base_ls_tip_amount');
-
-            return $resultJson->setData([
-                'success' => true,
-                'message' => __('Tip amount saved successfully.'),
-                'tip' => $tipAmount,
-                'saved_tip' => $savedTip,
-                'saved_base_tip' => $savedBaseTip,
-                'grand_total' => $grandTotal,
-                'base_grand_total' => $baseGrandTotal
-            ]);
+            } 
         } catch (\Exception $e) {
             $this->logger->error('Exception in SaveTip: ' . $e->getMessage());
             return $resultJson->setData([

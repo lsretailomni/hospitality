@@ -41,6 +41,22 @@ type Mutation {
     setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
     setQRCodeParams(input: QrCodeInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetQRCodeParams") @doc(description: "Set QR code params to sync on placing order with Central.")
     removeQRCodeParams(input: QrCodeRemoveInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\RemoveQRCodeParams") @doc(description: "Remove QR code.")
+    saveTipsToQuote(input: SaveTipsInput): SaveTipsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SaveTipsToQuote") @doc(description: "Set tips amount to quote.")
+}
+
+input SaveTipsInput @doc(description: "Contain required input for saveing tips to quote") {
+    cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
+    tips_amount: String! @doc(description: "The tips amount to be saved.")
+}
+
+type SaveTipsOutput {
+    success: Boolean!
+    message: String
+    tip: String
+    saved_tip: String
+    saved_base_tip: String
+    grand_total: Float
+    base_grand_total: Float
 }
 
 type Query {
