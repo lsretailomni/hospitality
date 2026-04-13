@@ -29,6 +29,7 @@ type StoreConfig {
     ls_mag_hospitality_anonymous_order_address_attributes_required: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\Attributes") @doc(description: "To fetch anonymous order address attributes with information like required or optional.")
     ls_mag_hospitality_anonymous_store_info: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Store\\StoreInfo") @doc(description: "To fetch store information for anonymous ordering.")
     ls_mag_hospitality_remove_checkout_steps: Boolean @doc(description: "Indicates whether to remove checkout steps from QR code ordering")
+    ls_tips_enabled: Boolean @doc(description: "Indicates whether tips functionality is enabled (true) or disabled (false).")
 }
 
 type Order {
@@ -98,6 +99,7 @@ type SetLsOrderCommentsOnCartOutput @doc(description: "Contains details about th
 
 type Cart {
     ls_order_comment: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsOrderComment") @doc(description: "Ls Order Comment.")
+    ls_tip_amount: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsQuoteTipsAmount") @doc(description: "Ls Order Comment.")
 }
 
 type QrCodeParamsOutput {

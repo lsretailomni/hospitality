@@ -15,6 +15,7 @@ class LSR extends \Ls\Core\Model\LSR
     const LSR_ITEM_MODIFIER_PREFIX = 'ls_mod_';
     const LSR_RECIPE_PREFIX = 'ls_rec';
     const LS_ORDER_COMMENT = 'ls_order_comment';
+    const LS_TIP_AMOUNT = 'ls_tip_amount';
     const LS_QR_CODE_ORDERING = 'ls_qr_code_ordering';
     const LS_CURRENT_AVAILABILITY_ATTRIBUTE = 'lsr_current_availability'; //unavailable = 1, available = 0
 

@@ -25,6 +25,7 @@ use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use \Ls\Omni\Helper\StoreHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Catalog\Api\Data\ProductInterface;
@@ -250,6 +251,11 @@ class HospitalityHelper extends AbstractHelper
     public $quoteRepository;
 
     /**
+     * @var StoreHelper
+     */
+    public $storeHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -286,6 +292,9 @@ class HospitalityHelper extends AbstractHelper
      * @param Order $orderResourceModel
      * @param OrderSender $orderSender
      * @param CacheHelper $cacheHelper
+     * @param LoggerInterface $logger
+     * @param CartRepositoryInterface $quoteRepository
+     * @param StoreHelper $storeHelper
      */
     public function __construct(
         Context $context,
@@ -325,8 +334,8 @@ class HospitalityHelper extends AbstractHelper
         OrderSender $orderSender,
         CacheHelper $cacheHelper,
         LoggerInterface $logger,
-        CartRepositoryInterface $quoteRepository
-        
+        CartRepositoryInterface $quoteRepository,
+        StoreHelper $storeHelper        
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -366,6 +375,7 @@ class HospitalityHelper extends AbstractHelper
         $this->cacheHelper                                = $cacheHelper;
         $this->logger                                     = $logger;
         $this->quoteRepository                            = $quoteRepository;
+        $this->storeHelper                                = $storeHelper;
     }
 
     /**
@@ -2160,7 +2170,6 @@ class HospitalityHelper extends AbstractHelper
      */
     public function saveTipsToQuote($quote, $tipAmount)
     {
-        
         // Save both ls_tip_amount
         try {
             $quote->setData('ls_tip_amount', $tipAmount);
@@ -2182,5 +2191,16 @@ class HospitalityHelper extends AbstractHelper
         }
         
         return $quote;
+    }
+
+    /**
+     * @param $salesType
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function getTipsSuggestionsFromStore($salesType)
+    {
+        $webStore      = $this->lsr->getActiveWebStore();
+        $store         = $this->storeHelper->getStore($this->lsr->getStoreId());
     }
 }

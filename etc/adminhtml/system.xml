@@ -132,13 +132,13 @@
                 
                 <field id="tips_enabled" translate="label" type="select" sortOrder="51" showInDefault="0"
                        showInWebsite="1"
-                       showInStore="0">
+                       showInStore="1">
                     <label>Enable Tips Feature</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>                
                 <field id="tips_item_id" translate="label" type="text" sortOrder="52"
                        showInDefault="0"
-                       showInWebsite="1" showInStore="0">
+                       showInWebsite="1" showInStore="1">
                     <label>Tips Item Id</label>                    
                     <depends>
                         <field id="ls_mag/hospitality/tips_enabled">1</field>
@@ -146,7 +146,7 @@
                 </field>
                 <field id="tips_line_type" translate="label" type="text" sortOrder="54"
                        showInDefault="0"
-                       showInWebsite="1" showInStore="0">
+                       showInWebsite="1" showInStore="1">
                     <label>Tips LineType</label>
                     <depends>
                         <field id="ls_mag/hospitality/tips_enabled">1</field>

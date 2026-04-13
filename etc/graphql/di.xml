@@ -9,7 +9,7 @@
     </type>
     <type name="Magento\StoreGraphQl\Model\Resolver\Store\StoreConfigDataProvider">
         <arguments>
-            <argument name="extendedConfigData">
+            <argument name="extendedConfigData" xsi:type="array">
                 <item name="ls_mag_hospitality_service_mode_status" xsi:type="string">ls_mag/hospitality/service_mode_status</item>
                 <item name="ls_mag_hospitality_service_mode_options" xsi:type="string">ls_mag/hospitality/service_mode_options</item>
                 <item name="ls_mag_hospitality_order_tracking" xsi:type="string">ls_mag/hospitality/order_tracking</item>
@@ -24,6 +24,7 @@
                 <item name="ls_mag_hospitality_anonymous_order_enabled" xsi:type="string">ls_mag/hospitality/anonymous_order_enabled</item>
                 <item name="ls_mag_hospitality_anonymous_order_address_attributes_required" xsi:type="string">ls_mag/hospitality/anonymous_order_address_attributes_required</item>
                 <item name="ls_mag_hospitality_remove_checkout_steps" xsi:type="string">ls_mag/hospitality/remove_checkout_steps</item>
+                <item name="ls_tips_enabled" xsi:type="string">ls_mag/hospitality/tips_enabled</item>
             </argument>
         </arguments>
     </type>
