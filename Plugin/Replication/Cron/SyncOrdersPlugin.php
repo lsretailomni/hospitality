@@ -41,15 +41,16 @@ class SyncOrdersPlugin
      * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper,
-        OrderSender $orderSender,
-        LoggerInterface $logger,
+        HospitalityHelper        $hospitalityHelper,
+        OrderSender              $orderSender,
+        LoggerInterface          $logger,
         OrderRepositoryInterface $orderRepository
-    ) {
+    )
+    {
         $this->hospitalityHelper = $hospitalityHelper;
-        $this->orderSender       = $orderSender;
-        $this->logger            = $logger;
-        $this->orderRepository   = $orderRepository;
+        $this->orderSender = $orderSender;
+        $this->logger = $logger;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -62,7 +63,6 @@ class SyncOrdersPlugin
      */
     public function afterExecute(SyncOrders $subject, $result)
     {
-        // Process orders that were just synced
         $orders = $this->hospitalityHelper->getOrdersWithDocumentIdWithoutLsOrderId($subject->store->getId());
 
         if (!empty($orders)) {
@@ -70,6 +70,30 @@ class SyncOrdersPlugin
                 $this->hospitalityHelper->doHouseKeepingForGivenOrder($order);
             }
         }
+
+        $pendingEmailOrders = $this->hospitalityHelper->getOrdersWithDocumentIdWithoutEmailSent(
+            $subject->store->getId()
+        );
+
+        if (!empty($pendingEmailOrders)) {
+            foreach ($pendingEmailOrders as $order) {
+                try {
+                    $this->orderSender->send($order);
+                    $order->addCommentToStatusHistory(
+                        __('Order confirmation email sent via cron order #%1 (LS Order ID: %2)',
+                            $order->getIncrementId(),
+                            $order->getData('ls_order_id') ?: 'N/A'
+                        )
+                    )->setIsCustomerNotified(true);
+                } catch (\Exception $e) {
+                    $order->addCommentToStatusHistory(
+                        __('Failed to send order confirmation email via cron: %1', $e->getMessage())
+                    )->setIsCustomerNotified(false);
+                }
+                $this->orderRepository->save($order);
+            }
+        }
+
         return $result;
     }
 }
