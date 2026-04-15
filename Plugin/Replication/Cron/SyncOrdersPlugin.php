@@ -41,16 +41,15 @@ class SyncOrdersPlugin
      * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
-        HospitalityHelper        $hospitalityHelper,
-        OrderSender              $orderSender,
-        LoggerInterface          $logger,
+        HospitalityHelper $hospitalityHelper,
+        OrderSender $orderSender,
+        LoggerInterface $logger,
         OrderRepositoryInterface $orderRepository
-    )
-    {
+    ) {
         $this->hospitalityHelper = $hospitalityHelper;
-        $this->orderSender = $orderSender;
-        $this->logger = $logger;
-        $this->orderRepository = $orderRepository;
+        $this->orderSender       = $orderSender;
+        $this->logger            = $logger;
+        $this->orderRepository   = $orderRepository;
     }
 
     /**
