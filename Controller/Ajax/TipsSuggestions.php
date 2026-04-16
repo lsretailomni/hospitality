@@ -32,10 +32,12 @@ class TipsSuggestions implements HttpGetActionInterface
         $result = $this->resultJsonFactory->create();
 
         try {
+            $tipsEnabled = (bool)$this->hospitalityHelper->isTipsEnabled();
             $suggestions = $this->hospitalityHelper->getTipsSuggestionsFromStore();
 
             return $result->setData([
                 'success' => true,
+                'enabled' => $tipsEnabled,
                 'suggestions' => is_array($suggestions) ? $suggestions : []
             ]);
         } catch (\Throwable $e) {

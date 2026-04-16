@@ -3,11 +3,15 @@
 <div class="ls-hospitality-tips">
     <label class="ls-tips-label">Tip</label>
     <div class="ls-tips-options">
-        <!-- ko foreach: options -->
-            <label class="ls-tip-option">
-                <input type="radio" name="ls_tip" data-bind="attr: {value: value}, checked: $parent.selected"/>
-                <span data-bind="text: label"></span>
-            </label>
+        <!-- ko foreach: tipOptions -->
+        <button
+                type="button"
+                data-bind="
+                text: label,
+                click: function () { $parent.selected(value); },
+                css: { selected: $parent.selected() === value }
+            ">
+        </button>
         <!-- /ko -->
         <div data-bind="visible: selected() === 'other'" class="ls-tip-other">
             <input type="text" placeholder="Enter amount" data-bind="value: customValue" />

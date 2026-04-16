@@ -2220,9 +2220,9 @@ class HospitalityHelper extends AbstractHelper
         }
 
         if ($shippingMethod !== null) {
-            $isClickCollect = ($shippingMethod == 'clickandcollect');
+            $isClickCollect = ($shippingMethod == 'clickandcollect_clickandcollect');
             if ($isClickCollect) {
-                $salesType = $this->lsr->getTakeAwaySalesType($order->getStore()->getWebsiteId());
+                $salesType = $this->lsr->getTakeAwaySalesType($this->getLSR()->getCurrentWebsiteId());
                 if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
                     $salesType = $qrCodeParams['sales_type'];
                 }
@@ -2253,13 +2253,17 @@ class HospitalityHelper extends AbstractHelper
                 'value' => 0,
                 'label' => "No Tips"
             ];
+            $otherSuggestions[] = [
+                'value' => 'other',
+                'label' => __('Other')
+            ];
             $data = $storeData->getHospTypes();
             
             foreach ($data as $item) {
 
                 $tip1 = (int)$item->getTip1Percentage();
                 $tip2 = (int)$item->getTip2Percentage();
-                $tip3 = (int)$item->getTip2Percentage();
+                $tip3 = (int)$item->getTip3Percentage();
                 
                 if(empty($item->getSalesType())) {                    
                     if ($tip1 > 0) {
@@ -2309,9 +2313,9 @@ class HospitalityHelper extends AbstractHelper
             }
             
             if(!empty($salesTypeTipsArray)){
-                return array_merge($tipsArray, $salesTypeTipsArray);
+                return array_merge($tipsArray, $salesTypeTipsArray, $otherSuggestions);
             }  else if (empty($salesTypeTipsArray) && !empty($storeTipsArray)) {
-                return array_merge($tipsArray, $storeTipsArray);
+                return array_merge($tipsArray, $storeTipsArray, $otherSuggestions);
             } else {
                 return [];
             }
