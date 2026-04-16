@@ -19,23 +19,21 @@ define([
             this._super();
 
             // Check if tips are enabled via configuration
-            if (!this.tipsEnabled) {
-                return this;
-            }
-
-            console.log('Ls_Hospitality/checkout/tips component initialized');
+            
 
             // Example options - replace to load from server or checkout config
-            this.options = ko.observableArray([
-                {label: 'No tip', value: 0},
-                {label: '5%', value: 5},
-                {label: '10%', value: 10},
-                {label: '15%', value: 15},
-                {label: 'Other', value: 'other'}
-            ]);
+            // this.options = ko.observableArray([
+            //     {label: 'No tip', value: 0},
+            //     {label: '5%', value: 5},
+            //     {label: '10%', value: 10},
+            //     {label: '15%', value: 15},
+            //     {label: 'Other', value: 'other'}
+            // ]);
 
+            this.options = ko.observableArray([]);
             this.selected = tipsState.selected;
             this.customValue = tipsState.customValue;
+            this.loadSuggestions();
             this.selectedLabel = ko.computed(function () {
                 var s = this.selected();
                 if (s === 'other') {
@@ -141,6 +139,32 @@ define([
             });
 
             return this;
+        },
+        loadSuggestions: function () {
+            if (!this.tipsEnabled) {
+                return this;
+            }
+            $.ajax({
+                url: '/ls_hospitality/ajax/tipssuggestions',
+                method: 'GET',
+                dataType: 'json'
+            }).done(function (res) {
+                self.tipsEnabled(!!res.enabled);
+                self.options(Array.isArray(res.suggestions) ? res.suggestions : []);
+            }).fail(function (err) {
+                console.warn('Unable to load tip suggestions', err);
+            });
+            
+            // var self = this;
+            //
+            // $.getJSON(urlBuilder.build('lshospitality/ajax/tipssuggestions'))
+            //     .done(function (response) {
+            //         self.tipsEnabled = !!response.enabled;
+            //         self.options(Array.isArray(response.suggestions) ? response.suggestions : []);
+            //     })
+            //     .fail(function () {
+            //         console.warn('Unable to load tip suggestions');
+            //     });
         }
     });
 });

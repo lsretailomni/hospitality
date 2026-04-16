@@ -2194,13 +2194,127 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isTipsEnabled()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        return $this->getLSR()->getStoreConfig(LSR::TIPS_ENABLE,$storeId);
+    }
+
+    /**
      * @param $salesType
      * @return void
      * @throws NoSuchEntityException
      */
-    public function getTipsSuggestionsFromStore($salesType)
+    public function getTipsSuggestionsFromStore()
     {
-        $webStore      = $this->lsr->getActiveWebStore();
-        $store         = $this->storeHelper->getStore($this->lsr->getStoreId());
+        $webStore       = $this->lsr->getActiveWebStore();
+        $quote          = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
+        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+
+        $qrCodeParams = $this->qrcodeHelperObject()->getQrCodeOrderingInSession();
+        if (!empty($qrCodeParams)) {
+            $qrCodeQueryString = http_build_query($qrCodeParams);
+        }
+
+        if ($shippingMethod !== null) {
+            $isClickCollect = ($shippingMethod == 'clickandcollect');
+            if ($isClickCollect) {
+                $salesType = $this->lsr->getTakeAwaySalesType($order->getStore()->getWebsiteId());
+                if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
+                    $salesType = $qrCodeParams['sales_type'];
+                }
+            } else {
+                $salesType = $this->getLSR()->getDeliverySalesType();
+            }
+            
+            $tips = $this->getTipsBySalesType($salesType);
+             return $tips;
+        }       
+        
+        
+    }
+
+    /**
+     * @param $salesType
+     * @return array|void
+     * @throws NoSuchEntityException
+     */
+    public function getTipsBySalesType($salesType)
+    {
+        $store     = $this->storeHelper->getStore($this->lsr->getStoreId());
+        $storeData = $this->storeHelper->getStore($this->lsr->getCurrentWebsiteId(), "","" ,"");
+        $salesTypeTipsArray = $storeTipsArray = [];
+        
+        if ($storeData) {
+            $tipsArray[] = [
+                'value' => 0,
+                'label' => "No Tips"
+            ];
+            $data = $storeData->getHospTypes();
+            
+            foreach ($data as $item) {
+
+                $tip1 = (int)$item->getTip1Percentage();
+                $tip2 = (int)$item->getTip2Percentage();
+                $tip3 = (int)$item->getTip2Percentage();
+                
+                if(empty($item->getSalesType())) {                    
+                    if ($tip1 > 0) {
+                        $storeTipsArray[] = [
+                            'value' => $tip1,
+                            'label' => $tip1 . '%'
+                        ];
+                    }
+
+                    if ($tip2 > 0) {
+                        $storeTipsArray[] = [
+                            'value' => $tip2,
+                            'label' => $tip2. '%'
+                        ];
+                    }
+
+                    if ($tip3 > 0) {
+                        $storeTipsArray[] = [
+                            'value' => $tip3,
+                            'label' => $tip3 . '%'
+                        ];
+                    }
+                }
+                
+                if($item->getSalesType() == $salesType) {
+                    if ($tip1 > 0) {
+                        $salesTypeTipsArray[] = [
+                            'value' => (int)$tip1,
+                            'label' => $tip1 . '%'
+                        ];
+                    }
+
+                    if ($tip2 > 0) {
+                        $salesTypeTipsArray[] = [
+                            'value' => $tip2,
+                            'label' => $tip2 . '%'
+                        ];
+                    }
+
+                    if ($tip3 > 0) {
+                        $salesTypeTipsArray[] = [
+                            'value' => $tip3,
+                            'label' => $tip3 . '%'
+                        ];
+                    }
+                }
+            }
+            
+            if(!empty($salesTypeTipsArray)){
+                return array_merge($tipsArray, $salesTypeTipsArray);
+            }  else if (empty($salesTypeTipsArray) && !empty($storeTipsArray)) {
+                return array_merge($tipsArray, $storeTipsArray);
+            } else {
+                return [];
+            }
+        }
     }
 }
