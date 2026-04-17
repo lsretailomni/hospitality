@@ -159,6 +159,7 @@ class OrderHelperPlugin
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
             $orderLinesArray = $subject->updateShippingAmount($orderLinesArray, $order);
+            $orderLinesArray = $this->updateTipsAmount($orderLinesArray, $order, $storeId);
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
@@ -170,6 +171,40 @@ class OrderHelperPlugin
         }
 
         return $request;
+    }
+
+    /**
+     * @param $orderLinesArray
+     * @param $order
+     * @param $storeId
+     * @return array
+     * @throws InvalidEnumException
+     */
+    public function updateTipsAmount($orderLinesArray, $order, $storeId)
+    {
+        $tipsEnabled        = $this->lsr->getStoreConfig(LSR::TIPS_ENABLE, $order->getStoreId());
+        $tipsItemId         = $this->lsr->getStoreConfig(LSR::TIPS_ITEM_ID, $order->getStoreId());
+        $tipsServiceItem    = $this->lsr->getStoreConfig(LSR::TIPS_LINE_TYPE, $order->getStoreId());
+        
+        if($tipsEnabled) {
+            $lsTipAmount = $order->getLsTipAmount();
+            $tipOrderLine = new Entity\OrderLine();
+            $tipOrderLine->setPrice($lsTipAmount);
+
+            $tipOrderLine
+                ->setAmount($lsTipAmount)
+                ->setStoreId($storeId)
+                ->setNetPrice($lsTipAmount)
+                ->setNetAmount($lsTipAmount)
+                ->setTaxAmount(0)
+                ->setItemId($tipsItemId)
+                ->setLineType($tipsServiceItem)
+                ->setQuantity(1)
+                ->setDiscountAmount(0);
+            array_push($orderLines, $tipOrderLine);
+        }
+
+        return $orderLines;
     }
 
     /**
