@@ -14,11 +14,13 @@ define([
         load: function () {
             var self = this;
 
+            console.log('tipsLoader.load called');
+
             self.isLoading(true);
             self.error(false);
 
             return $.ajax({
-                url: urlBuilder.build('/ls_hospitality/ajax/tipsSuggestions'),
+                url: urlBuilder.build('ls_hospitality/ajax/tipsSuggestions'),
                 type: 'GET',
                 dataType: 'json'
             }).done(function (response) {
@@ -30,7 +32,7 @@ define([
                     self.isLoaded(false);
                     self.error(true);
                 }
-            }).fail(function () {
+            }).fail(function (xhr) {
                 self.options([]);
                 self.isLoaded(false);
                 self.error(true);
