@@ -2,6 +2,20 @@
 /** @var  \Ls\Customer\Block\Order\Info $block */
 $magOrder = $block->getMagOrder();
 $status   = $block->getData('data');
+if(empty($status)) {
+    ?>
+    <div class="hosp-info-container">
+        <div class="block-content">
+            <div class="custom-box">
+            <strong class="box-title"><span><?= /* @escapeNotVerified */
+                    __('Status:') ?></span></strong>
+            <span><?= /* @escapeNotVerified */
+                __("Your order is currently processing. Please don't close this page. Once the order is processed 
+                you will see the required information for the order such as Order Id and Kitchen status."); ?></span>
+        </div>
+    </div>
+    <?php
+}
 foreach ($status as $statusInfo) {
     ?>
     <div class="hosp-info-container">
@@ -19,14 +33,14 @@ foreach ($status as $statusInfo) {
         <div class="block-content">
             <?php
             if (empty($statusInfo['status'])) {
-                $statusInfo['status'] = __('Kitchen status service is down. Please try again by refreshing the page.');
+                $statusInfo['status_description'] = __('Kitchen status service is down. Please try again by refreshing the page.');
             }
             ?>
             <div class="custom-box">
                 <strong class="box-title"><span><?= /* @escapeNotVerified */
                         __('Status:') ?></span></strong>
                 <span><?= /* @escapeNotVerified */
-                    $statusInfo['status']; ?></span>
+                     $statusInfo['status_description'];?></span>
             </div>
         </div>
         <?php if ($statusInfo['production_time'] > 0): ?>
@@ -68,9 +82,20 @@ foreach ($status as $statusInfo) {
                 <div class="custom-box">
                     <strong class="box-title"><span>
                 <?= /* @escapeNotVerified */
-                __('Queue Counter:') ?></span></strong>
+                __('Order Id:') ?></span></strong>
                     <span><?= /* @escapeNotVerified */
                         $statusInfo['q_counter']; ?></span>
+                </div>
+            </div>
+        <?php endif; ?>
+         <?php if ($statusInfo['receipt_no']): ?>
+            <div class="block-content">
+                <div class="custom-box">
+                    <strong class="box-title"><span>
+                <?= /* @escapeNotVerified */
+                __('Receipt No:') ?></span></strong>
+                    <span><?= /* @escapeNotVerified */
+                        $statusInfo['receipt_no']; ?></span>
                 </div>
             </div>
         <?php endif; ?>
@@ -93,10 +118,12 @@ foreach ($status as $statusInfo) {
                                 <tr>
                                     <td class="product-image">
                                     <span class="product-image-container">
+                                      <?php if ($line['imageUrl']): ?>
                                             <a href="<?= $line['productUrl'] ?>" target="_blank">
                                                 <img src="<?= $line['imageUrl'] ?>"
                                                      alt="<?= $block->escapeHtml($line['productName']) ?>">
                                             </a>
+                                      <?php endif; ?>
                                     </span>
                                         <div class="product-item-details">
                                             <a href="<?= $line['productUrl'] ?>" target="_blank">

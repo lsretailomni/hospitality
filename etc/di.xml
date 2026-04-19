@@ -159,9 +159,46 @@
         <plugin name="validate_qty" type="Ls\Hospitality\Plugin\Magento\Quote\Model\Quote\ItemPlugin"
                 sortOrder="1"/>
     </type>
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="ls_order_id" xsi:type="string">sales_order.ls_order_id</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
+        <plugin name="ls_update_order_email_modification" type="Ls\Hospitality\Plugin\Omni\Email\Sender\OrderSender"
+                sortOrder="2"/>
+    </type>
+    <type name="Magento\Sales\Model\Order\Email\Sender\InvoiceSender">
+        <plugin name="ls_update_invoice_email_modification" type="Ls\Hospitality\Plugin\Omni\Email\Sender\InvoiceSender"
+                sortOrder="2"/>
+    </type>
+    <type name="Magento\Sales\Model\Order\Email\Sender\ShipmentSender">
+        <plugin name="ls_update_shipment_email_modification" type="Ls\Hospitality\Plugin\Omni\Email\Sender\ShipmentSender"
+                sortOrder="2"/>
+    </type>
     <type name="Magento\Catalog\Model\Product">
         <plugin name="ls_hospitality_product_availability"
                 type="Ls\Hospitality\Plugin\Catalog\Model\ProductAvailabilityPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Api\GuestShippingInformationManagementInterface">
+        <plugin name="ls_hospitality_calculate_basket_guest"
+                type="Ls\Hospitality\Plugin\Api\ShippingInformationManagementInterfacePlugin" sortOrder="2"/>
+    </type>
+    <type name="Magento\Checkout\Api\ShippingInformationManagementInterface">
+        <plugin name="ls_hospitality_calculate_basket_customer"
+                type="Ls\Hospitality\Plugin\Api\ShippingInformationManagementInterfacePlugin" sortOrder="2"/>
+    </type>
+    <!-- Plugin for SyncOrders cron -->
+    <type name="Ls\Replication\Cron\SyncOrders">
+        <plugin name="ls_hospitality_sync_orders_plugin" type="Ls\Hospitality\Plugin\Replication\Cron\SyncOrdersPlugin" sortOrder="10"/>
+    </type>
+    <!-- Plugin on SyncInventory -->
+    <type name="Ls\Replication\Cron\SyncInventory">
+        <plugin name="ls_hospitality_sync_inventory"
+                type="Ls\Hospitality\Plugin\Replication\Cron\SyncInventoryPlugin"
                 sortOrder="10"/>
     </type>
 </config>

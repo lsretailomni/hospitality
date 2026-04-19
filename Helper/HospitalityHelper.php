@@ -888,112 +888,149 @@ class HospitalityHelper extends AbstractHelper
      * @return array
      * @throws NoSuchEntityException|GuzzleException
      */
-    public function getKitchenOrderStatusDetails(string $orderId, string $storeId)
+    public function getKitchenOrderStatusDetails($orderId, $storeId, $updateSession = true)
     {
-        $productionTime = $statusDescription = '';
+        $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = $receiptNo = '';
         $resultArray = [];
-        $order = $this->getOrderByDocumentId($orderId);
-        $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
-        $tableNo = '';
-        if ($qrcodeInfo) {
-            $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
-            $tableNo = $qrcodeParams['table_no'];
+        $order       = $this->getOrderByOrderId($orderId);
+        if (!empty($order)) {
+            $orderId = $order->getData('document_id');
         }
-        $response = $this->getKotStatus($orderId, $storeId);
-
-//        $estimatedTimeResponse = $this->getEstimatedTime($orderId, $storeId);
-
-        if (!empty($response)) {
-            if (is_array($orderHospStatus = $response->getKotstatus())) {
-                foreach ($orderHospStatus as $resp) {
-                    $status = $resp->getStatus();
-                    $kotStatusMapping = $this->lsr->kitchenStatusMapping();
-                    $counter = 0;
-                    foreach ($kotStatusMapping as $i => $kotStatus) {
-                        if ($counter == $resp->getStatus()) {
-                            $status = $i;
-                            break;
-                        }
-
-                        $counter++;
+        if (empty($order)) {
+            $order = $this->getOrderByDocumentId($orderId);
+        }
+        if (empty($order)) {
+            $order = $this->getOrderByMagId($orderId);
+            if ($order) {
+                $orderId = $order->getData('document_id');
+            }
+        }
+        if ($order) {
+            $qrcodeInfo = $order->getData(LSR::LS_QR_CODE_ORDERING);
+            if ($qrcodeInfo) {
+                $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
+                $tableNo      = $qrcodeParams['table_no'];
+            }
+            $itemQtyMap = [];
+            foreach ($order->getAllVisibleItems() as $orderItem) {
+                $itemId = $orderItem->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                if ($itemId) {
+                    if (!isset($itemQtyMap[$itemId])) {
+                        $itemQtyMap[$itemId] = 0;
                     }
-
-                    if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                        if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
-                            $productionTime = 0;
-                        }
-                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
-                    }
-
-                    $qCounter = $resp->getOrderid();
-                    $kotNo = $resp->getKotno();
-
-                    if ($this->lsr->displayEstimatedDeliveryTime()) {
-                        $productionTime = $resp->getKotprodtime();
-                    }
-                    $lines = $response->getKotLine();
-                    $itemIds = [];
-                    foreach ($lines as $line) {
-                        if ($line->getKotno() == $kotNo) {
-                            $itemIds[] = $line->getItemno();
-                        }
-                    }
-                    // Fetch product details once
-                    $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
-                    $productMap = [];
-                    foreach ($productsData as $product) {
-                        if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
-                            continue;
-                        }
-                        $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
-                            'productName' => $product->getName(),
-                            'imageUrl' => $this->getProductImageUrl($product),
-                            'imagePath' => $product->getImage(),
-                            'productUrl' => $this->productUrlBuilder->getUrl($product),
-                            'productUrlKey' => $product->getUrlKey()
-                        ];
-                    }
-
-                    $itemCounts = [];
-                    foreach ($lines as $line) {
-                        $itemId = $line->getItemno();
-                        if ($line->getKotno() == $kotNo) {
-                            if (!isset($itemCounts[$itemId])) {
-                                $itemCounts[$itemId] = 1;
-                            } else {
-                                $itemCounts[$itemId]++;
-                            }
-                        }
-                    }
-
-                    $linesData = [];
-                    foreach ($itemCounts as $itemId => $quantity) {
-                        if ($itemId) {
-                            $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
-                            $imageUrl = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
-                            $imagePath = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
-                            $linesData[] = [
-                                'itemId' => $itemId,
-                                'productName' => $productName,
-                                'imageUrl' => $imageUrl,
-                                'imagePath' => $imagePath,
-                                'quantity' => $quantity,
-                                'productUrl' => $productMap[$itemId]['productUrl'],
-                                'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
-                            ];
-                        }
-                    }
-                    $resultArray[] = [
-                        'status'             => $status,
-                        'status_description' => $statusDescription,
-                        'production_time'    => $productionTime,
-                        'q_counter'          => $qCounter,
-                        'kot_no'             => $kotNo,
-                        'lines'              => $linesData,
-                        'table_no'           => $tableNo
-                    ];
+                    $itemQtyMap[$itemId] += $orderItem->getQtyOrdered();
                 }
             }
+            $response = $this->getKotStatus($orderId, $storeId);
+
+            if (!empty($response)) {
+                if (is_array($orderHospStatus = $response->getKotstatus())) {
+                    foreach ($orderHospStatus as $resp) {
+                        $status           = $resp->getStatus();
+                        $kotStatusMapping = $this->lsr->kitchenStatusMapping();
+                        $counter          = 0;
+                        foreach ($kotStatusMapping as $i => $kotStatus) {
+                            if ($counter == $resp->getStatus()) {
+                                $status = $i;
+                                break;
+                            }
+
+                            $counter++;
+                        }
+
+                        if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                            if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                                $productionTime = 0;
+                            }
+                            $centralStatusMsg = $resp->getStatusMessage();
+                            if (!empty($centralStatusMsg)) {
+                                $statusDescription = __($centralStatusMsg);
+                            } else {
+                                $fallbackStatusMsg = $this->lsr->kitchenStatusMapping()[$status] ?? '';
+                                $statusDescription = __($fallbackStatusMsg);
+                            }
+                        }
+
+                        $qCounter = $resp->getOrderid();
+                        $kotNo    = $resp->getKotno();
+                        $receiptNo = $resp->getReceiptNo();
+                        if ($this->lsr->displayEstimatedDeliveryTime()) {
+                            $productionTime = $resp->getKotprodtime();
+                        }
+                        $lines   = $response->getKotLine();
+                        $itemIds = [];
+                        foreach ($lines as $line) {
+                            if ($line->getKotno() == $kotNo) {
+                                $itemIds[] = $line->getItemno();
+                            }
+                        }
+                        $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
+                        $productMap   = [];
+                        foreach ($productsData as $product) {
+                            if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+                                continue;
+                            }
+                            $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
+                                'productName'   => $product->getName(),
+                                'imageUrl'      => $this->getProductImageUrl($product),
+                                'imagePath'     => $product->getImage(),
+                                'productUrl'    => $this->productUrlBuilder->getUrl($product),
+                                'productUrlKey' => $product->getUrlKey()
+                            ];
+                        }
+
+                        $itemCounts = [];
+                        foreach ($lines as $line) {
+                            $itemId = $line->getItemno();
+                            if ($line->getKotno() == $kotNo) {
+                                if (!isset($itemCounts[$itemId])) {
+                                    $itemCounts[$itemId] = 1;
+                                } else {
+                                    $itemCounts[$itemId]++;
+                                }
+                            }
+                        }
+
+                        $linesData = [];
+                        foreach ($itemCounts as $itemId => $quantity) {
+                            if ($itemId) {
+                                $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                                $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
+                                $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
+                                $linesData[] = [
+                                    'itemId'        => $itemId,
+                                    'productName'   => $productName,
+                                    'imageUrl'      => $imageUrl,
+                                    'imagePath'     => $imagePath,
+                                    'quantity'      => (int)(isset($itemQtyMap[$itemId]) ? $itemQtyMap[$itemId] : $quantity),
+                                    'productUrl'    => $productMap[$itemId]['productUrl'],
+                                    'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                                ];
+                            }
+                        }
+                        $resultArray[] = [
+                            'status'             => $status,
+                            'status_description' => $statusDescription,
+                            'production_time'    => $productionTime,
+                            'q_counter'          => $qCounter,
+                            'kot_no'             => $kotNo,
+                            'lines'              => $linesData,
+                            'table_no'           => $tableNo,
+                            'receipt_no'         => $receiptNo
+                        ];
+                    }
+                }
+            }
+        }
+
+        if (!empty($resultArray) && isset($resultArray[0]['q_counter']) && empty($order->getLsOrderId())) {
+            $receiptNo = $resultArray[0]['q_counter'];
+            $order->setData('ls_order_id', $receiptNo);
+            if ($updateSession) {
+                $this->qrCodeHelper->getCheckoutSessionObject()->unsLastLsOrderId();
+                $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
+            }
+            $this->orderResourceModel->save($order);
         }
 
         return $resultArray;
@@ -1581,6 +1618,52 @@ class HospitalityHelper extends AbstractHelper
         return $order;
     }
 
+
+    /**
+     * Get orders by order id
+     *
+     * @param $documentId
+     * @param $all
+     * @return false|\Magento\Sales\Api\Data\OrderInterface|OrderSearchResultInterface | \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrderByOrderId($documentId)
+    {
+        try {
+            $order      = false;
+            $order      = $this->orderRepository->getList(
+                $this->searchCriteriaBuilder->addFilter('ls_order_id', $documentId)->create()
+            );
+            $orderArray = $order->getItems();
+            $order      = end($orderArray);
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
+
+        return $order;
+    }
+
+    /**
+     * Get order by magento order id
+     *
+     * @param $orderId
+     * @return false|OrderSearchResultInterface|mixed
+     */
+    public function getOrderByMagId($orderId)
+    {
+        try {
+            $order      = false;
+            $order      = $this->orderRepository->getList(
+                $this->searchCriteriaBuilder->addFilter('increment_id', $orderId)->create()
+            );
+            $orderArray = $order->getItems();
+            $order      = end($orderArray);
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
+
+        return $order;
+    }
+
     /**
      * Check is click and collect order
      *
@@ -1665,9 +1748,13 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getProductImageUrl($product)
     {
-        return $this->imageHelper->init($product, 'product_small_image')
-            ->setImageFile($product->getSmallImage())
-            ->getUrl();
+        if ($product->getSmallImage()) {
+            return $this->imageHelper->init($product, 'product_small_image')
+                ->setImageFile($product->getSmallImage())
+                ->getUrl();
+        }
+
+        return null;
     }
 
     /**
@@ -1846,5 +1933,69 @@ class HospitalityHelper extends AbstractHelper
         } catch (\Exception $e) {
             $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get orders with document_id set and ls_order_id null
+     *
+     * @param int $storeId
+     * @return \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrdersWithDocumentIdWithoutLsOrderId($storeId)
+    {
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('store_id', $storeId, 'eq')
+            ->addFilter('document_id', true, 'notnull')
+            ->addFilter('ls_order_id', true, 'null')
+            ->create();
+
+        return $this->orderRepository->getList($searchCriteria)->getItems();
+    }
+
+    /**
+     * Get orders with ls_order_id set and email not sent, within last 24 hours
+     *
+     * @param int $storeId
+     * @return \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrdersWithDocumentIdWithoutEmailSent($storeId)
+    {
+        $currentGmtDate     = $this->replicationHelper->getDatetime();
+        $twentyFourHoursAgo = $this->replicationHelper->dateTime->gmtDate(
+            LSR::DATE_FORMAT . ' H:i:s',
+            strtotime($currentGmtDate . ' -24 hours')
+        );
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('store_id', $storeId, 'eq')
+            ->addFilter('ls_order_id', true, 'notnull')
+            ->addFilter('email_sent', true, 'null')
+            ->addFilter('created_at', $twentyFourHoursAgo, 'gteq')
+            ->create();
+
+        return $this->orderRepository->getList($searchCriteria)->getItems();
+    }
+
+    /**
+     * Verifies the validity of basket data and determines if order creation should be disabled.
+     *
+     * @param mixed $basketData The basket data to be verified.
+     * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     * @throws NoSuchEntityException
+     */
+    public function verifyBasketSync($basketData)
+    {
+        if (!$this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+            return false;
+        }
+
+        $websiteId              = $this->lsr->getCurrentWebsiteId();
+        $disableOrderCreateFlag = $this->lsr->getWebsiteConfig(LSR::LS_DISABLE_ORDER_CREATE_ON_BASKET_FAIL, $websiteId);
+
+        if ($disableOrderCreateFlag == 1 && $basketData == null) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -27,6 +27,33 @@
                     <comment>Select how many Recipes you want to process in a single job</comment>
                 </field>
             </group>
+            <group id="ls_order_management">
+                <field id="disable_order_create_on_basket_fail"
+                       translate="label"
+                       type="select"
+                       sortOrder="7"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Block Order Creation on Basket Calculation Fail</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    </depends>
+                </field>
+                <field id="error_message_on_basket_fail"
+                       translate="label"
+                       type="text"
+                       sortOrder="8"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Error Message on Basket Calculation Fail</label>
+                    <depends>
+                        <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    </depends>
+                </field>
+            </group>
             <group id="hospitality"
                    translate="label"
                    type="text"

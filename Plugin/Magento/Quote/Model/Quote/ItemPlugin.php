@@ -4,9 +4,12 @@ namespace Ls\Hospitality\Plugin\Magento\Quote\Model\Quote;
 
 use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
+use \Ls\Core\Model\LSR as LSRAlias;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\Quote\Item;
+use Psr\Log\LoggerInterface;
 
 /**
  * Interceptor class to intercept quote_item and do current availability lookup
@@ -19,7 +22,9 @@ class ItemPlugin
      */
     public function __construct(
         public LSR $lsr,
-        public CheckAvailability $checkAvailability
+        public CheckAvailability $checkAvailability,
+        public LSRAlias $lsrAlias,
+        public LoggerInterface $logger
     ) {
     }
 
@@ -33,11 +38,21 @@ class ItemPlugin
      */
     public function afterAddQty(Item $subject, $result)
     {
-        if ($this->lsr->isLSR($this->lsr->getCurrentStoreId()) &&
-            (!$result->getParentItem()) &&
-            $this->lsr->isHospitalityStore()
-        ) {
-            $this->checkAvailability->validateQty(true, $result);
+        if ($this->lsr->isHospitalityStore()) {
+            if (!$this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+                $websiteId          = $this->lsrAlias->getCurrentWebsiteId();
+                $errMsg             = $this->lsrAlias->getWebsiteConfig(LSR::LS_ERROR_MESSAGE_ON_BASKET_FAIL, $websiteId);
+                $this->logger->critical($errMsg);
+                if ($this->lsrAlias->getDisableProcessOnBasketFailFlag()) {
+                    throw new InputException(
+                        __($errMsg)
+                    );
+                }
+            }
+
+            if (!$result->getParentItem()) {
+                $this->checkAvailability->validateQty(true, $result->getQty(), $result);
+            }
         }
 
         return $result;

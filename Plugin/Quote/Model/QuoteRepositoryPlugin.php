@@ -62,7 +62,9 @@ class QuoteRepositoryPlugin
 
             if (!empty($prefillAttributes)) {
                 $anonymousAddress = $this->hospitalityHelper->getAnonymousAddress($prefillAttributes);
-                if ($removeCheckoutStepEnabled) {
+                if ($removeCheckoutStepEnabled ||
+                    (!$removeCheckoutStepEnabled && $quote->getShippingAddress()->getShippingMethod() == 'clickandcollect_clickandcollect')
+                ) {
                     $anonymousAddress->setShippingMethod('clickandcollect_clickandcollect');
                     $webStore = $this->hospitalityLsr->getWebsiteConfig(
                         \Ls\Core\Model\LSR::SC_SERVICE_STORE,
