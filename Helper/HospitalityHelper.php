@@ -25,6 +25,8 @@ use \Ls\Replication\Model\ReplItemModifierRepository;
 use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use \Ls\Omni\Helper\StoreHelper;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
@@ -61,6 +63,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product\Url;
 use Magento\Sales\Model\ResourceModel\Order;
+use Psr\Log\LoggerInterface;
 use Zend_Db_Select_Exception;
 
 /**
@@ -238,6 +241,21 @@ class HospitalityHelper extends AbstractHelper
     public $cacheHelper;
 
     /**
+     * @var LoggerInterface
+     */
+    public $logger;
+
+    /**
+     * @var CartRepositoryInterface 
+     */
+    public $quoteRepository;
+
+    /**
+     * @var StoreHelper
+     */
+    public $storeHelper;
+
+    /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -274,6 +292,9 @@ class HospitalityHelper extends AbstractHelper
      * @param Order $orderResourceModel
      * @param OrderSender $orderSender
      * @param CacheHelper $cacheHelper
+     * @param LoggerInterface $logger
+     * @param CartRepositoryInterface $quoteRepository
+     * @param StoreHelper $storeHelper
      */
     public function __construct(
         Context $context,
@@ -311,7 +332,10 @@ class HospitalityHelper extends AbstractHelper
         Url $productUrlBuilder,
         Order $orderResourceModel,
         OrderSender $orderSender,
-        CacheHelper $cacheHelper
+        CacheHelper $cacheHelper,
+        LoggerInterface $logger,
+        CartRepositoryInterface $quoteRepository,
+        StoreHelper $storeHelper        
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -349,6 +373,9 @@ class HospitalityHelper extends AbstractHelper
         $this->orderResourceModel                         = $orderResourceModel;
         $this->orderSender                                = $orderSender;
         $this->cacheHelper                                = $cacheHelper;
+        $this->logger                                     = $logger;
+        $this->quoteRepository                            = $quoteRepository;
+        $this->storeHelper                                = $storeHelper;
     }
 
     /**
@@ -2162,5 +2189,48 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return true;
+    }
+
+    /**
+     * Saves the specified tip amount to the given quote and updates quote totals.
+     *
+     * @param \Magento\Quote\Model\Quote $quote The quote object to which the tip amount will be saved.
+     * @param float $tipAmount The tip amount to be added to the quote.
+     * @return \Magento\Quote\Model\Quote The updated quote object.
+     */
+    public function saveTipsToQuote($quote, $tipAmount)
+    {
+        // Save both ls_tip_amount
+        try {
+            $quote->setData('ls_tip_amount', $tipAmount);
+            $quote->setData('base_ls_tip_amount', $tipAmount);
+            $quote->collectTotals();
+
+            try {
+                $this->quoteRepository->save($quote);
+            } catch (\Throwable $ex) {
+                $this->logger->warning('Quote resource save failed: ' . $ex->getMessage());
+            }            
+
+            // Reload the quote from repository to ensure saved values are persisted
+            $quote = $this->quoteRepository->get($quote->getId());
+
+        } catch (\Throwable $e) {
+            $this->logger->warning('Failed to save tip to quote: ' . $e->getMessage());
+            return false;            
+        }
+        
+        return $quote;
+    }
+
+    /**
+     * @param $salesType
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function getTipsSuggestionsFromStore($salesType)
+    {
+        $webStore      = $this->lsr->getActiveWebStore();
+        $store         = $this->storeHelper->getStore($this->lsr->getStoreId());
     }
 }

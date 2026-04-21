@@ -1,0 +1,18 @@
+<!-- Tip selection block in checkout summary area -->
+<!-- ko if: tipsEnabled -->
+<div class="ls-hospitality-tips">
+    <label class="ls-tips-label">Tip</label>
+    <div class="ls-tips-options">
+        <!-- ko foreach: options -->
+            <label class="ls-tip-option">
+                <input type="radio" name="ls_tip" data-bind="attr: {value: value}, checked: $parent.selected"/>
+                <span data-bind="text: label"></span>
+            </label>
+        <!-- /ko -->
+        <div data-bind="visible: selected() === 'other'" class="ls-tip-other">
+            <input type="text" placeholder="Enter amount" data-bind="value: customValue" />
+        </div>
+    </div>
+</div>
+<!-- /ko -->
+
