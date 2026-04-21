@@ -10,6 +10,10 @@
         <column xsi:type="varchar" name="service_mode" nullable="true" comment="Service Mode"/>
         <column xsi:type="text" name="ls_order_comment" nullable="true" comment="Additional comment"/>
         <column xsi:type="text" name="ls_qr_code_ordering" nullable="true" comment="QR Coding Ordering"/>
+        <column xsi:type="varchar" name="ls_order_id" length="255" nullable="true" comment="Hospitality Order Id"/>
+    </table>
+    <table name="sales_order_grid" resource="sales" engine="innodb" comment="Sales Flat Order Grid">
+        <column xsi:type="varchar" name="ls_order_id" length="255" nullable="true" comment="Document Id"/>
     </table>
     <table name="catalog_product_option" resource="default" engine="innodb" comment="Catalog Product Option Table">
         <column xsi:type="varchar" name="swatch" nullable="true" length="100" comment="Option Image Path"/>
