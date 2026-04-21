@@ -51,7 +51,7 @@ class ItemPlugin
             }
 
             if (!$result->getParentItem()) {
-                $this->checkAvailability->validateQty(true, $result->getQty(), $result);
+                $this->checkAvailability->validateQty(true, $result);
             }
         }
 
