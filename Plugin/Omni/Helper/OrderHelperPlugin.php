@@ -128,11 +128,13 @@ class OrderHelperPlugin
             if ($shippingMethod !== null) {
                 $isClickCollect = $shippingMethod->getData('carrier_code') == 'clickandcollect';
                 if ($isClickCollect) {
-                    $salesType = $this->lsr->getTakeAwaySalesType();
+                    $salesType = $this->lsr->getTakeAwaySalesType($order->getStore()->getWebsiteId());
                     if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
                         $salesType = $qrCodeParams['sales_type'];
                     }
                     $oneListCalculateResponse->setSalesType($salesType);
+                } else {
+                    $oneListCalculateResponse->setSalesType($this->hospitalityHelper->getLSR()->getDeliverySalesType());
                 }
             }
 
@@ -151,7 +153,8 @@ class OrderHelperPlugin
                 ->setName($billToName)
                 ->setBillToName($billToName)
                 ->setExternalId($order->getIncrementId())
-                ->setAddress($shipToAddress);
+                ->setAddress($shipToAddress)
+                ->setDocumentRegTime($this->date->date($dateTimeFormat, $order->getCreatedAt()));
             $oneListCalculateResponse->setOrderPayments($orderPaymentArrayObject);
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
@@ -209,14 +212,15 @@ class OrderHelperPlugin
         $shipmentFeeId      = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $order->getStoreId());
 
         $shipmentTaxPercent = $subject->getShipmentTaxPercent($order->getStore());
-        $shippingAmount     = $order->getShippingAmount();
-
+        $shippingAmount     = $order->getShippingAmount();        
+        
         if (isset($shipmentTaxPercent) && $shippingAmount > 0) {
             $netPriceFormula = 1 + $shipmentTaxPercent / 100;
             $netPrice        = $subject->loyaltyHelper->formatValue($shippingAmount / $netPriceFormula);
             $taxAmount       = $subject->loyaltyHelper->formatValue($shippingAmount - $netPrice);
             // @codingStandardsIgnoreLine
             $shipmentOrderLine = new Entity\OrderHospLine();
+
             $shipmentOrderLine->setPrice($shippingAmount)
                 ->setAmount($shippingAmount)
                 ->setNetPrice($netPrice)
@@ -227,9 +231,9 @@ class OrderHelperPlugin
                 ->setQuantity(1)
                 ->setPriceModified(true)
                 ->setDiscountAmount($order->getShippingDiscountAmount());
+            
             array_push($orderLines, $shipmentOrderLine);
         }
-
         return $orderLines;
     }
 

@@ -1,12 +1,16 @@
 var config = {
     paths: {
-        'options-modal': 'Ls_Hospitality/js/options/modal'
+        'options-modal': 'Ls_Hospitality/js/options/modal',
+        'imageGrayscale': 'Ls_Hospitality/js/view/image-grayscale'
     },
     shim: {
         'options-modal': {
             deps: ['jquery']
         }
     },
+    deps: [
+        'Ls_Hospitality/js/view/image-grayscale'
+    ],
     config: {
         mixins: {
             'Magento_Checkout/js/view/shipping': {
@@ -17,6 +21,9 @@ var config = {
             },
             'Magento_Checkout/js/model/shipping-save-processor/payload-extender': {
                 'Ls_Hospitality/js/model/shipping-save-processor/default': true
+            },
+            'Magento_Ui/js/form/element/abstract': {
+                'Ls_Hospitality/js/form/element/region-text-mixin': true
             },
             'Magento_Ui/js/form/element/region': {
                 'Ls_Hospitality/js/form/element/region-mixin': true
@@ -29,6 +36,9 @@ var config = {
             },
             'Magento_Ui/js/view/messages': {
                 'Ls_Hospitality/js/view/messages-mixin': true
+            },
+            'Magento_Checkout/js/action/place-order': {
+                'Ls_Hospitality/js/mixin/order-comment-place-order-mixin' : true
             }
         }
     },

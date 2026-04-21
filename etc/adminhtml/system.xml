@@ -27,6 +27,33 @@
                     <comment>Select how many Recipes you want to process in a single job</comment>
                 </field>
             </group>
+            <group id="ls_order_management">
+                <field id="disable_order_create_on_basket_fail"
+                       translate="label"
+                       type="select"
+                       sortOrder="7"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Block Order Creation on Basket Calculation Fail</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    </depends>
+                </field>
+                <field id="error_message_on_basket_fail"
+                       translate="label"
+                       type="text"
+                       sortOrder="8"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Error Message on Basket Calculation Fail</label>
+                    <depends>
+                        <field id="ls_mag/ls_industry/ls_choose_industry">hospitality</field>
+                    </depends>
+                </field>
+            </group>
             <group id="hospitality"
                    translate="label"
                    type="text"
@@ -291,6 +318,31 @@
                         (Note: In order to work it properly in Magento admin under LS Retail -> Click and Collect -> Checkout Setting -> Show only those stores where all cart items are available configuration
                         should be set as Yes)
                     </comment>
+                </field>
+                <field id="enable_refresh_kitchen_status_interval"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="160"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Enable Auto Refresh Kitchen Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable automatic refresh of kitchen information</comment>
+                </field>
+                <field id="refresh_kitchen_status_interval"
+                       translate="label comment"
+                       type="text" sortOrder="170"
+                       showInWebsite="1"
+                       showInDefault="0"
+                       showInStore="1">
+                    <label>Auto Refresh Interval (seconds)</label>
+                    <comment>How often to refresh kitchen status information. Minimum 10 seconds.</comment>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <backend_model>Ls\Hospitality\Model\Config\Backend\RefreshInterval</backend_model>
+                    <depends>
+                        <field id="enable_refresh_kitchen_status_interval">1</field>
+                    </depends>
                 </field>
             </group>
         </section>

@@ -12,7 +12,13 @@
             "service_mode": true,
             "pickup_date_timeslot": true,
             "ls_order_comment": true,
-            "ls_qr_code_ordering": true
+            "ls_qr_code_ordering": true,
+            "ls_order_id": true
+        }
+    },
+    "sales_order_grid": {
+        "column": {
+            "ls_order_id": true
         }
     },
     "catalog_product_option": {

@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Helper;
 
+use Exception;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Model\ResourceModel\ReplStore\CollectionFactory;
 use Magento\Framework\Exception\CouldNotSaveException;
@@ -214,19 +215,20 @@ class QrCodeHelper extends AbstractHelper
     /**
      * Get QR Code Params from Quote
      *
-     * @param string $cartId
+     * @param $cartId
+     * @param $unserialize
      * @return array|bool|float|int|mixed|string|null
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getQrCode($cartId)
+    public function getQrCode($cartId, $unserialize = true)
     {
         $qrCodeParams = null;
         try {
             $quote              = $this->quoteRepository->getActive($cartId);
-            $qrCodeOrderingData = $quote->getData(LSR::LS_QR_CODE_ORDERING);
+            $qrCodeOrderingData = $quote->getData(LSR::LS_QR_CODE_ORDERING) ? $this->serializerJson->unserialize($quote->getData(LSR::LS_QR_CODE_ORDERING)) : '';
 
-            if (empty($qrCodeOrderingData) && $this->isPersistQrCodeEnabled()) {
-                $qrCodeOrderingData = $this->getQrCodeInCheckoutSession();
+            if (empty($qrCodeOrderingData)) {
+                $qrCodeOrderingData = $this->getQrCodeOrderingInSession();
                 if ($qrCodeOrderingData) {
                     $quote->setData(LSR::LS_QR_CODE_ORDERING, $this->serializerJson->serialize($qrCodeOrderingData));
                     $this->quoteRepository->save($quote);
@@ -234,10 +236,10 @@ class QrCodeHelper extends AbstractHelper
             }
 
             if ($qrCodeOrderingData) {
-                $qrCodeParams = $this->serializerJson->unserialize($qrCodeOrderingData);
+                $qrCodeParams = $unserialize ? $qrCodeOrderingData : $quote->getData(LSR::LS_QR_CODE_ORDERING);
             }
-        } catch (\Exception $e) {
-            throw new \Exception(__($e->getMessage()));
+        } catch (Exception $e) {
+            throw new Exception(__($e->getMessage()));
         }
 
         return $qrCodeParams;
@@ -303,13 +305,23 @@ class QrCodeHelper extends AbstractHelper
         $this->checkoutSession->setData(LSR::LS_QR_CODE_ORDERING, null);
     }
 
-   /**
-    * Get checkout session qr code ordering
-    *
-    * @return mixed
-    */
+    /**
+     * Get checkout session qr code ordering
+     *
+     * @return mixed
+     */
     public function getCheckoutSessionObject()
     {
         return $this->checkoutSession;
+    }
+
+    /**
+     * Get serialize json
+     *
+     * @return mixed
+     */
+    public function getSerializeJsonObject()
+    {
+        return $this->serializerJson;
     }
 }

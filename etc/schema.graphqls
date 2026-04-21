@@ -5,10 +5,12 @@ interface CustomizableOptionInterface {
 type CustomizableMultipleValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
+    is_available: Boolean @doc(description: "Indicates whether the option is available (true) or not (false).") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\IsOptionAvailable")
 }
 type CustomizableDropDownValue {
     swatch: String @doc(description: "Option Swatch Path") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\SwatchPath")
     ls_modifier_recipe_id: String @doc(description: "Fetch Receipe ID") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\LsReceipeId")
+    is_available: Boolean @doc(description: "Indicates whether the option is available (true) or not (false).") @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Product\\IsOptionAvailable")
 }
 
 type StoreConfig {
@@ -43,7 +45,7 @@ type Mutation {
 
 type Query {
     current_qr_code_params(cart_id: String @doc(description: "Cart ID.")): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\QrCodeParams") @doc(description: "Fetch current QR Code Params.")
-    fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): KitchenInformation @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
+    fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): [KitchenInformation] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
 }
 
 input QrCodeInput @doc(description: "Contain required input for setting qrcode") {
@@ -100,6 +102,18 @@ type KitchenInformation {
     pickup_time: String @doc(description: "Order pickup time.")
     queue_counter: String @doc(description: "Queue Counter.")
     kot_no: String @doc(description: "Kitchen Order Number.")
+    receipt_no: String @doc(description: "Receipt Number.")
+    order_items : [OrderItems] @doc(description : "Order Items.")
+}
+
+type OrderItems {
+    itemId: String @doc(description: "Order Item Id")
+    productName: String @doc(description: "Order Item Name")
+    imageUrl: String @doc(description: "Order Item Image Url")
+    imagePath: String @doc(description: "Order Item Image Path")
+    quantity: Int @doc(description: "Order Item Quantity")
+    productUrl: String @doc(description: "Order Item Url")
+    productUrlKey: String @doc(description: "Order Item Url Key")
 }
 
 type SalesEntryLine {

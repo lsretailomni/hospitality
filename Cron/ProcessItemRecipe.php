@@ -185,7 +185,6 @@ class ProcessItemRecipe
      */
     public function processItemRecipies()
     {
-        $coreConfigTableName = $this->replicationHelper->getGivenTableName('core_config_data');
         //TODO cover the delete scenario.
         $batchSize = $this->hospitalityHelper->getItemRecipeBatchSize();
         $filters   = [
@@ -195,7 +194,7 @@ class ProcessItemRecipe
         $criteria = $this->replicationHelper->buildCriteriaForArrayWithAlias(
             $filters,
             $batchSize,
-            1
+            false
         );
         $coreConfigTableName = $this->replicationHelper->getGivenTableName('core_config_data');
         /** @var Collection $collection */
@@ -207,8 +206,8 @@ class ProcessItemRecipe
             null,
             ['repl_item_recipe_id']
         );
+        $collection->getSelect()->order('main_table.IsDeleted ASC');
         $dataToProcess    = [];
-        $deleteSubCodeArr = [];
         if ($collection->getSize() > 0) {
             /** @var ReplItemRecipe $itemRecipe */
             foreach ($collection->getItems() as $itemRecipe) {
@@ -228,67 +227,52 @@ class ProcessItemRecipe
                                 '',
                                 $this->store->getId()
                             );
+                            $productOption = $this->customOptionFactory->create();
                             $existingOptions = $this->optionRepository->getProductOptions($product);
                             // check if Recipe is already included in the options.
-                            $isOptionExist         = false;
                             $ls_modifier_recipe_id = LSR::LSR_RECIPE_PREFIX;
                             if (!empty($existingOptions)) {
                                 foreach ($existingOptions as $existingOption) {
                                     if ($existingOption->getData('ls_modifier_recipe_id') == $ls_modifier_recipe_id) {
-                                        $isOptionExist = true;
                                         $productOption = $existingOption;
                                         break;
                                     }
                                 }
                             }
-                            if (!$isOptionExist) {
-                                /** @var ProductCustomOptionInterface $productOption */
-                                $productOption = $this->customOptionFactory->create();
-                            }
-                            $optionNeedsToBeUpdated = false;
-                            $isOptionValueDeleted   = false;
                             $optionData             = [];
                             /** @var ReplItemRecipe $optionValueData */
                             foreach ($optionArray as $optionValueData) {
                                 $existingOptionValues = $productOption->getValues();
-                                /**
-                                 * Dev Notes:
-                                 * For the Option Values, we are only checking the duplication based on title.
-                                 */
-                                $isOptionValueExist = false;
+                                $isOptionValueExist = $optionValueData->getIsDeleted() == 1;
                                 if (!empty($existingOptionValues)) {
                                     foreach ($existingOptionValues as $existingOptionValue) {
-                                        if (($existingOptionValue->getSortOrder() == $optionValueData->getSubCode())
+                                        if (($existingOptionValue->getSortOrder() == $optionValueData->getLineNo())
                                             && $optionValueData->getIsDeleted()
                                         ) {
-                                            $isOptionValueDeleted = true;
-                                            $isOptionValueExist   = true;
-                                            $deleteSubCodeArr[]   = $optionValueData->getCode() . "-" . $optionValueData->getSubCode();
-                                            break;
-                                        }
-                                    }
-
-                                    foreach ($existingOptionValues as $existingOptionValue) {
-                                        //unset the data if deleted item already in optionData
-                                        if (in_array($optionValueData->getCode() . "-" . $existingOptionValue->getSortOrder(), $deleteSubCodeArr)) {
-                                            unset($optionData['values'][$optionValueData->getCode() . "-" . $existingOptionValue->getSortOrder()]);
+                                            if (isset($optionData['values'][$optionValueData->getLineNo()])) {
+                                                unset($optionData['values'][$optionValueData->getLineNo()]);
+                                            }
+                                            $isOptionValueExist = true;
                                             continue;
                                         }
-                                        $optionData['values'][$optionValueData->getCode() . "-" . $existingOptionValue->getSortOrder()] = $existingOptionValue;
-                                        if ($existingOptionValue->getTitle() ==
-                                            $optionValueData->getDescription()) {
+                                        if ($existingOptionValue->getSku() ==
+                                            $optionValueData->getItemNo()) {
                                             $isOptionValueExist = true;
-                                            break;
+                                            $existingOptionValue->setSortOrder($optionValueData->getLineNo());
+                                            $existingOptionValue->setTitle($optionValueData->getDescription());
                                         }
+                                        $optionData['values'][$existingOptionValue->getSortOrder()] =
+                                            $existingOptionValue;
+                                        ksort($optionData['values']);
+                                        $optionData['title']    = "Exclude Ingredients";
                                     }
                                 }
                                 if (!$isOptionValueExist) {
-                                    $optionNeedsToBeUpdated = true;
                                     $optionValue            = $this->customOptionValueFactory->create();
                                     $optionValue->setTitle($optionValueData->getDescription())
                                         ->setPriceType('fixed')
                                         ->setSortOrder($optionValueData->getLineNo())
-                                        ->setSku($optionValueData->getSubCode())
+                                        ->setSku($optionValueData->getItemNo())
                                         ->setPrice(-$optionValueData->getExclusionPrice());
 
                                     if (!empty($optionValueData->getImageId())) {
@@ -309,57 +293,51 @@ class ProcessItemRecipe
                                     ->setIsUpdated(0);
 
                                 $this->replItemRecipeRepositoryInterface->save($optionValueData);
-                                //$this->logger->debug(var_export($optionValueData, true));
                             }
                             /**
                              * TODO set type dynamic based on minimum and maximum value
                              * set require based on minimum and maximum value
                              * set title based from first option text.
                              */
-                            if ($optionNeedsToBeUpdated || $isOptionValueDeleted) {
-                                try {
-                                    if ($productOption &&
-                                        (!array_key_exists('values', $optionData) ||
-                                            (array_key_exists('values', $optionData)
-                                                && count($optionData['values']) == 0)
+                            try {
+                                $productOption->setTitle($optionData['title'])
+                                    ->setPrice('')
+                                    ->setPriceType('fixed')
+                                    ->setValues($optionData['values'])
+                                    ->setIsRequire(0)
+                                    ->setType('multiple')
+                                    ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
+                                    ->setProductSku($itemSKU)
+                                    ->setSortOrder(99)
+                                    ->setSwatch(
+                                        $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
+                                            $optionData['values']
                                         )
-                                    ) {
-                                        //Remove custom option if all option values are deleted
-                                        $this->optionRepository->delete($productOption);
-                                    } else {
-                                        // check if Option
-                                        $productOption->setTitle($optionData['title'])
-                                            ->setPrice('')
-                                            ->setPriceType('fixed')
-                                            ->setValues($optionData['values'])
-                                            ->setIsRequire(0)
-                                            ->setType('multiple')
-                                            ->setData('ls_modifier_recipe_id', $ls_modifier_recipe_id)
-                                            ->setProductSku($itemSKU)
-                                            ->setSortOrder(99)
-                                            ->setSwatch(
-                                                $this->hospitalityHelper->getFirstAvailableOptionValueImagePath(
-                                                    $optionData['values']
-                                                )
-                                            );
-                                        $savedProductOption = $this->optionRepository->save($productOption);
-                                        $product->addOption($savedProductOption);
-                                        if (!$product->getHasOptions()) {
-                                            $product->setHasOptions(1);
-                                            $this->productRepository->save($product);
-                                        }
-                                    }
-                                } catch (Exception $e) {
-                                    $this->logger->error($e->getMessage());
-                                    $this->logger->error(
-                                        'Error while creating recipes for product ' . $itemSKU . ' for store ' . $this->store->getName()
                                     );
+                                $savedProductOption = $this->optionRepository->save($productOption);
+                                $product->addOption($savedProductOption);
+                                if (!$product->getHasOptions()) {
+                                    $product->setHasOptions(1);
+                                    $this->productRepository->save($product);
                                 }
+                            } catch (Exception $e) {
+                                $this->logger->error($e->getMessage());
+                                $this->logger->error(
+                                    sprintf(
+                                        'Error while saving custom option recipe for product %s for store %s',
+                                        $itemSKU,
+                                        $this->store->getName()
+                                    )
+                                );
                             }
                         } catch (Exception $e) {
                             $this->logger->error($e->getMessage());
                             $this->logger->error(
-                                'Error while creating modifiers for  ' . $itemSKU . ' for store ' . $this->store->getName()
+                                sprintf(
+                                    'Error while creating recipes for product %s for store %s',
+                                    $itemSKU,
+                                    $this->store->getName()
+                                )
                             );
                         }
                     }
@@ -369,7 +347,11 @@ class ProcessItemRecipe
             if ($remainingItems == 0) {
                 $this->cronStatus = true;
             }
-            $this->lsTables->resetSpecificCronData("repl_hierarchy_hosp_deal", $this->getScopeId(), $coreConfigTableName);
+            $this->lsTables->resetSpecificCronData(
+                "repl_hierarchy_hosp_deal",
+                $this->getScopeId(),
+                $coreConfigTableName
+            );
         } else {
             $this->cronStatus = true;
         }

@@ -16,6 +16,7 @@ class LSR extends \Ls\Core\Model\LSR
     const LSR_RECIPE_PREFIX = 'ls_rec';
     const LS_ORDER_COMMENT = 'ls_order_comment';
     const LS_QR_CODE_ORDERING = 'ls_qr_code_ordering';
+    const LS_CURRENT_AVAILABILITY_ATTRIBUTE = 'lsr_current_availability'; //unavailable = 1, available = 0
 
     //Hospitality configuration
     const SERVICE_MODE_ENABLED = 'ls_mag/hospitality/service_mode_status';
@@ -36,6 +37,8 @@ class LSR extends \Ls\Core\Model\LSR
     const ENABLE_CHECK_AVAILABILITY = 'ls_mag/hospitality/enable_check_availability';
     const PERSIST_QRCODE_ORDERING = 'ls_mag/hospitality/persist_qrcode_ordering';
     const DISABLE_INVENTORY_CHECKING = 'ls_mag/hospitality/disable_inventory_checking';
+    const ENABLE_REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/enable_refresh_kitchen_status_interval';
+    const REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/refresh_kitchen_status_interval';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -58,11 +61,17 @@ class LSR extends \Ls\Core\Model\LSR
     const SC_INVOICE_KOTSTATUS = 'ls_mag/hospitality/invoice_kotstatus';
     //For Deal item html
     const SC_TRANSLATION_ID_DEAL_ITEM_HTML = 'T0010000825-F0000000020';
+    //For modifiers and recipe
+    const SC_TRANSLATION_ID_DEAL_MODIFIER_SELECT = 'T0099001482-F0000000010';
+    const SC_TRANSLATION_ID_DEAL_MODIFIER_DESC = 'T0099001483-F0000000003';
+    const SC_TRANSLATION_ID_RECIPE_DESC = 'T0000000090-F0000000006';
 
     const SC_ITEM_DEAL_HTML_JOB_CODE = 'repl_deal_html_translation';
     const SC_SUCCESS_PROCESS_TRANSLATION = 'ls_mag/replication/success_process_translation';
     const SC_PROCESS_TRANSLATION_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_translation';
 
+    //Cache Key
+    const LS_HOSP_CHECK_AVAILABILITY = 'LS_HOSP_CHECK_AVAILABILITY_';
     /**
      * Check service mode is enabled
      *
@@ -126,15 +135,19 @@ class LSR extends \Ls\Core\Model\LSR
     /**
      * Get take away sales type
      *
+     * @param $websiteId
      * @return mixed
      * @throws NoSuchEntityException
      */
-    public function getTakeAwaySalesType()
+    public function getTakeAwaySalesType($websiteId = null)
     {
+        if ($websiteId === null) {
+            $websiteId = $this->storeManager->getStore()->getWebsiteId();
+        }
         return $this->scopeConfig->getValue(
             self::TAKEAWAY_SALES_TYPE,
             ScopeInterface::SCOPE_WEBSITES,
-            $this->storeManager->getStore()->getWebsiteId()
+            $websiteId
         );
     }
 
@@ -283,5 +296,18 @@ class LSR extends \Ls\Core\Model\LSR
         }
 
         return $this->getStoreConfig(self::DISABLE_INVENTORY_CHECKING, $storeId);
+    }
+
+
+    /**
+     * Determines if order creation shoulbe be blocked on basket calculation fail.
+     *
+     * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     * @throws NoSuchEntityException
+     */
+    public function getDisableProcessOnBasketFailFlag()
+    {
+        $websiteId = $this->getCurrentWebsiteId();
+        return $this->getWebsiteConfig(LSR::LS_DISABLE_ORDER_CREATE_ON_BASKET_FAIL, $websiteId);
     }
 }
