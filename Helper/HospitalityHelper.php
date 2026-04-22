@@ -942,7 +942,11 @@ class HospitalityHelper extends AbstractHelper
                             if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
                                 $productionTime = 0;
                             }
-                            $centralStatusMsg = $resp->getStatusMessage();
+                            $centralStatusMsg = $resp->getData('StatusMessage');
+                            if (is_array($centralStatusMsg)) {
+                                $centralStatusMsg = reset($centralStatusMsg) ?: '';
+                            }
+                            $centralStatusMsg = (string)$centralStatusMsg;
                             if (!empty($centralStatusMsg)) {
                                 $statusDescription = __($centralStatusMsg);
                             } else {
