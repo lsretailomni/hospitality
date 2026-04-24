@@ -335,7 +335,7 @@ class HospitalityHelper extends AbstractHelper
         CacheHelper $cacheHelper,
         LoggerInterface $logger,
         CartRepositoryInterface $quoteRepository,
-        StoreHelper $storeHelper        
+        StoreHelper $storeHelper,
     ) {
         parent::__construct($context);
         $this->configurationHelper                        = $configurationHelper;
@@ -2232,9 +2232,9 @@ class HospitalityHelper extends AbstractHelper
             
             $tips = $this->getTipsBySalesType($salesType);
              return $tips;
-        }       
-        
-        
+        }
+
+        return [];
     }
 
     /**
@@ -2309,6 +2309,7 @@ class HospitalityHelper extends AbstractHelper
                             'label' => $tip3 . '%'
                         ];
                     }
+                    break;
                 }
             }
             

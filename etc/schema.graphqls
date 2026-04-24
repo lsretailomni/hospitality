@@ -29,7 +29,7 @@ type StoreConfig {
     ls_mag_hospitality_anonymous_order_address_attributes_required: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\Attributes") @doc(description: "To fetch anonymous order address attributes with information like required or optional.")
     ls_mag_hospitality_anonymous_store_info: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Store\\StoreInfo") @doc(description: "To fetch store information for anonymous ordering.")
     ls_mag_hospitality_remove_checkout_steps: Boolean @doc(description: "Indicates whether to remove checkout steps from QR code ordering")
-    ls_tips_enabled: Boolean @doc(description: "Indicates whether tips functionality is enabled (true) or disabled (false).")
+    ls_mag_hospitality_tips_enable: Boolean @resolver(class: "\\Ls\\Hospitality\\Model\\Resolver\\IsServiceUpResolver") @doc(description: "Indicates whether tips functionality is enabled (true) or disabled (false).")    
 }
 
 type Order {
@@ -62,7 +62,19 @@ type SaveTipsOutput {
 
 type Query {
     current_qr_code_params(cart_id: String @doc(description: "Cart ID.")): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\QrCodeParams") @doc(description: "Fetch current QR Code Params.")
-    fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): [KitchenInformation] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
+    fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): [KitchenInformation] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time."),
+    fetch_tip_suggestions(cart_id: String @doc(description: "Cart ID.")): TipsSuggestionOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Store\\FetchTipsSuggestions") @doc(description: "Returns tip suggestion options configured for the current store.")
+}
+
+type TipsSuggestionOutput {
+    success: Boolean @doc(description: "Tips feature is enabled or not.")
+    message: String @doc(description: "Display error message if any.")
+    suggestions: [tipsData] @doc(description: "Array holding tip suggestions.")
+}
+
+type tipsData {
+    value: String @doc(description: "Tip amount.")
+    label: String @doc(description: "Tip label.")  
 }
 
 input QrCodeInput @doc(description: "Contain required input for setting qrcode") {
