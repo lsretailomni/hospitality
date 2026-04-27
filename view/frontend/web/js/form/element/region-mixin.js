@@ -1,4 +1,4 @@
-define([], function () {
+define(['jquery'], function ($) {
     'use strict';
 
     return function (Component) {
@@ -11,6 +11,7 @@ define([], function () {
                     !window.checkoutConfig.anonymous_order.required_fields.hasOwnProperty("region_id")
                 ) {
                     this.setVisible(false);
+                    $('[name="region"]').closest('.field').hide();
                     return;
                 }
                 return this._super(option);

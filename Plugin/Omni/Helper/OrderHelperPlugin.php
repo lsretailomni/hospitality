@@ -79,6 +79,7 @@ class OrderHelperPlugin
             RootHospTransaction::class
         );
         try {
+            $dateTimeFormat          = "Y-m-d\T" . "H:i:00";
             $customerOrderCreateCoHeader = $subject->createInstance(
                 HospTransaction::class
             );
@@ -91,8 +92,7 @@ class OrderHelperPlugin
             $transactionType = current((array)$oneListCalculateResponse->getMobiletransaction())->getTransactiontype();
             $currencyFactor = current((array)$oneListCalculateResponse->getMobiletransaction())->getCurrencyfactor();
             $transactionId = current((array)$oneListCalculateResponse->getMobiletransaction())->getId();
-            $transactionDate = current((array)$oneListCalculateResponse->getMobiletransaction())->getTransdate() ??
-                $this->date->date("Y-m-d\T" . "H:i:00");
+            $transactionDate = $this->date->date($dateTimeFormat, $order->getCreatedAt());
             $customerEmail = $order->getCustomerEmail();
             $customerName = substr($order->getBillingAddress()->getFirstname() . ' ' .
                 $order->getBillingAddress()->getLastname(), 0, 20);
@@ -143,7 +143,7 @@ class OrderHelperPlugin
             }
 
             if ($isClickCollect) {
-                $salesType = $this->lsr->getTakeAwaySalesType();
+                $salesType = $this->lsr->getTakeAwaySalesType($order->getStore()->getWebsiteId());
                 if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
                     $salesType = $qrCodeParams['sales_type'];
                 }

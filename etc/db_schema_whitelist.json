@@ -2,7 +2,6 @@
     "quote": {
         "column": {
             "service_mode": true,
-            "pickup_date_timeslot": true,
             "ls_order_comment": true,
             "ls_qr_code_ordering": true
         }
@@ -10,15 +9,20 @@
     "sales_order": {
         "column": {
             "service_mode": true,
-            "pickup_date_timeslot": true,
             "ls_order_comment": true,
-            "ls_qr_code_ordering": true
+            "ls_qr_code_ordering": true,
+            "ls_order_id": true
+        }
+    },
+    "sales_order_grid": {
+        "column": {
+            "ls_order_id": true
         }
     },
     "catalog_product_option": {
         "column": {
-            "ls_modifier_recipe_id": true,
-            "swatch": true
+            "swatch": true,
+            "ls_modifier_recipe_id": true
         },
         "index": {
             "CATALOG_PRODUCT_OPTION_LS_MODIFIER_RECIPE_ID": true,

@@ -59,6 +59,7 @@ class KitchenInformation implements ResolverInterface
                 'pickup_time'            => $this->hospitalityHelper->getOrderPickupTime($orderId),
                 'queue_counter'          => $statusInfo['q_counter'],
                 'kot_no'                 => $statusInfo['kot_no'],
+                'receipt_no'             => $statusInfo['receipt_no'],
                 'order_items'            => $statusInfo['lines'],
                 'order_items_count'      => count($statusInfo['lines']) . " "
             ];

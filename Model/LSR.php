@@ -38,6 +38,8 @@ class LSR extends \Ls\Core\Model\LSR
     public const ENABLE_CHECK_AVAILABILITY = 'ls_mag/hospitality/enable_check_availability';
     public const PERSIST_QRCODE_ORDERING = 'ls_mag/hospitality/persist_qrcode_ordering';
     public const DISABLE_INVENTORY_CHECKING = 'ls_mag/hospitality/disable_inventory_checking';
+    const ENABLE_REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/enable_refresh_kitchen_status_interval';
+    const REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/refresh_kitchen_status_interval';
 
     //For Item Modifiers in Hospitality
     public const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
@@ -135,15 +137,19 @@ class LSR extends \Ls\Core\Model\LSR
     /**
      * Get take away sales type
      *
+     * @param $websiteId
      * @return mixed
      * @throws NoSuchEntityException
      */
-    public function getTakeAwaySalesType()
+    public function getTakeAwaySalesType($websiteId = null)
     {
+        if ($websiteId === null) {
+            $websiteId = $this->storeManager->getStore()->getWebsiteId();
+        }
         return $this->scopeConfig->getValue(
             self::TAKEAWAY_SALES_TYPE,
             ScopeInterface::SCOPE_WEBSITES,
-            $this->storeManager->getStore()->getWebsiteId()
+            $websiteId
         );
     }
 
@@ -283,5 +289,17 @@ class LSR extends \Ls\Core\Model\LSR
         }
 
         return $this->getStoreConfig(self::DISABLE_INVENTORY_CHECKING, $storeId);
+    }
+
+    /**
+     * Determines if order creation shoulbe be blocked on basket calculation fail.
+     *
+     * @return bool True if the basket data is valid or if order creation is allowed; false otherwise.
+     * @throws NoSuchEntityException
+     */
+    public function getDisableProcessOnBasketFailFlag()
+    {
+        $websiteId = $this->getCurrentWebsiteId();
+        return $this->getWebsiteConfig(LSR::LS_DISABLE_ORDER_CREATE_ON_BASKET_FAIL, $websiteId);
     }
 }
