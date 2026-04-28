@@ -2214,7 +2214,7 @@ class HospitalityHelper extends AbstractHelper
         $quote          = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
 
-        $qrCodeParams = $this->qrcodeHelperObject()->getQrCodeOrderingInSession();
+        $qrCodeParams = $this->qrcodeHelperObject()->getQrCode($quote->getId());
         if (!empty($qrCodeParams)) {
             $qrCodeQueryString = http_build_query($qrCodeParams);
         }

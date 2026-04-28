@@ -11,9 +11,6 @@ use Magento\Quote\Model\QuoteRepository;
  */
 class ShippingInformationManagement
 {
-    /** @var QuoteRepository */
-    public $quoteRepository;
-
     /**
      * @param QuoteRepository $quoteRepository
      */

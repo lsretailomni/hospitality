@@ -4,24 +4,20 @@ declare(strict_types=1);
 namespace Ls\Hospitality\Model\Resolver\Store;
 
 use Ls\Hospitality\Helper\HospitalityHelper;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 
 /**
- * Resolver class responsible for exposing tip suggestions in StoreConfig.
+ * Resolver class responsible for exposing tip suggestions as a standalone GraphQL query.
  */
 class FetchTipsSuggestions implements ResolverInterface
 {
     /**
      * @param HospitalityHelper $hospitalityHelper
-     * @param JsonFactory $serializerJson
      */
     public function __construct(
-        private HospitalityHelper $hospitalityHelper,
-        private JsonFactory $resultJsonFactory
+        private HospitalityHelper $hospitalityHelper
     ) {
     }
 
@@ -37,23 +33,21 @@ class FetchTipsSuggestions implements ResolverInterface
         if(!$tipsEnabled) {
             return [];
         }
-        $result = $this->resultJsonFactory->create();
 
         try {
             $suggestions = $this->hospitalityHelper->getTipsSuggestionsFromStore();
 
             return [
-                'success' => true,
-                'message' => '',
+                'success'     => true,
+                'message'     => '',
                 'suggestions' => is_array($suggestions) && !empty($suggestions) ? $suggestions : []
             ];
         } catch (\Throwable $e) {
-            return $result->setData([
-                'success' => false,
-                'message' => $e->getMessage(),
+            return [
+                'success'     => false,
+                'message'     => $e->getMessage(),
                 'suggestions' => []
-            ]);
+            ];
         }
     }
 }
-
