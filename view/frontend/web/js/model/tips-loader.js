@@ -17,7 +17,7 @@ define([
             self.error(false);
 
             return $.ajax({
-                url: urlBuilder.build('ls_hospitality/ajax/tipsSuggestions'),
+                url: urlBuilder.build('hospitality/ajax/tipsSuggestions'),
                 type: 'GET',
                 dataType: 'json',
                 beforeSend: function () {

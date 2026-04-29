@@ -187,12 +187,9 @@ class OrderHelperPlugin
         
         if($tipsEnabled) {
             $lsTipAmount = $order->getLsTipAmount();
-            $tipOrderLine = new Entity\OrderLine();
-            $tipOrderLine->setPrice($lsTipAmount);
-
-            $tipOrderLine
+            $tipOrderLine = new Entity\OrderHospLine();
+            $tipOrderLine->setPrice($lsTipAmount)
                 ->setAmount($lsTipAmount)
-                ->setStoreId($storeId)
                 ->setNetPrice($lsTipAmount)
                 ->setNetAmount($lsTipAmount)
                 ->setTaxAmount(0)
@@ -200,10 +197,11 @@ class OrderHelperPlugin
                 ->setLineType(Entity\Enum\LineType::INCOME_EXPENSE)
                 ->setQuantity(1)
                 ->setDiscountAmount(0);
-            array_push($orderLines, $tipOrderLine);
+            
+            array_push($orderLinesArray, $tipOrderLine);
         }
 
-        return $orderLines;
+        return $orderLinesArray;
     }
 
     /**

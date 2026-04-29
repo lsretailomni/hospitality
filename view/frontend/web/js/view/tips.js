@@ -147,7 +147,7 @@ define([
                     postData.form_key = window.FORM_KEY;
                 }
                 $.ajax({
-                    url: '/ls_hospitality/ajax/savetip',
+                    url: '/hospitality/ajax/savetip',
                     method: 'POST',
                     data: postData,
                     dataType: 'json'

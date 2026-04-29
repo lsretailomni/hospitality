@@ -401,7 +401,7 @@ class BasketHelperPlugin
 
             $orderEntity->setCardId($customer->getData('lsr_cardid'));
         }
-        $orderDetails            = $subject->getOrderLinesQuote($quote, $order);
+        $orderDetails            = $subject->getOrderLinesQuote($quote);
         $orderLinesArray         = $orderDetails['orderLinesArray'];
         $orderDiscountLinesArray = $orderDetails['orderDiscountLinesArray'];
         $orderEntity->setOrderLines($orderLinesArray);
