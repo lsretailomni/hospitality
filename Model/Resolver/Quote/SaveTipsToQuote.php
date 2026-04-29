@@ -50,14 +50,14 @@ class SaveTipsToQuote implements ResolverInterface
                 $grandTotal = (float)$quote->getGrandTotal();
                 $baseGrandTotal = (float)$quote->getBaseGrandTotal();
                 $savedTip = $quote->getData('ls_tip_amount');
-                $savedBaseTip = $quote->getData('base_ls_tip_amount');
+                $savedBaseTip = $quote->getData('ls_tip_amount_label');
 
                 return [
                     'success' => true,
                     'message' => __('Tip amount saved successfully.'),
                     'tip' => $tipAmount,
                     'saved_tip' => $savedTip,
-                    'saved_base_tip' => $savedBaseTip,
+                    'selected_tip' => $savedBaseTip,
                     'grand_total' => $grandTotal,
                     'base_grand_total' => $baseGrandTotal
                 ];

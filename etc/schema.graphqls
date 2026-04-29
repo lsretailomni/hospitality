@@ -75,6 +75,7 @@ type TipsSuggestionOutput {
 type tipsData {
     value: String @doc(description: "Tip amount.")
     label: String @doc(description: "Tip label.")  
+    selected: Boolean @doc(description: "Selected tip or not")
 }
 
 input QrCodeInput @doc(description: "Contain required input for setting qrcode") {

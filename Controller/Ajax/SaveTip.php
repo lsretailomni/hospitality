@@ -60,17 +60,14 @@ class SaveTip extends Action implements HttpPostActionInterface
 
             // Accept 'tip' or 'tip_amount'
             $tipParam = $this->request->getParam('tip');
-            if ($tipParam === null) {
-                $tipParam = $this->request->getParam('tip_amount'); //for custom tip
-            }
-
+            $tipLabel = $this->request->getParam('tip_label');
+            
             // Normalize numeric value
             $tipAmount = 0.0;
             if ($tipParam !== null && $tipParam !== '') {
                 $tipAmount = (float)str_replace([','], ['.'], $tipParam);
             }
 
-            // Basic validation: non-negative and reasonable upper limit (e.g., 1000000)
             if ($tipAmount < 0 || $tipAmount > 1000000) {
                 return $resultJson->setData([
                     'success' => false,
@@ -87,21 +84,21 @@ class SaveTip extends Action implements HttpPostActionInterface
                 ]);
             }
             
-            $quote = $this->hospitalityHelper->saveTipsToQuote($quote, $tipAmount);
+            $quote = $this->hospitalityHelper->saveTipsToQuote($quote, $tipAmount, $tipLabel);
             
             if($quote) {
                 // Return success and updated totals to allow frontend to refresh summary
                 $grandTotal = (float)$quote->getGrandTotal();
                 $baseGrandTotal = (float)$quote->getBaseGrandTotal();
                 $savedTip = $quote->getData('ls_tip_amount');
-                $savedBaseTip = $quote->getData('base_ls_tip_amount');
+                $selectedTip = $quote->getData('ls_tip_amount_label');
 
                 return $resultJson->setData([
                     'success' => true,
                     'message' => __('Tip amount saved successfully.'),
                     'tip' => $tipAmount,
                     'saved_tip' => $savedTip,
-                    'saved_base_tip' => $savedBaseTip,
+                    'selected_tip' => $selectedTip,
                     'grand_total' => $grandTotal,
                     'base_grand_total' => $baseGrandTotal
                 ]);

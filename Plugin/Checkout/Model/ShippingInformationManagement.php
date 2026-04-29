@@ -15,9 +15,8 @@ class ShippingInformationManagement
      * @param QuoteRepository $quoteRepository
      */
     public function __construct(
-        QuoteRepository $quoteRepository
+        public QuoteRepository $quoteRepository
     ) {
-        $this->quoteRepository = $quoteRepository;
     }
 
     /**

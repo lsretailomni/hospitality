@@ -6,10 +6,12 @@
         <!-- ko foreach: tipOptions -->
         <button
                 type="button"
+                class="ls-tip-option"
                 data-bind="
                 text: label,
                 click: function () { $parent.selected(value); },
-                css: { active: $parent.selected() === value }">
+                css: { active: $parent.isOptionActive($data) },
+                disable: $parent.isOptionDisabled($data)">
         </button>
         <!-- /ko -->
     </div>

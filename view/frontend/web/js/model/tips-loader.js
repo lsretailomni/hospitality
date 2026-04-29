@@ -13,16 +13,16 @@ define([
 
         load: function () {
             var self = this;
-
-            console.log('tipsLoader.load called');
-
             self.isLoading(true);
             self.error(false);
 
             return $.ajax({
                 url: urlBuilder.build('ls_hospitality/ajax/tipsSuggestions'),
                 type: 'GET',
-                dataType: 'json'
+                dataType: 'json',
+                beforeSend: function () {
+                    console.log('tipsSuggestions request starting');
+                }
             }).done(function (response) {
                 if (response && response.success) {
                     self.options(Array.isArray(response.suggestions) ? response.suggestions : []);

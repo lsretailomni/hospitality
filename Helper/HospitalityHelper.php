@@ -2168,12 +2168,12 @@ class HospitalityHelper extends AbstractHelper
      * @param float $tipAmount The tip amount to be added to the quote.
      * @return \Magento\Quote\Model\Quote The updated quote object.
      */
-    public function saveTipsToQuote($quote, $tipAmount)
+    public function saveTipsToQuote($quote, $tipAmount, $tipLabel)
     {
-        // Save both ls_tip_amount
+        // Save ls_tip_amount and label
         try {
             $quote->setData('ls_tip_amount', $tipAmount);
-            $quote->setData('base_ls_tip_amount', $tipAmount);
+            $quote->setData('ls_tip_amount_label', $tipLabel);
             $quote->collectTotals();
 
             try {
@@ -2230,7 +2230,7 @@ class HospitalityHelper extends AbstractHelper
                 $salesType = $this->getLSR()->getDeliverySalesType();
             }
             
-            $tips = $this->getTipsBySalesType($salesType);
+            $tips = $this->getTipsBySalesType($salesType, $quote);
              return $tips;
         }
 
@@ -2242,20 +2242,24 @@ class HospitalityHelper extends AbstractHelper
      * @return array|void
      * @throws NoSuchEntityException
      */
-    public function getTipsBySalesType($salesType)
+    public function getTipsBySalesType($salesType, $quote)
     {
         $store     = $this->storeHelper->getStore($this->lsr->getStoreId());
         $storeData = $this->storeHelper->getStore($this->lsr->getCurrentWebsiteId(), "","" ,"");
         $salesTypeTipsArray = $storeTipsArray = [];
+        $selectedTipsLabel = $quote->getData('ls_tip_amount_label');
+        $selectedTipsFlag = false;
         
         if ($storeData) {
             $tipsArray[] = [
                 'value' => 0,
-                'label' => "No Tips"
+                'label' => "No Tips",
+                'selected' => $selectedTipsFlag
             ];
             $otherSuggestions[] = [
                 'value' => 'other',
-                'label' => __('Other')
+                'label' => __('Other'),
+                'selected' => ($selectedTipsFlag == "other") ? true : false
             ];
             $data = $storeData->getHospTypes();
             
@@ -2269,21 +2273,24 @@ class HospitalityHelper extends AbstractHelper
                     if ($tip1 > 0) {
                         $storeTipsArray[] = [
                             'value' => $tip1,
-                            'label' => $tip1 . '%'
+                            'label' => $tip1 . '%',
+                            'selected' => ($selectedTipsLabel == $tip1) ? true : false
                         ];
                     }
 
                     if ($tip2 > 0) {
                         $storeTipsArray[] = [
                             'value' => $tip2,
-                            'label' => $tip2. '%'
+                            'label' => $tip2. '%',
+                            'selected' => ($selectedTipsLabel == $tip2) ? true : false
                         ];
                     }
 
                     if ($tip3 > 0) {
                         $storeTipsArray[] = [
                             'value' => $tip3,
-                            'label' => $tip3 . '%'
+                            'label' => $tip3 . '%',
+                            'selected' => ($selectedTipsLabel == $tip3) ? true : false
                         ];
                     }
                 }
@@ -2292,21 +2299,24 @@ class HospitalityHelper extends AbstractHelper
                     if ($tip1 > 0) {
                         $salesTypeTipsArray[] = [
                             'value' => (int)$tip1,
-                            'label' => $tip1 . '%'
+                            'label' => $tip1 . '%',
+                            'selected' => ($selectedTipsLabel == $tip1) ? true : false
                         ];
                     }
 
                     if ($tip2 > 0) {
                         $salesTypeTipsArray[] = [
                             'value' => $tip2,
-                            'label' => $tip2 . '%'
+                            'label' => $tip2 . '%',
+                            'selected' => ($selectedTipsLabel == $tip2) ? true : false
                         ];
                     }
 
                     if ($tip3 > 0) {
                         $salesTypeTipsArray[] = [
                             'value' => $tip3,
-                            'label' => $tip3 . '%'
+                            'label' => $tip3 . '%',
+                            'selected' => ($selectedTipsLabel == $tip3) ? true : false
                         ];
                     }
                     break;
