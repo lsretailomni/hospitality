@@ -48,6 +48,7 @@ type Mutation {
 input SaveTipsInput @doc(description: "Contain required input for saveing tips to quote") {
     cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
     tips_amount: String! @doc(description: "The tips amount to be saved.")
+    tips_label: String! @doc(description: "The label of tips amount to be saved.")
 }
 
 type SaveTipsOutput {

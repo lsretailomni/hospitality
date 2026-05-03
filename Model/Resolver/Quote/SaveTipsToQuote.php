@@ -35,7 +35,8 @@ class SaveTipsToQuote implements ResolverInterface
         }
 
         $tipAmount = $args['input']['tips_amount'];
-        $cart     = null;
+        $tipLabel  = $args['input']['tips_label'];
+        $cart      = null;
         if (isset($args['input']['cart_id'])) {
             $maskedCartId  = $args['input']['cart_id'];
             $storeId       = (int)$context->getExtensionAttributes()->getStore()->getId();
@@ -44,7 +45,7 @@ class SaveTipsToQuote implements ResolverInterface
         }       
 
         if (!empty($cart)) {
-            $quote = $this->hospitalityHelper->saveTipsToQuote($cart, $tipAmount);
+            $quote = $this->hospitalityHelper->saveTipsToQuote($cart, $tipAmount, $tipLabel);
 
             if ($quote) {
                 $grandTotal = (float)$quote->getGrandTotal();
