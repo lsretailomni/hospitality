@@ -6,7 +6,7 @@
         <column xsi:type="text" name="ls_order_comment" nullable="true" comment="Additional comment"/>
         <column xsi:type="text" name="ls_qr_code_ordering" nullable="true" comment="QR Coding Ordering"/>
         <column xsi:type="decimal" scale="4" precision="20" name="ls_tip_amount" nullable="true" comment="Tip amount"/>
-        <column xsi:type="decimal" scale="4" precision="20" name="ls_tip_amount_label" nullable="true" comment="Tip amount label"/>
+        <column xsi:type="varchar" name="ls_tip_amount_label" nullable="true" comment="Tip amount label"/>
     </table>
     <table name="sales_order" resource="sales" engine="innodb" comment="Sales Flat Order">
         <column xsi:type="varchar" name="service_mode" nullable="true" comment="Service Mode"/>
