@@ -3,7 +3,7 @@
     "description": "LS Ecommerce - eCommerce integration of Magento with LS Hospitality",
     "type": "magento2-module",
     "license": "proprietary",
-    "version": "2.10.0",
+    "version": "3.0.0",
     "authors": [
         {
             "name": "LS Retail",
