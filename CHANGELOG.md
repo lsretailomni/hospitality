@@ -5,8 +5,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Please click [here](https://github.com/lsretailomni/lsmag-two/blob/2.10.0/CHANGELOG.md#2100---2025-03-14)  to see all the changelog
+- Please click [here](https://github.com/lsretailomni/lsmag-two/blob/2.11.0/CHANGELOG.md#2100---2026-04-20)  to see all the changelog
 
+## [2.11.0] - 2026-04-20
+
+### Added
+
+- Please click [here](https://github.com/lsretailomni/lsmag-two/blob/2.11.0/CHANGELOG.md#2100---2026-04-20)  to see all the changelog
 
 ## [2.10.0] - 2025-03-14
 

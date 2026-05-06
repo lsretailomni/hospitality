@@ -4,23 +4,20 @@ namespace Ls\Hospitality\Plugin\Catalog\Model;
 
 use \Ls\Hospitality\Model\LSR;
 use Magento\Catalog\Model\Product;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * ProductAvailabilityPlugin to modify product availability
  */
 class ProductAvailabilityPlugin
-{
-    /**
-     * @var LSR
-     */
-    private $lsr;
-
+{  
     /**
      * @param LSR $lsr
      */
-    public function __construct(LSR $lsr)
+    public function __construct(
+        private LSR $lsr
+    )
     {
-        $this->lsr = $lsr;
     }
 
     /**
@@ -29,6 +26,7 @@ class ProductAvailabilityPlugin
      * @param Product $subject
      * @param bool $result
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function afterIsAvailable(Product $subject, $result)
     {

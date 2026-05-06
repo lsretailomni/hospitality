@@ -21,10 +21,13 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 class OrderInfo implements HttpGetActionInterface
 {
     /**
+     * OrderInfo constructor.
      * @param PageFactory $resultPageFactory
      * @param JsonFactory $resultJsonFactory
      * @param RequestInterface $request
      * @param HospitalityHelper $hospitalityHelper
+     * @param CheckoutSession $checkoutSession
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         public PageFactory $resultPageFactory,

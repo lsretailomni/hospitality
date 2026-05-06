@@ -6,16 +6,16 @@ use Carbon\Carbon;
 use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
-use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Omni\Helper\BasketHelper;
+use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
-use Magento\Framework\Exception\InputException;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\Phrase;
 use Psr\Log\LoggerInterface;
@@ -102,6 +102,7 @@ class DataAssignObserver implements ObserverInterface
         $order          = $observer->getOrder();
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
         $email          = $quote->getBillingAddress()->getEmail();
+
         if ($email != $order->getCustomerEmail()) {
             $order->setCustomerEmail($email);
         }

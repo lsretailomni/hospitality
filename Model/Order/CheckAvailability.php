@@ -23,10 +23,12 @@ class CheckAvailability
 {
     /**
      * @param ProductRepositoryInterface $productRepository
+     * @param OptionCollectionFactory $optionCollectionFactory
      * @param LSR $lsr
      * @param ItemHelper $itemHelper
      * @param HospitalityHelper $hospitalityHelper
      * @param CheckoutSession $checkoutSession
+     * @param CacheHelper $cacheHelper
      * @param LoggerInterface $logger
      * @param Data $dataHelper
      * @param CacheHelper $cacheHelper

@@ -4,7 +4,7 @@ namespace Ls\Hospitality\Plugin\Magento\Quote\Model\Quote;
 
 use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Core\Model\LSR as LSRAlias;
+use \Ls\Core\Model\LSR as LSRAlias; 
 use \Ls\Hospitality\Model\Order\CheckAvailability;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
@@ -19,6 +19,8 @@ class ItemPlugin
     /**
      * @param LSR $lsr
      * @param CheckAvailability $checkAvailability
+     * @param LSRAlias $lsrAlias
+     * @param LoggerInterface $logger
      */
     public function __construct(
         public LSR $lsr,
@@ -54,7 +56,6 @@ class ItemPlugin
                 $this->checkAvailability->validateQty(true, $result);
             }
         }
-
         return $result;
     }
 }

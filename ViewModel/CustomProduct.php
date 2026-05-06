@@ -64,9 +64,9 @@ class CustomProduct implements ArgumentInterface
         }
 
         return $this->hospitalityHelper
-                    ->storeManager
-                    ->getStore()
-                    ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA).$swatch;
+                ->storeManager
+                ->getStore()
+                ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . $swatch;
     }
 
     /**

@@ -18,7 +18,7 @@ class IsOptionAvailable implements ResolverInterface
     public function __construct(
         public CheckAvailability $checkAvailability
     ) {
-    }
+    }    
 
     /**
      * Resolve is_available for product option

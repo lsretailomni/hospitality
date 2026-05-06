@@ -14,25 +14,13 @@ use Psr\Log\LoggerInterface;
 class OrderObserverPlugin
 {
     /**
-     * @var HospitalityHelper
-     */
-    private $hospitalityHelper;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @param HospitalityHelper $hospitalityHelper
      * @param LoggerInterface $logger
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper,
-        LoggerInterface $logger
+        private HospitalityHelper $hospitalityHelper,
+        private LoggerInterface $logger
     ) {
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->logger            = $logger;
     }
 
     /**

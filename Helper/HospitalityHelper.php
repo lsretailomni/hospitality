@@ -15,6 +15,7 @@ use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionLine;
 use \Ls\Omni\Client\CentralEcommerce\Entity\RootKotStatus;
 use \Ls\Omni\Client\CentralEcommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
+use \Ls\Omni\Helper\CacheHelper;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
@@ -28,7 +29,6 @@ use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
-use \Ls\Omni\Helper\CacheHelper;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -66,8 +66,8 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product\Url;
-use Zend_Db_Select_Exception;
 use Magento\Sales\Model\ResourceModel\Order;
+use Zend_Db_Select_Exception;
 
 /**
  * Useful helper functions for Hospitality
@@ -119,6 +119,7 @@ class HospitalityHelper extends AbstractHelper
      * @param CustomerSession $customerSession
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
+     * @param Order $orderResourceModel
      * @param CacheHelper $cacheHelper
      */
     public function __construct(
@@ -1748,7 +1749,7 @@ class HospitalityHelper extends AbstractHelper
      * Get Product Image URL
      *
      * @param $product
-     * @return string
+     * @return string|null
      */
     public function getProductImageUrl($product)
     {
