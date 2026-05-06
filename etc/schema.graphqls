@@ -114,6 +114,7 @@ type SetLsOrderCommentsOnCartOutput @doc(description: "Contains details about th
 type Cart {
     ls_order_comment: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsOrderComment") @doc(description: "Ls Order Comment.")
     ls_tip_amount: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsQuoteTipsAmount") @doc(description: "Ls Order Comment.")
+    ls_tip_label: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsQuoteTipsLabel") @doc(description: "Ls Order Comment.")
 }
 
 type QrCodeParamsOutput {
