@@ -7,7 +7,8 @@ define([
     'Magento_Checkout/js/action/get-totals',
     'Magento_Customer/js/customer-data',
     'Ls_Hospitality/js/model/tips-loader',
-    'Magento_Checkout/js/model/step-navigator'
+    'Magento_Checkout/js/model/step-navigator',
+    'mage/url'
 ], function (
     Component,
     ko,
@@ -17,7 +18,8 @@ define([
     getTotalsAction,
     customerData,
     tipsLoader,
-    stepNavigator
+    stepNavigator,
+    urlBuilder
 ) {
     'use strict';
 
@@ -147,7 +149,7 @@ define([
                     postData.form_key = window.FORM_KEY;
                 }
                 $.ajax({
-                    url: '/hospitality/ajax/savetip',
+                    url: urlBuilder.build('hospitality/ajax/savetip'),
                     method: 'POST',
                     data: postData,
                     dataType: 'json'

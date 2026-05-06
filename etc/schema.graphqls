@@ -148,6 +148,10 @@ type OrderItems {
     productUrlKey: String @doc(description: "Order Item Url Key")
 }
 
+type SalesEntry {
+    tip: Float @doc(description: "Tip amount for the order.")
+}
+
 type SalesEntryLine {
     custom_options:[options]
     subitems: [subitems]

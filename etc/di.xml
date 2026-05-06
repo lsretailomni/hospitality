@@ -212,4 +212,9 @@
             </argument>
         </arguments>
     </type>
+    <type name="Ls\Omni\Block\Order\Custom\Totals">
+        <plugin name="ls_hospitality_addiitonal_email_total"
+                type="Ls\Hospitality\Plugin\Omni\Block\Order\Custom\TotalsPlugin"
+                sortOrder="10"/>
+    </type>
 </config>
