@@ -150,7 +150,7 @@ type OrderItems {
 }
 
 type SalesEntry {
-    tip: Float @doc(description: "Tip amount for the order.")
+    tip: String @doc(description: "Tip amount for the order.")
 }
 
 type SalesEntryLine {

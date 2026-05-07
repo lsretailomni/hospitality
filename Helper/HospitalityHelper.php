@@ -246,7 +246,7 @@ class HospitalityHelper extends AbstractHelper
     public $logger;
 
     /**
-     * @var CartRepositoryInterface 
+     * @var CartRepositoryInterface
      */
     public $quoteRepository;
 
@@ -1155,7 +1155,7 @@ class HospitalityHelper extends AbstractHelper
             $this->orderResourceModel->save($order);
             $reloadedOrder = $this->orderRepository->get($order->getEntityId());
             if (!$reloadedOrder->getEmailSent()) {
-               $this->orderSender->send($order);
+                $this->orderSender->send($order);
                 $this->_logger->info(
                     sprintf(
                         'Order confirmation email sent for order #%s (LS Order ID: %s)',
@@ -1905,7 +1905,14 @@ class HospitalityHelper extends AbstractHelper
     {
         $itemsArray  = [];
         $childrenKey = 'subitems';
+        $tipsItemId  = $this->lsr->getStoreConfig(
+            LSR::TIPS_ITEM_ID,
+            $this->lsr->getCurrentStoreId()
+        );
         foreach ($items as $item) {
+            if ($item->getItemId() == $tipsItemId) {
+                continue;
+            }
             $data = [
                 'amount'                 => $item->getAmount(),
                 'click_and_collect_line' => $item->getClickAndCollectLine(),
@@ -2180,16 +2187,16 @@ class HospitalityHelper extends AbstractHelper
                 $this->quoteRepository->save($quote);
             } catch (\Throwable $ex) {
                 $this->logger->warning('Quote resource save failed: ' . $ex->getMessage());
-            }            
+            }
 
             // Reload the quote from repository to ensure saved values are persisted
             $quote = $this->quoteRepository->get($quote->getId());
 
         } catch (\Throwable $e) {
             $this->logger->warning('Failed to save tip to quote: ' . $e->getMessage());
-            return false;            
+            return false;
         }
-        
+
         return $quote;
     }
 
@@ -2200,7 +2207,7 @@ class HospitalityHelper extends AbstractHelper
     public function isTipsEnabled()
     {
         $storeId = $this->storeManager->getStore()->getId();
-        return $this->getLSR()->getStoreConfig(LSR::TIPS_ENABLE,$storeId);
+        return $this->getLSR()->getStoreConfig(LSR::TIPS_ENABLE, $storeId);
     }
 
     /**
@@ -2229,9 +2236,9 @@ class HospitalityHelper extends AbstractHelper
             } else {
                 $salesType = $this->getLSR()->getDeliverySalesType();
             }
-            
+
             $tips = $this->getTipsBySalesType($salesType, $quote);
-             return $tips;
+            return $tips;
         }
 
         return [];
@@ -2244,91 +2251,93 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getTipsBySalesType($salesType, $quote)
     {
-        $store     = $this->storeHelper->getStore($this->lsr->getStoreId());
-        $storeData = $this->storeHelper->getStore($this->lsr->getCurrentWebsiteId(), "","" ,"");
+        $store              = $this->storeHelper->getStore($this->lsr->getStoreId());
+        $storeData          = $this->storeHelper->getStore($this->lsr->getCurrentWebsiteId(), "", "", "");
         $salesTypeTipsArray = $storeTipsArray = [];
-        $selectedTipsLabel = $quote->getData('ls_tip_amount_label');
-        $selectedTipsFlag = false;
-        
+        $selectedTipsLabel  = $quote->getData('ls_tip_amount_label');
+        $selectedTipsFlag   = false;
+
         if ($storeData) {
-            $tipsArray[] = [
-                'value' => 0,
-                'label' => "No Tips",
+            $tipsArray[]        = [
+                'value'    => 0,
+                'label'    => "No Tips",
                 'selected' => $selectedTipsFlag
             ];
             $otherSuggestions[] = [
-                'value' => 'other',
-                'label' => __('Other'),
+                'value'    => 'other',
+                'label'    => __('Other'),
                 'selected' => ($selectedTipsFlag == "other") ? true : false
             ];
-            $data = $storeData->getHospTypes();
-            
+            $data               = $storeData->getHospTypes();
+
             foreach ($data as $item) {
 
                 $tip1 = (int)$item->getTip1Percentage();
                 $tip2 = (int)$item->getTip2Percentage();
                 $tip3 = (int)$item->getTip3Percentage();
-                
-                if(empty($item->getSalesType())) {                    
+
+                if (empty($item->getSalesType())) {
                     if ($tip1 > 0) {
                         $storeTipsArray[] = [
-                            'value' => $tip1,
-                            'label' => $tip1 . '%',
+                            'value'    => $tip1,
+                            'label'    => $tip1 . '%',
                             'selected' => ($selectedTipsLabel == $tip1) ? true : false
                         ];
                     }
 
                     if ($tip2 > 0) {
                         $storeTipsArray[] = [
-                            'value' => $tip2,
-                            'label' => $tip2. '%',
+                            'value'    => $tip2,
+                            'label'    => $tip2 . '%',
                             'selected' => ($selectedTipsLabel == $tip2) ? true : false
                         ];
                     }
 
                     if ($tip3 > 0) {
                         $storeTipsArray[] = [
-                            'value' => $tip3,
-                            'label' => $tip3 . '%',
+                            'value'    => $tip3,
+                            'label'    => $tip3 . '%',
                             'selected' => ($selectedTipsLabel == $tip3) ? true : false
                         ];
                     }
                 }
-                
-                if($item->getSalesType() == $salesType) {
+
+                if ($item->getSalesType() == $salesType) {
                     if ($tip1 > 0) {
                         $salesTypeTipsArray[] = [
-                            'value' => (int)$tip1,
-                            'label' => $tip1 . '%',
+                            'value'    => (int)$tip1,
+                            'label'    => $tip1 . '%',
                             'selected' => ($selectedTipsLabel == $tip1) ? true : false
                         ];
                     }
 
                     if ($tip2 > 0) {
                         $salesTypeTipsArray[] = [
-                            'value' => $tip2,
-                            'label' => $tip2 . '%',
+                            'value'    => $tip2,
+                            'label'    => $tip2 . '%',
                             'selected' => ($selectedTipsLabel == $tip2) ? true : false
                         ];
                     }
 
                     if ($tip3 > 0) {
                         $salesTypeTipsArray[] = [
-                            'value' => $tip3,
-                            'label' => $tip3 . '%',
+                            'value'    => $tip3,
+                            'label'    => $tip3 . '%',
                             'selected' => ($selectedTipsLabel == $tip3) ? true : false
                         ];
                     }
                     break;
                 }
             }
-            
-            if(!empty($salesTypeTipsArray)){
+
+            if (!empty($salesTypeTipsArray)) {
                 return array_merge($tipsArray, $salesTypeTipsArray, $otherSuggestions);
-            }  else if (empty($salesTypeTipsArray) && !empty($storeTipsArray)) {
-                return array_merge($tipsArray, $storeTipsArray, $otherSuggestions);
             } else {
-                return [];
+                if (empty($salesTypeTipsArray) && !empty($storeTipsArray)) {
+                    return array_merge($tipsArray, $storeTipsArray, $otherSuggestions);
+                } else {
+                    return [];
+                }
             }
         }
     }

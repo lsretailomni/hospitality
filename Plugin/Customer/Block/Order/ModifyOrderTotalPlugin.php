@@ -60,6 +60,11 @@ class ModifyOrderTotalPlugin
                 $result           = substr($result, 0, $endOfSubtotalRow) . $tipHtml . substr($result,
                         $endOfSubtotalRow);
             }
+            $result = str_replace(
+                (string)__('Subtotal (Inc.Tax)'),
+                (string)__('Subtotal (Inc.Tax &amp; Tip)'),
+                $result
+            );
         }
 
         return $result;

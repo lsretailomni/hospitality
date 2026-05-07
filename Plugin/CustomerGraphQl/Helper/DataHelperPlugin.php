@@ -85,36 +85,38 @@ class DataHelperPlugin
         SalesEntry $salesEntry,
         $magOrder = null
     ): array {
-        $tip        = 0.0;
-        $tipsItemId = $this->lsr->getStoreConfig(
-            LSR::TIPS_ITEM_ID,
-            $this->lsr->getCurrentStoreId()
-        );
+        if ($this->lsr->isHospitalityStore()) {
+            $tip        = 0.0;
+            $tipsItemId = $this->lsr->getStoreConfig(
+                LSR::TIPS_ITEM_ID,
+                $this->lsr->getCurrentStoreId()
+            );
 
-        if ($tipsItemId) {
-            $orderLines = $salesEntry->getLines();
+            if ($tipsItemId) {
+                $orderLines = $salesEntry->getLines();
 
-            if ($orderLines) {
-                foreach ($orderLines->getSalesEntryLine() as $line) {
-                    if ($line->getItemId() == $tipsItemId) {
-                        $tip = (float)$line->getAmount();
-                        break;
+                if ($orderLines) {
+                    foreach ($orderLines->getSalesEntryLine() as $line) {
+                        if ($line->getItemId() == $tipsItemId) {
+                            $tip = $line->getAmount();
+                            break;
+                        }
                     }
                 }
             }
-        }
 
-        if (!$tip) {
-            if (!$magOrder) {
-                $magOrder = $this->orderHelper->getOrderByDocumentId($salesEntry);
+            if (!$tip) {
+                if (!$magOrder) {
+                    $magOrder = $this->orderHelper->getOrderByDocumentId($salesEntry);
+                }
+
+                if ($magOrder) {
+                    $tip = $magOrder->getData('ls_tip_amount');
+                }
             }
 
-            if ($magOrder) {
-                $tip = (float)$magOrder->getData('ls_tip_amount');
-            }
+            $result['tip'] = $tip;
         }
-
-        $result['tip'] = $tip;
 
         return $result;
     }
