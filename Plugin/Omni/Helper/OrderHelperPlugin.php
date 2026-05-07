@@ -185,7 +185,7 @@ class OrderHelperPlugin
         $tipsEnabled        = $this->lsr->getStoreConfig(LSR::TIPS_ENABLE, $order->getStoreId());
         $tipsItemId         = $this->lsr->getStoreConfig(LSR::TIPS_ITEM_ID, $order->getStoreId());
         
-        if($tipsEnabled) {
+        if($tipsEnabled && (float)$order->getLsTipAmount() > 0) {
             $lsTipAmount = $order->getLsTipAmount();
             $tipOrderLine = new Entity\OrderHospLine();
             $tipOrderLine->setPrice($lsTipAmount)
