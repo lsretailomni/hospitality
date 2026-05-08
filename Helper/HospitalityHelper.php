@@ -722,6 +722,25 @@ class HospitalityHelper extends AbstractHelper
         return $modifier->getItems();
     }
 
+    /**
+     * Get Deal Lines by description
+     *
+     * @param $value
+     * @param $itemId
+     * @return mixed
+     */
+    public function getDealLineByDescription($value, $itemId)
+    {
+        $modifier = $this->replHierarchyHospDealLineRepository->getList(
+            $this->searchCriteriaBuilder
+                ->addFilter('Description', $value)
+                ->addFilter('DealNo', $itemId)
+                ->setPageSize(1)->setCurrentPage(1)
+                ->create()
+        );
+
+        return $modifier->getItems();
+    }
 
     /**
      * Get custom options from quote item
@@ -733,7 +752,6 @@ class HospitalityHelper extends AbstractHelper
     {
         return $this->configurationHelper->getCustomOptions($quoteItem);
     }
-
 
     /**
      * @param $recipeNo
@@ -750,7 +768,6 @@ class HospitalityHelper extends AbstractHelper
 
         return $modifier->getItems();
     }
-
 
     /**
      * @param $store
@@ -1153,17 +1170,6 @@ class HospitalityHelper extends AbstractHelper
                 $this->qrCodeHelper->getCheckoutSessionObject()->setLastLsOrderId($receiptNo);
             }
             $this->orderResourceModel->save($order);
-            $reloadedOrder = $this->orderRepository->get($order->getEntityId());
-            if (!$reloadedOrder->getEmailSent()) {
-                $this->orderSender->send($order);
-                $this->_logger->info(
-                    sprintf(
-                        'Order confirmation email sent for order #%s (LS Order ID: %s)',
-                        $order->getIncrementId(),
-                        $order->getData('ls_order_id') ?: 'N/A'
-                    )
-                );
-            }
         }
 
         return $resultArray;
@@ -2140,6 +2146,30 @@ class HospitalityHelper extends AbstractHelper
             ->addFilter('store_id', $storeId, 'eq')
             ->addFilter('document_id', true, 'notnull')
             ->addFilter('ls_order_id', true, 'null')
+            ->create();
+
+        return $this->orderRepository->getList($searchCriteria)->getItems();
+    }
+
+    /**
+     * Get orders with ls_order_id set and email not sent, within last 24 hours
+     *
+     * @param int $storeId
+     * @return \Magento\Sales\Api\Data\OrderInterface[]
+     */
+    public function getOrdersWithDocumentIdWithoutEmailSent($storeId)
+    {
+        $currentGmtDate     = $this->replicationHelper->getDatetime();
+        $twentyFourHoursAgo = $this->replicationHelper->dateTime->gmtDate(
+            LSR::DATE_FORMAT . ' H:i:s',
+            strtotime($currentGmtDate . ' -24 hours')
+        );
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('store_id', $storeId, 'eq')
+            ->addFilter('ls_order_id', true, 'notnull')
+            ->addFilter('email_sent', true, 'null')
+            ->addFilter('created_at', $twentyFourHoursAgo, 'gteq')
             ->create();
 
         return $this->orderRepository->getList($searchCriteria)->getItems();
