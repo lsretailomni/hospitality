@@ -103,6 +103,9 @@ class LayoutProcessorPlugin
             unset($shippingAdditionalChildren['ls-shipping-option-wrapper']);
             unset($billingStep['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
             unset($billingStep['children']['payment']['children']['additional-payment-validators']['children']['order-comment-validator']);
+            if(array_key_exists('ls_tips_selected',$sideBar['children']['summary']['children']['totals']['children'])) {
+                unset($sideBar['children']['summary']['children']['totals']['children']['ls_tips_selected']);
+            }
         }
 
         if ($this->hospLsr->getCurrentIndustry() != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
