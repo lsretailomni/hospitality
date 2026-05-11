@@ -135,7 +135,7 @@ class ShippingInformationManagementInterfacePlugin
             // Clear tips amount if shipping method changed
             if ($previousMethod && $newShippingMethod && $previousMethod !== $newShippingMethod) {
                 $quote->setData('ls_tip_amount', 0);
-                $quote->setData('base_ls_tip_amount', 0);
+                $quote->setData('ls_tip_amount_label', "");
                 
                 $this->cartRepository->save($quote);
                 

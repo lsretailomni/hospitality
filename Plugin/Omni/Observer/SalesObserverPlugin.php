@@ -17,8 +17,7 @@ class SalesObserverPlugin
      */
     public function aroundExecute(SalesObserver $subject, callable $proceed, Observer $observer)
     {
-        $result             = $proceed($observer);
-
+        $result = $proceed($observer);
         $event = $observer->getEvent();
         if (!$event) {
             return $result;

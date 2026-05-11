@@ -2211,6 +2211,7 @@ class HospitalityHelper extends AbstractHelper
         try {
             $quote->setData('ls_tip_amount', $tipAmount);
             $quote->setData('ls_tip_amount_label', $tipLabel);
+            $quote->setTotalsCollectedFlag(false);
             $quote->collectTotals();
 
             try {

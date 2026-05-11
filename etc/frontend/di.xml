@@ -58,10 +58,6 @@
     <type name="Ls\Omni\Observer\OrderObserver">
         <plugin name="ls_hospitality_order_observer" type="Ls\Hospitality\Plugin\Omni\Observer\OrderObserverPlugin" sortOrder="100"/>
     </type>
-    <type name="Ls\Omni\Observer\SalesObserver">
-        <plugin name="ls_hospitality_sales_observer_tip_grand_total"
-                type="Ls\Hospitality\Plugin\Omni\Observer\SalesObserverPlugin"/>
-    </type>
     <type name="Ls\Customer\Block\Order\Totals">
         <plugin name="add_extra_to_order_total"
                 type="Ls\Hospitality\Plugin\Customer\Block\Order\ModifyOrderTotalPlugin"

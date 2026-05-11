@@ -217,4 +217,8 @@
                 type="Ls\Hospitality\Plugin\Omni\Block\Order\Custom\TotalsPlugin"
                 sortOrder="10"/>
     </type>
+    <type name="Ls\Omni\Observer\SalesObserver">
+        <plugin name="ls_hospitality_sales_observer_tip_grand_total"
+                type="Ls\Hospitality\Plugin\Omni\Observer\SalesObserverPlugin"/>
+    </type>
 </config>
