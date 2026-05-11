@@ -2,7 +2,7 @@
 
 namespace Ls\Hospitality\Block\Adminhtml\System\Config;
 
-use Ls\Omni\Block\Adminhtml\System\Config\Stores;
+use \Ls\Omni\Block\Adminhtml\System\Config\Stores;
 
 class SalesType extends Stores
 {
