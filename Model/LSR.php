@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Model;
 
@@ -45,37 +46,38 @@ class LSR extends \Ls\Core\Model\LSR
     const TIPS_LINE_TYPE = 'ls_mag/hospitality/tips_line_type';
 
     //For Item Modifiers in Hospitality
-    const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
-    const SC_ITEM_MODIFIER_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_item_modifier';
+    public const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';
+    public const SC_ITEM_MODIFIER_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_item_modifier';
 
     //For Item Recipes in Hospitality
-    const SC_SUCCESS_CRON_ITEM_RECIPE = 'ls_mag/replication/success_process_item_recipe';
-    const SC_ITEM_RECIPE_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_item_recipe';
+    public const SC_SUCCESS_CRON_ITEM_RECIPE = 'ls_mag/replication/success_process_item_recipe';
+    public const SC_ITEM_RECIPE_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_item_recipe';
 
     //For Item Deals in Hospitality
-    const SC_SUCCESS_CRON_ITEM_DEAL = 'ls_mag/replication/success_process_item_deal';
-    const SC_ITEM_DEAL_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_item_deal';
+    public const SC_SUCCESS_CRON_ITEM_DEAL = 'ls_mag/replication/success_process_item_deal';
+    public const SC_ITEM_DEAL_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_item_deal';
 
-    const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
-    const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
+    public const SC_REPLICATION_ITEM_MODIFIER_BATCH_SIZE = 'ls_mag/replication/item_modifier_batch_size';
+    public const SC_REPLICATION_ITEM_RECIPE_BATCH_SIZE = 'ls_mag/replication/item_recipe_batch_size';
 
-    const SC_CLICKCOLLECT_PAYMENT_OPTION = 'carriers/clickandcollect/payment_option';
+    public const SC_CLICKCOLLECT_PAYMENT_OPTION = 'carriers/clickandcollect/payment_option';
 
-    const SC_SHIPMENT_KOTSTATUS = 'ls_mag/hospitality/shipment_kotstatus';
-    const SC_INVOICE_KOTSTATUS = 'ls_mag/hospitality/invoice_kotstatus';
+    public const SC_SHIPMENT_KOTSTATUS = 'ls_mag/hospitality/shipment_kotstatus';
+    public const SC_INVOICE_KOTSTATUS = 'ls_mag/hospitality/invoice_kotstatus';
     //For Deal item html
-    const SC_TRANSLATION_ID_DEAL_ITEM_HTML = 'T0010000825-F0000000020';
+    public const SC_TRANSLATION_ID_DEAL_ITEM_HTML = 'T0010000825-F0000000020';
     //For modifiers and recipe
     const SC_TRANSLATION_ID_DEAL_MODIFIER_SELECT = 'T0099001482-F0000000010';
     const SC_TRANSLATION_ID_DEAL_MODIFIER_DESC = 'T0099001483-F0000000003';
     const SC_TRANSLATION_ID_RECIPE_DESC = 'T0000000090-F0000000006';
 
-    const SC_ITEM_DEAL_HTML_JOB_CODE = 'repl_deal_html_translation';
-    const SC_SUCCESS_PROCESS_TRANSLATION = 'ls_mag/replication/success_process_translation';
-    const SC_PROCESS_TRANSLATION_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_translation';
+    public const SC_ITEM_DEAL_HTML_JOB_CODE = 'repl_deal_html_translation';
+    public const SC_SUCCESS_PROCESS_TRANSLATION = 'ls_mag/replication/success_process_translation';
+    public const SC_PROCESS_TRANSLATION_CONFIG_PATH_LAST_EXECUTE = 'ls_mag/replication/last_execute_process_translation';
 
     //Cache Key
     const LS_HOSP_CHECK_AVAILABILITY = 'LS_HOSP_CHECK_AVAILABILITY_';
+
     /**
      * Check service mode is enabled
      *
@@ -231,19 +233,10 @@ class LSR extends \Ls\Core\Model\LSR
             KOTStatus::STARTED     => __("Preparing your order"),
             KOTStatus::FINISHED    => __("Finished preparing your order"),
             KOTStatus::SERVED      => __("Your order has been served"),
+            KOTStatus::NONE        => __("Order completed"),
             KOTStatus::VOIDED      => __("Order is cancelled"),
             KOTStatus::POSTED      => __("Order completed"),
-            KOTStatus::NONE        => __("Order completed")
         ];
-    }
-
-    /**
-     * @return mixed
-     * @throws NoSuchEntityException
-     */
-    public function getStoreId()
-    {
-        return $this->storeManager->getStore()->getStoreId();
     }
 
     /**
@@ -301,7 +294,6 @@ class LSR extends \Ls\Core\Model\LSR
 
         return $this->getStoreConfig(self::DISABLE_INVENTORY_CHECKING, $storeId);
     }
-
 
     /**
      * Determines if order creation shoulbe be blocked on basket calculation fail.

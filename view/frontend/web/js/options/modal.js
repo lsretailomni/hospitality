@@ -29,11 +29,11 @@ define([
             productCustomOption: '.custom-field  .product-custom-option',
             modalTitleClass: '.custom-options-modal .modal-title',
         },
-
+        
         _create: function () {
             this._createCustomOptions();
         },
-
+        
         _init: function () {
             let self = this,
                 body = $('body');
@@ -51,7 +51,7 @@ define([
 
                 // Apply unavailable styles
                 self._applyAvailabilityStyles(popupContainer);
-
+                
                 popupContainer.modal('openModal');
             });
 
@@ -60,7 +60,7 @@ define([
                 if ($(this).attr('data-available') === 'false') {
                     return false;
                 }
-
+                
                 let parent = $(this).closest(self.options.customOptionValuesContainer),
                     valueId = $(this).data('custom-value-id'),
                     optionId = parent.data('custom-option-id'),
@@ -108,7 +108,7 @@ define([
                 }
             });
         },
-
+        
         _createCustomOptions: function () {
             let self = this,
                 body = $('body');

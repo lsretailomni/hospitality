@@ -1,8 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Cron;
 
 use \Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
@@ -46,115 +48,43 @@ class ProcessItemDeal
     /** @var int */
     public $remainingRecords;
 
-    /** @var LSR */
-    public $lsr;
-
-    /** @var ReplicationHelper */
-    public $replicationHelper;
-
-    /** @var Logger */
-    public $logger;
-
     /** @var StoreInterface $store */
     public $store;
 
     /**
-     * @var ReplHierarchyHospDealRepositoryInterface
-     */
-    public $replHierarchyHospDealRepository;
-
-    /**
-     * @var ReplHierarchyHospDealLineRepositoryInterface
-     */
-    public $replHierarchyHospDealLineRepository;
-
-    /**
-     * @var ReplHierarchyLeafRepositoryInterface
-     */
-    public $replHierarchyLeafRepository;
-
-    /** @var ProductRepositoryInterface */
-    public $productRepository;
-
-    /** @var ProductInterfaceFactory */
-    public $productFactory;
-
-    /** @var ProductCustomOptionInterfaceFactory */
-    public $customOptionFactory;
-    /**
-     * @var ProductCustomOptionValuesInterfaceFactory
-     */
-    public $customOptionValueFactory;
-    /**
-     * @var ProductCustomOptionRepositoryInterface
-     */
-    public $optionRepository;
-
-    /** @var ReplItemRecipeRepositoryInterface */
-    public $replItemRecipeRepository;
-
-    /** @var ReplItemModifierRepositoryInterface */
-    public $replItemModifierRepository;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var ProcessItemModifier
-     */
-    public $processItemModifier;
-
-    /**
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
-     * @param LSR $LSR
+     * @param LSR $lsr
      * @param ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository
      * @param ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository
      * @param ReplHierarchyLeafRepositoryInterface $replHierarchyLeafRepository
      * @param ProductRepositoryInterface $productRepository
-     * @param ProductInterfaceFactory $productInterfaceFactory
+     * @param ProductInterfaceFactory $productFactory
      * @param ProductCustomOptionRepositoryInterface $optionRepository
      * @param ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory
      * @param ProductCustomOptionInterfaceFactory $customOptionFactory
-     * @param ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface
+     * @param ReplItemRecipeRepositoryInterface $replItemRecipeRepository
      * @param ReplItemModifierRepositoryInterface $replItemModifierRepository
      * @param HospitalityHelper $hospitalityHelper
      * @param ProcessItemModifier $processItemModifier
      */
     public function __construct(
-        ReplicationHelper $replicationHelper,
-        Logger $logger,
-        LSR $LSR,
-        ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
-        ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
-        ReplHierarchyLeafRepositoryInterface $replHierarchyLeafRepository,
-        ProductRepositoryInterface $productRepository,
-        ProductInterfaceFactory $productInterfaceFactory,
-        ProductCustomOptionRepositoryInterface $optionRepository,
-        ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
-        ProductCustomOptionInterfaceFactory $customOptionFactory,
-        ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface,
-        ReplItemModifierRepositoryInterface $replItemModifierRepository,
-        HospitalityHelper $hospitalityHelper,
-        ProcessItemModifier $processItemModifier
+        public ReplicationHelper $replicationHelper,
+        public Logger $logger,
+        public LSR $lsr,
+        public ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
+        public ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
+        public ReplHierarchyLeafRepositoryInterface $replHierarchyLeafRepository,
+        public ProductRepositoryInterface $productRepository,
+        public ProductInterfaceFactory $productFactory,
+        public ProductCustomOptionRepositoryInterface $optionRepository,
+        public ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
+        public ProductCustomOptionInterfaceFactory $customOptionFactory,
+        public ReplItemRecipeRepositoryInterface $replItemRecipeRepository,
+        public ReplItemModifierRepositoryInterface $replItemModifierRepository,
+        public HospitalityHelper $hospitalityHelper,
+        public ProcessItemModifier $processItemModifier
     ) {
-        $this->logger                              = $logger;
-        $this->replicationHelper                   = $replicationHelper;
-        $this->lsr                                 = $LSR;
-        $this->replHierarchyHospDealRepository     = $replHierarchyHospDealRepository;
-        $this->replHierarchyHospDealLineRepository = $replHierarchyHospDealLineRepository;
-        $this->replHierarchyLeafRepository         = $replHierarchyLeafRepository;
-        $this->productRepository                   = $productRepository;
-        $this->productFactory                      = $productInterfaceFactory;
-        $this->customOptionFactory                 = $customOptionFactory;
-        $this->customOptionValueFactory            = $customOptionValueFactory;
-        $this->optionRepository                    = $optionRepository;
-        $this->replItemRecipeRepository            = $replItemRecipeRepositoryInterface;
-        $this->replItemModifierRepository          = $replItemModifierRepository;
-        $this->hospitalityHelper                   = $hospitalityHelper;
-        $this->processItemModifier                 = $processItemModifier;
     }
 
     /**
@@ -166,7 +96,7 @@ class ProcessItemDeal
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws StateException
-     * @throws Zend_Db_Select_Exception
+     * @throws Zend_Db_Select_Exception|GuzzleException
      */
     public function executeManually($storeData = null)
     {
@@ -184,7 +114,7 @@ class ProcessItemDeal
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws StateException
-     * @throws Zend_Db_Select_Exception
+     * @throws Zend_Db_Select_Exception|GuzzleException
      */
     public function execute($storeData = null)
     {
@@ -290,7 +220,7 @@ class ProcessItemDeal
      *
      * @throws InputException
      * @throws NoSuchEntityException
-     * @throws Zend_Db_Select_Exception
+     * @throws Zend_Db_Select_Exception|LocalizedException
      */
     public function caterDealLinesAddOrUpdate()
     {
@@ -451,7 +381,7 @@ class ProcessItemDeal
      * Process item deal line
      *
      * @param mixed $product
-     * @throws InputException|NoSuchEntityException
+     * @throws InputException|NoSuchEntityException|LocalizedException
      */
     public function processItemDealLine($product)
     {

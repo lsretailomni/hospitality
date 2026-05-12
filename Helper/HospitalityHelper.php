@@ -1,33 +1,36 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Helper;
 
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity;
 use \Ls\Omni\Client\Ecommerce\Entity\Enum\KOTStatus;
-use \Ls\Omni\Client\Ecommerce\Entity\HospOrderStatusResponse as HospOrderStatusResponse;
+use \Ls\Omni\Client\CentralEcommerce\Entity\GetHospOrderEstimatedTime;
+use \Ls\Omni\Client\CentralEcommerce\Entity\GetKotStatus;
+use \Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
 use \Ls\Omni\Client\Ecommerce\Entity\ImageSize;
-use \Ls\Omni\Client\Ecommerce\Operation;
-use \Ls\Omni\Client\Ecommerce\Entity\Enum\SubLineType;
+use \Ls\Omni\Client\CentralEcommerce\Entity\MobileTransactionLine;
+use \Ls\Omni\Client\CentralEcommerce\Entity\RootKotStatus;
+use \Ls\Omni\Client\CentralEcommerce\Operation;
 use \Ls\Omni\Client\Ecommerce\Entity\OrderHospLine;
-use \Ls\Omni\Client\ResponseInterface;
 use \Ls\Omni\Helper\CacheHelper;
 use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\LoyaltyHelper;
 use \Ls\Omni\Helper\OrderHelper;
 use \Ls\Replication\Api\ReplHierarchyHospDealLineRepositoryInterface;
 use \Ls\Replication\Api\ReplHierarchyHospDealRepositoryInterface;
+use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
 use \Ls\Replication\Api\ReplImageLinkRepositoryInterface;
 use \Ls\Replication\Api\ReplItemUnitOfMeasureRepositoryInterface as ReplItemUnitOfMeasure;
+use \Ls\Replication\Api\ReplItemModifierRepositoryInterface as ReplLscWiItemModifierRepository;
 use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
-use \Ls\Replication\Model\ReplItemModifierRepository;
-use \Ls\Replication\Model\ReplItemRecipeRepository;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
 use \Ls\Omni\Helper\StoreHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -42,10 +45,12 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DataObject;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
@@ -54,6 +59,7 @@ use Magento\Framework\Serialize\Serializer\Json as SerializerJson;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
+use Magento\Quote\Model\Quote\Item;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -82,186 +88,13 @@ class HospitalityHelper extends AbstractHelper
             'street'    => ['street_line1', 'street_line2']
         ];
 
-    /** @var ProductRepository $productRepository */
-    public $productRepository;
-
-    /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
-    public $searchCriteriaBuilder;
-
-    /**
-     * @var Configuration
-     */
-    public $configurationHelper;
-
-    /**
-     * @var ReplItemModifierRepository
-     */
-    public $itemModifierRepository;
-
-    /**
-     * @var ReplItemRecipeRepository
-     */
-    public $recipeRepository;
-
-    /** @var ReplItemUnitOfMeasure */
-    public $replItemUomRepository;
-
-    /**
-     * @var ReplicationHelper
-     */
-    public $replicationHelper;
-
-    /**
-     * @var DealCollectionFactory
-     */
-    public $replHierarchyHospDealCollectionFactory;
-
-    /**
-     * @var DealLineCollectionFactory
-     */
-    public $replHierarchyHospDealLineCollectionFactory;
-    /**
-     * @var ResourceConnection
-     */
-    public $resourceConnection;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
-     * @var ReplHierarchyHospDealRepositoryInterface
-     */
-    public $replHierarchyHospDealRepository;
-
-    /**
-     * @var Filesystem
-     */
-    public $filesystem;
-
-    /**
-     * @var UploaderFactory
-     */
-    public $uploaderFactory;
-
-    /** @var LoyaltyHelper */
-    public $loyaltyHelper;
-
-    /** @var File */
-    public $file;
-
-    /** @var ReplImageLinkRepositoryInterface */
-    public $replImageLinkRepositoryInterface;
-
-    /** @var ProductCustomOptionRepositoryInterface */
-    public $optionRepository;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    public $storeManager;
-
-    /**
-     * @var Registry
-     */
-    public $registry;
-
-    /**
-     * @var ReplHierarchyHospDealLineRepositoryInterface
-     */
-    public $replHierarchyHospDealLineRepository;
-
-    /**
-     * @var Information
-     */
-    public $storeInfo;
-
-    /** @var AddressInterfaceFactory */
-    public $addressFactory;
-
-    /**
-     * @var AttributeRepositoryInterface
-     */
-    public $attributeRepository;
-
-    /**
-     * @var SerializerJson
-     */
-    public $serializerJson;
-
-    /**
-     * @var OrderHelper
-     */
-    public $orderHelper;
-
-    /**
-     * @var ItemHelper
-     */
-    public $itemHelper;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    public $orderRepository;
-
-    /**
-     * @var QrCodeHelper
-     */
-    public $qrCodeHelper;
-
-    /**
-     * @var CustomerSession
-     */
-    public $customerSession;
-
-    /**
-     * @var ImageHelper
-     */
-    public $imageHelper;
-
-    /**
-     * @var Url
-     */
-    public $productUrlBuilder;
-
-    /**
-     * @var Order
-     */
-    private $orderResourceModel;
-
-    /**
-     * @var OrderSender
-     */
-    protected $orderSender;
-
-    /**
-     * @var CacheHelper
-     */
-    public $cacheHelper;
-
-    /**
-     * @var LoggerInterface
-     */
-    public $logger;
-
-    /**
-     * @var CartRepositoryInterface 
-     */
-    public $quoteRepository;
-
-    /**
-     * @var StoreHelper
-     */
-    public $storeHelper;
-
     /**
      * @param Context $context
      * @param Configuration $configurationHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ProductRepository $productRepository
-     * @param ReplItemModifierRepository $itemModifierRepository
-     * @param ReplItemRecipeRepository $recipeRepository
+     * @param ReplLscWiItemModifierRepository $itemModifierRepository
+     * @param ReplItemRecipeRepositoryInterface $recipeRepository
      * @param ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository
      * @param ReplicationHelper $replicationHelper
      * @param DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory
@@ -289,111 +122,69 @@ class HospitalityHelper extends AbstractHelper
      * @param CustomerSession $customerSession
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
-     * @param Order $orderResourceModel
-     * @param OrderSender $orderSender
      * @param CacheHelper $cacheHelper
+     * @param Order $orderResourceModel
      * @param LoggerInterface $logger
      * @param CartRepositoryInterface $quoteRepository
      * @param StoreHelper $storeHelper
      */
     public function __construct(
         Context $context,
-        Configuration $configurationHelper,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        ProductRepository $productRepository,
-        ReplItemModifierRepository $itemModifierRepository,
-        ReplItemRecipeRepository $recipeRepository,
-        ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository,
-        ReplicationHelper $replicationHelper,
-        DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
-        DealCollectionFactory $replHierarchyHospDealCollectionFactory,
-        ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
-        ResourceConnection $resourceConnection,
-        LSR $lsr,
-        Filesystem $filesystem,
-        UploaderFactory $uploaderFactory,
-        LoyaltyHelper $loyaltyHelper,
-        File $file,
-        ReplImageLinkRepositoryInterface $replImageLinkRepository,
-        ProductCustomOptionRepositoryInterface $optionRepository,
-        StoreManagerInterface $storeManager,
-        Registry $registry,
-        ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
-        Information $storeInfo,
-        AddressInterfaceFactory $addressFactory,
-        AttributeRepositoryInterface $attributeRepository,
-        SerializerJson $serializerJson,
-        OrderHelper $orderHelper,
-        ItemHelper $itemHelper,
-        OrderRepositoryInterface $orderRepository,
-        QrCodeHelper $qrCodeHelper,
-        CustomerSession $customerSession,
-        ImageHelper $imageHelper,
-        Url $productUrlBuilder,
-        Order $orderResourceModel,
-        OrderSender $orderSender,
-        CacheHelper $cacheHelper,
-        LoggerInterface $logger,
-        CartRepositoryInterface $quoteRepository,
-        StoreHelper $storeHelper        
+        public Configuration $configurationHelper,
+        public SearchCriteriaBuilder $searchCriteriaBuilder,
+        public ProductRepository $productRepository,
+        public ReplLscWiItemModifierRepository $itemModifierRepository,
+        public ReplItemRecipeRepositoryInterface $recipeRepository,
+        public ReplItemUnitOfMeasure $replItemUnitOfMeasureRepository,
+        public ReplicationHelper $replicationHelper,
+        public DealLineCollectionFactory $replHierarchyHospDealLineCollectionFactory,
+        public DealCollectionFactory $replHierarchyHospDealCollectionFactory,
+        public ReplHierarchyHospDealRepositoryInterface $replHierarchyHospDealRepository,
+        public ResourceConnection $resourceConnection,
+        public LSR $lsr,
+        public Filesystem $filesystem,
+        public UploaderFactory $uploaderFactory,
+        public LoyaltyHelper $loyaltyHelper,
+        public File $file,
+        public ReplImageLinkRepositoryInterface $replImageLinkRepository,
+        public ProductCustomOptionRepositoryInterface $optionRepository,
+        public StoreManagerInterface $storeManager,
+        public Registry $registry,
+        public ReplHierarchyHospDealLineRepositoryInterface $replHierarchyHospDealLineRepository,
+        public Information $storeInfo,
+        public AddressInterfaceFactory $addressFactory,
+        public AttributeRepositoryInterface $attributeRepository,
+        public SerializerJson $serializerJson,
+        public OrderHelper $orderHelper,
+        public ItemHelper $itemHelper,
+        public OrderRepositoryInterface $orderRepository,
+        public QrCodeHelper $qrCodeHelper,
+        public CustomerSession $customerSession,
+        public ImageHelper $imageHelper,
+        public Url $productUrlBuilder,
+        public CacheHelper $cacheHelper,
+        public Order $orderResourceModel,
+        public LoggerInterface $logger,
+        public CartRepositoryInterface $quoteRepository,
+        public StoreHelper $storeHelper
     ) {
         parent::__construct($context);
-        $this->configurationHelper                        = $configurationHelper;
-        $this->searchCriteriaBuilder                      = $searchCriteriaBuilder;
-        $this->productRepository                          = $productRepository;
-        $this->itemModifierRepository                     = $itemModifierRepository;
-        $this->recipeRepository                           = $recipeRepository;
-        $this->replItemUomRepository                      = $replItemUnitOfMeasureRepository;
-        $this->replicationHelper                          = $replicationHelper;
-        $this->replHierarchyHospDealLineCollectionFactory = $replHierarchyHospDealLineCollectionFactory;
-        $this->replHierarchyHospDealCollectionFactory     = $replHierarchyHospDealCollectionFactory;
-        $this->replHierarchyHospDealRepository            = $replHierarchyHospDealRepository;
-        $this->resourceConnection                         = $resourceConnection;
-        $this->lsr                                        = $lsr;
-        $this->filesystem                                 = $filesystem;
-        $this->uploaderFactory                            = $uploaderFactory;
-        $this->loyaltyHelper                              = $loyaltyHelper;
-        $this->file                                       = $file;
-        $this->replImageLinkRepositoryInterface           = $replImageLinkRepository;
-        $this->optionRepository                           = $optionRepository;
-        $this->storeManager                               = $storeManager;
-        $this->registry                                   = $registry;
-        $this->replHierarchyHospDealLineRepository        = $replHierarchyHospDealLineRepository;
-        $this->storeInfo                                  = $storeInfo;
-        $this->addressFactory                             = $addressFactory;
-        $this->attributeRepository                        = $attributeRepository;
-        $this->serializerJson                             = $serializerJson;
-        $this->orderHelper                                = $orderHelper;
-        $this->itemHelper                                 = $itemHelper;
-        $this->orderRepository                            = $orderRepository;
-        $this->qrCodeHelper                               = $qrCodeHelper;
-        $this->customerSession                            = $customerSession;
-        $this->imageHelper                                = $imageHelper;
-        $this->productUrlBuilder                          = $productUrlBuilder;
-        $this->orderResourceModel                         = $orderResourceModel;
-        $this->orderSender                                = $orderSender;
-        $this->cacheHelper                                = $cacheHelper;
-        $this->logger                                     = $logger;
-        $this->quoteRepository                            = $quoteRepository;
-        $this->storeHelper                                = $storeHelper;
     }
 
     /**
      * Creating selected sublines from quoteItem
      *
-     * @param $quoteItem
-     * @param $lineNumber
+     * @param Item $quoteItem
+     * @param int $parentSubLineId
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $lineNumber)
+    public function getSelectedOrderHospSubLineGivenQuoteItem($quoteItem, $parentSubLineId)
     {
-        $lineNumber *= 10000;
-
         /** @var Interceptor $product */
         $product = $quoteItem->getProduct();
         list($lsrId, , $uom) = $this->itemHelper->getItemAttributesGivenQuoteItem($quoteItem);
-
+        $lineNumber = 0;
         /**
          * Business Logic ***
          * For configurable based products, we are storing values based on UoM Description
@@ -404,14 +195,17 @@ class HospitalityHelper extends AbstractHelper
         $mainDealLine = null;
 
         $selectedOptionsOfQuoteItem = $this->configurationHelper->getCustomOptions($quoteItem);
-        $selectedOrderHospSubLine   = [];
+        $selectedOrderHospSubLine = [];
 
         if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
             $mainDealLine = current($this->getMainDealLine($lsrId));
 
             if ($mainDealLine) {
+                $lineNumber += 10000;
                 $selectedOrderHospSubLine['deal'][] = [
                     'DealLineId' => $mainDealLine->getLineNo(),
+                    'ParentSubLineId' => $parentSubLineId,
+                    'DealId' => $mainDealLine->getOfferNo(),
                     'LineNumber' => $lineNumber
                 ];
             }
@@ -420,21 +214,25 @@ class HospitalityHelper extends AbstractHelper
                 if (isset($option['ls_modifier_recipe_id'])) {
                     continue;
                 }
-                $dealLineId                         = $this->getCustomOptionSortOrder($product, $option['option_id']);
-                $dealModLineId                      = $this->getCustomOptionValueSortOrder(
+                $dealLineId = $this->getCustomOptionSortOrder($product, $option['option_id']);
+                $dealModLineId = $this->getCustomOptionValueSortOrder(
                     $product,
                     $option['option_id'],
                     trim($option['value'])
                 );
-                $uom                                = $this->getDealLineUomGivenData(
+                $uom = $this->getDealLineUomGivenData(
                     $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE),
                     $dealLineId,
                     $dealModLineId
                 );
+                $lineNumber += 10000;
                 $selectedOrderHospSubLine['deal'][] = [
-                    'DealLineId'    => $dealLineId,
+                    'DealLineId' => $dealLineId,
                     'DealModLineId' => $dealModLineId,
-                    'uom'           => $uom
+                    'uom' => $uom,
+                    'DealId' => $mainDealLine->getOfferNo(),
+                    'ParentSubLineId' => $parentSubLineId,
+                    'LineNumber' => $lineNumber
                 ];
                 unset($selectedOptionsOfQuoteItem[$index]);
             }
@@ -451,43 +249,50 @@ class HospitalityHelper extends AbstractHelper
             foreach (array_map('trim', explode(',', $decodedValue)) as $optionValue) {
                 if ($itemSubLineCode == LSR::LSR_RECIPE_PREFIX) {
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) && $mainDealLine) {
-                        $recipeData['DealLineId']      = $mainDealLine->getLineNo();
-                        $recipeData['ParentSubLineId'] = $lineNumber;
-                        $recipeData['price']           = $option['price'] ?? null;
-                        $recipe                        = $this->getRecipe($mainDealLine->getNo(), $optionValue);
+                        $recipeData['DealLineId'] = $mainDealLine->getLineNo();
+                        $recipeData['ParentSubLineId'] = $parentSubLineId;
+                        $recipeData['price'] = $option['price'] ?? null;
+                        $recipeData['ParentLineIsSubline'] = 1;
+                        $recipe = $this->getRecipe($mainDealLine->getNo(), $optionValue);
                     } else {
                         $recipe = $this->getRecipe($lsrId, $optionValue);
                     }
 
                     if (!empty($recipe)) {
-                        $itemId                               = reset($recipe)->getItemNo();
-                        $recipeData['ItemId']                 = $itemId;
+                        $lineNumber += 10000;
+                        $itemId = reset($recipe)->getItemNo();
+                        $recipeData['ItemId'] = $itemId;
+                        $recipeData['LineNumber'] = $lineNumber;
+                        $recipeData['ParentSubLineId'] = $parentSubLineId;
+                        $recipeData['ParentLineIsSubline'] = $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) ? 1 : 0;
                         $selectedOrderHospSubLine['recipe'][] = $recipeData;
                     }
                 } else {
                     $mainDealLineNo = null;
                     if ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
-                        $uom            = null;
-                        $lsrId          = $mainDealLine->getNo();
+                        $uom = null;
+                        $lsrId = $mainDealLine->getNo();
                         $mainDealLineNo = $mainDealLine->getLineNo();
                     }
                     $formattedItemSubLineCode = $this->getItemSubLineCode($itemSubLineCode);
-                    $itemModifier             = $this->getItemModifier(
+                    $itemModifier = $this->getItemModifier(
                         $lsrId,
                         $formattedItemSubLineCode,
                         $optionValue
                     );
 
                     if (!empty($itemModifier)) {
-                        $subCode = reset($itemModifier)->getSubCode();
+                        $lineNumber += 10000;
+                        $subCode = reset($itemModifier)->getSubcode();
                         $selectedOrderHospSubLine['modifier'][]
-                                 = [
+                            = [
                             'ModifierGroupCode' => $formattedItemSubLineCode,
-                            'ModifierSubCode'   => $subCode,
-                            'DealLineId'        => $mainDealLineNo,
-                            'ParentSubLineId'   => ($product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) ?
-                                $lineNumber : '',
-                            'price'             => $option['price'] ?? null,
+                            'ModifierSubCode' => $subCode,
+                            'DealLineId' => $mainDealLineNo,
+                            'ParentSubLineId' => $parentSubLineId,
+                            'price' => $option['price'] ?? null,
+                            'LineNumber' => $lineNumber,
+                            'ParentLineIsSubline' => $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE) ? 1 : 0
                         ];
                     }
                 }
@@ -500,19 +305,40 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get amount from given line
      *
-     * @param OrderHospLine $line
+     * @param MobileTransactionLine $line
+     * @param array $subLines
      * @return float|null
      */
-    public function getAmountGivenLine(OrderHospLine $line)
+    public function getAmountGivenLine(MobileTransactionLine $line, array $subLines = [])
     {
-        $amount = $line->getAmount();
+        $amount = $line->getNetAmount() + $line->getTaxAmount();
+        $parentLineNo = $line->getLineNo();
+        $itemId = $line->getNumber();
+        $lineNo = 0;
 
-        foreach ($line->getSubLines() as $subLine) {
-            if ($subLine->getType() == SubLineType::DEAL) {
+        $subLines = $this->getRelevantSublinesForGivenLine($line, $subLines);
+
+        if (!$line->getDealitem()) {
+            $lineNo = $line->getLineNo();
+        } else {
+            foreach ($subLines as $subLine) {
+                if ($subLine->getLinetype() == 1 &&
+                    $subLine->getDealid() == $itemId &&
+                    $subLine->getParentlineno() == $parentLineNo &&
+                    $subLine->getDealmodline() == 0
+                ) {
+                    $lineNo = $subLine->getLineno();
+                    break;
+                }
+            }
+        }
+
+        foreach ($subLines as $subLine) {
+            if ($subLine->getLinetype() == 1 || $subLine->getParentlineno() !== $lineNo) {
                 continue;
             }
 
-            $amount += $subLine->getAmount();
+            $amount += $subLine->getNetAmount() + $subLine->getTaxAmount();
         }
 
         return $amount;
@@ -536,32 +362,75 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get relevant sublines
+     *
+     * @param MobileTransactionLine $line
+     * @param array $subLines
+     * @return array
+     */
+    public function getRelevantSublinesForGivenLine(MobileTransactionLine $line, array $subLines)
+    {
+        $parentLineNo = $line->getLineNo();
+        $itemId = $line->getNumber();
+        $lineNo = 0;
+        $requiredSublines = [];
+
+        if (!$line->getDealitem()) {
+            $lineNo = $line->getLineNo();
+        } else {
+            foreach ($subLines as $subLine) {
+                if ($subLine->getLinetype() == 1 &&
+                    $subLine->getDealid() == $itemId &&
+                    $subLine->getParentlineno() == $parentLineNo
+                ) {
+                    if ($subLine->getDealmodline() == 0) {
+                        $lineNo = $subLine->getLineno();
+                    }
+                    $requiredSublines[] = $subLine;
+                }
+            }
+        }
+
+        foreach ($subLines as $subLine) {
+            if ($subLine->getLinetype() == 1 || $subLine->getParentlineno() !== $lineNo) {
+                continue;
+            }
+
+            $requiredSublines[] = $subLine;
+        }
+
+        return $requiredSublines;
+    }
+
+    /**
      * Comparison between quote selected sublines and omni sublines
      *
-     * @param OrderHospLine $line
+     * @param MobileTransactionLine $line
      * @param $item
      * @param $index
+     * @param array $sublines
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isSameAsSelectedLine(OrderHospLine $line, $item, $index)
+    public function isSameAsSelectedLine(MobileTransactionLine $line, $item, $index, array $sublines = [])
     {
         $selectedOrderHospSubLine = $this->getSelectedOrderHospSubLineGivenQuoteItem($item, $index);
-        $selectedCount            = $this->getSelectedSubLinesCount($selectedOrderHospSubLine);
+        $sublines = $this->getRelevantSublinesForGivenLine($line, $sublines);
+        $selectedCount = $this->getSelectedSubLinesCount($selectedOrderHospSubLine);
 
-        if ($selectedCount != count($line->getSubLines()->getOrderHospSubLine())) {
+        if ($selectedCount != count($sublines)) {
             return false;
         }
 
-        foreach ($line->getSubLines() as $omniSubLine) {
+        foreach ($sublines as $omniSubLine) {
             $found = false;
 
-            if ($omniSubLine->getType() == SubLineType::MODIFIER) {
+            if ($omniSubLine->getLinetype() == 0) {
                 if ((int)$omniSubLine->getQuantity()) {
                     if (!empty($selectedOrderHospSubLine['modifier'])) {
                         foreach ($selectedOrderHospSubLine['modifier'] as $quoteSubLine) {
-                            if ($omniSubLine->getModifierGroupCode() == $quoteSubLine['ModifierGroupCode']
-                                && $omniSubLine->getModifierSubCode() == $quoteSubLine['ModifierSubCode']) {
+                            if ($omniSubLine->getModifiergroupcode() == $quoteSubLine['ModifierGroupCode']
+                                && $omniSubLine->getModifiersubcode() == $quoteSubLine['ModifierSubCode']) {
                                 $found = true;
                                 break;
                             }
@@ -570,20 +439,20 @@ class HospitalityHelper extends AbstractHelper
                 } else {
                     if (!empty($selectedOrderHospSubLine['recipe'])) {
                         foreach ($selectedOrderHospSubLine['recipe'] as $quoteSubLine) {
-                            if ($omniSubLine->getItemId() == $quoteSubLine['ItemId']) {
+                            if ($omniSubLine->getNumber() == $quoteSubLine['ItemId']) {
                                 $found = true;
                                 break;
                             }
                         }
                     }
                 }
-            } elseif ($omniSubLine->getType() == SubLineType::DEAL) {
+            } elseif ($omniSubLine->getLinetype() == 1) {
                 if (!empty($selectedOrderHospSubLine['deal'])) {
                     foreach ($selectedOrderHospSubLine['deal'] as $quoteSubLine) {
-                        if ($omniSubLine->getDealLineId() == $quoteSubLine['DealLineId']) {
-                            if ($omniSubLine->getDealModifierLineId()) {
+                        if ($omniSubLine->getDealline() == $quoteSubLine['DealLineId']) {
+                            if ($omniSubLine->getDealmodline()) {
                                 if (isset($quoteSubLine['DealModLineId'])
-                                    && $omniSubLine->getDealModifierLineId() == $quoteSubLine['DealModLineId']) {
+                                    && $omniSubLine->getDealmodline() == $quoteSubLine['DealModLineId']) {
                                     $found = true;
                                     break;
                                 }
@@ -647,14 +516,14 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param $navId
      * @param $description
-     * @return |null
+     * @return null
      */
     public function getUoMCodeByDescription($navId, $description)
     {
         // removing this for now.
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('ItemId', $navId)
             ->addFilter('Description', $description);
-        $itemUom        = $this->replItemUomRepository->getList(
+        $itemUom = $this->replItemUnitOfMeasureRepository->getList(
             $searchCriteria->setPageSize(1)
                 ->setCurrentPage(1)
                 ->create()
@@ -708,7 +577,7 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Get modifier by description
      *
-     * @param $value
+     * @param string $value
      * @return mixed
      */
     public function getModifierByDescription($value)
@@ -772,16 +641,16 @@ class HospitalityHelper extends AbstractHelper
     /**
      * @param $store
      * @return array
-     * @throws Zend_Db_Select_Exception
+     * @throws Zend_Db_Select_Exception|LocalizedException
      */
     public function getUpdatedDealLinesRecords($store)
     {
         $batchSize = $this->getItemModifiersBatchSize();
-        $filters2  = [
+        $filters2 = [
             ['field' => 'main_table.scope_id', 'value' => $store->getWebsiteId(), 'condition_type' => 'eq']
         ];
 
-        $criteria2   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+        $criteria2 = $this->replicationHelper->buildCriteriaForArrayWithAlias(
             $filters2,
             $batchSize,
             1
@@ -802,7 +671,7 @@ class HospitalityHelper extends AbstractHelper
             ['field' => 'main_table.Type', 'value' => ['Item', 'Modifier'], 'condition_type' => 'in']
         ];
 
-        $criteria1   = $this->replicationHelper->buildCriteriaForArrayWithAlias(
+        $criteria1 = $this->replicationHelper->buildCriteriaForArrayWithAlias(
             $filters1,
             $batchSize,
             1
@@ -957,44 +826,82 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Getting the kitchen order status information
      *
-     * @param $orderId
-     * @param $webStore
-     * @return HospOrderStatusResponse|ResponseInterface|null
+     * @param string $orderId
+     * @param string $webStore
+     * @return RootKotStatus|null
      * @throws NoSuchEntityException
+     * @throws GuzzleException
      */
-    public function getKitchenOrderStatus($orderId, $webStore)
+    public function getKotStatus(string $orderId, string $webStore)
     {
         $response = null;
 
         if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
-            if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                $operation = new Operation\HospOrderStatus();
-                $request   = new Entity\HospOrderStatus();
-            } else {
-                $request   = new Entity\HospOrderKotStatus();
-                $operation = new Operation\HospOrderKotStatus();
-            }
-            $request->setOrderId($orderId);
-            $request->setStoreId($webStore);
-            $response = $operation->execute($request);
+            $operation = $this->createInstance(Operation\GetKotStatus::class);
+            $operation->setOperationInput(
+                [
+                    GetKotStatus::STORE_NO => $webStore,
+                    GetKotStatus::ORDER_NO => $orderId,
+                ]
+            );
+            $response = $operation->execute();
         }
 
-        return $response;
+        return $response && $response->getResponsecode() == "0000" ? $response->getGetkotstatusxml() : null;
+    }
+
+    /**
+     * Get estimated time
+     *
+     * @param string $orderId
+     * @param string $webStore
+     * @return int|null
+     * @throws GuzzleException
+     * @throws NoSuchEntityException
+     */
+    public function getEstimatedTime(string $orderId, string $webStore)
+    {
+        $response = null;
+
+        if ($this->lsr->isLSR($this->lsr->getCurrentStoreId())) {
+            $operation = $this->createInstance(Operation\GetHospOrderEstimatedTime::class);
+            $operation->setOperationInput(
+                [
+                    GetHospOrderEstimatedTime::STORE_NO => $webStore,
+                    GetHospOrderEstimatedTime::ORDER_NO => $orderId,
+                    GetHospOrderEstimatedTime::ESTIMATED_TIME => 0
+                ]
+            );
+            $response = $operation->execute();
+        }
+
+        return $response && $response->getResponsecode() == "0000" ? $response->getEstimatedtime() : null;
+    }
+
+    /**
+     * Create new instance of given class name
+     *
+     * @param string|null $entityClassName
+     * @param array $data
+     * @return mixed
+     */
+    public function createInstance(?string $entityClassName = null, array $data = [])
+    {
+        return ObjectManager::getInstance()->create($entityClassName, $data);
     }
 
     /**
      * Get status detail from status mapping
      *
-     * @param $orderId
-     * @param $storeId
+     * @param string $orderId
+     * @param string $storeId
      * @return array
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function getKitchenOrderStatusDetails($orderId, $storeId, $updateSession = true)
     {
         $status      = $productionTime = $statusDescription = $qCounter = $kotNo = $tableNo = $receiptNo = '';
         $resultArray = [];
-        $linesData   = [];
         $order       = $this->getOrderByOrderId($orderId);
         if (!empty($order)) {
             $orderId = $order->getData('document_id');
@@ -1014,7 +921,6 @@ class HospitalityHelper extends AbstractHelper
                 $qrcodeParams = $this->serializerJson->unserialize($qrcodeInfo);
                 $tableNo      = $qrcodeParams['table_no'];
             }
-
             $itemQtyMap = [];
             foreach ($order->getAllVisibleItems() as $orderItem) {
                 $itemId = $orderItem->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
@@ -1025,116 +931,96 @@ class HospitalityHelper extends AbstractHelper
                     $itemQtyMap[$itemId] += $orderItem->getQtyOrdered();
                 }
             }
-
-            $response = $this->getKitchenOrderStatus(
-                $orderId,
-                $storeId
-            );
+            $response = $this->getKotStatus($orderId, $storeId);
 
             if (!empty($response)) {
-                if (version_compare($this->lsr->getOmniVersion(), '4.19', '>')) {
-                    $orderStatusResult = $response->getHospOrderStatusResult();
-                    $orderHospStatus   = method_exists($orderStatusResult, 'getOrderHospStatus') ?
-                        $orderStatusResult->getOrderHospStatus() : null;
-                    if (is_array($orderHospStatus)) {
-                        foreach ($orderHospStatus as $resp) {
-                            $status    = $resp->getStatus();
-                            $qCounter  = $resp->getQueueCounter();
-                            $kotNo     = $resp->getKotNo();
-                            $receiptNo = $resp->getReceiptNo();
-                            if ($this->lsr->displayEstimatedDeliveryTime()) {
-                                $productionTime = $resp->getProductionTime();
+                if (is_array($orderHospStatus = $response->getKotstatus())) {
+                    foreach ($orderHospStatus as $resp) {
+                        $status           = $resp->getStatus();
+                        $kotStatusMapping = $this->lsr->kitchenStatusMapping();
+                        $counter          = 0;
+                        foreach ($kotStatusMapping as $i => $kotStatus) {
+                            if ($counter == $resp->getStatus()) {
+                                $status = $i;
+                                break;
                             }
 
-                            if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                                if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
-                                    $productionTime = 0;
-                                }
+                            $counter++;
+                        }
 
-                                $centralStatusMsg = $resp->getStatusMessage();
-                                if (!empty($centralStatusMsg)) {
-                                    $statusDescription = __($centralStatusMsg);
-                                } else {
-                                    $fallbackStatusMsg = $this->lsr->kitchenStatusMapping()[$status] ?? '';
-                                    $statusDescription = __($fallbackStatusMsg);
-                                }
+                        if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
+                            if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
+                                $productionTime = 0;
                             }
-                            $lines   = $resp->getLines()->getOrderHospStatusLine();
-                            $itemIds = [];
-                            foreach ($lines as $line) {
-                                $itemIds[] = $line->getNumber();
+                            $centralStatusMsg = $resp->getData('StatusMessage');
+                            if (is_array($centralStatusMsg)) {
+                                $centralStatusMsg = reset($centralStatusMsg) ?: '';
                             }
+                            $centralStatusMsg = (string)$centralStatusMsg;
+                            if (!empty($centralStatusMsg)) {
+                                $statusDescription = __($centralStatusMsg);
+                            } else {
+                                $fallbackStatusMsg = $this->lsr->kitchenStatusMapping()[$status] ?? '';
+                                $statusDescription = __($fallbackStatusMsg);
+                            }
+                        }
 
-                            $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
-                            $productMap   = [];
-                            foreach ($productsData as $product) {
-                                if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
-                                    continue;
-                                }
-                                $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
-                                    'productName'   => $product->getName(),
-                                    'imageUrl'      => $this->getProductImageUrl($product),
-                                    'imagePath'     => $product->getImage(),
-                                    'productUrl'    => $this->productUrlBuilder->getUrl($product),
-                                    'productUrlKey' => $product->getUrlKey()
-                                ];
+                        $qCounter = $resp->getOrderid();
+                        $kotNo    = $resp->getKotno();
+                        $receiptNo = $resp->getReceiptNo();
+                        if ($this->lsr->displayEstimatedDeliveryTime()) {
+                            $productionTime = $resp->getKotprodtime();
+                        }
+                        $lines   = $response->getKotLine();
+                        $itemIds = [];
+                        foreach ($lines as $line) {
+                            if ($line->getKotno() == $kotNo) {
+                                $itemIds[] = $line->getItemno();
                             }
+                        }
+                        $productsData = $this->itemHelper->getProductsInfoByItemIds($itemIds);
+                        $productMap   = [];
+                        foreach ($productsData as $product) {
+                            if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+                                continue;
+                            }
+                            $productMap[$product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE)] = [
+                                'productName'   => $product->getName(),
+                                'imageUrl'      => $this->getProductImageUrl($product),
+                                'imagePath'     => $product->getImage(),
+                                'productUrl'    => $this->productUrlBuilder->getUrl($product),
+                                'productUrlKey' => $product->getUrlKey()
+                            ];
+                        }
 
-                            $itemCounts = [];
-                            foreach ($lines as $line) {
-                                $itemId = $line->getNumber();
+                        $itemCounts = [];
+                        foreach ($lines as $line) {
+                            $itemId = $line->getItemno();
+                            if ($line->getKotno() == $kotNo) {
                                 if (!isset($itemCounts[$itemId])) {
                                     $itemCounts[$itemId] = 1;
                                 } else {
                                     $itemCounts[$itemId]++;
                                 }
                             }
-
-                            $linesData = [];
-                            foreach ($itemCounts as $itemId => $quantity) {
-                                if ($itemId) {
-                                    $productName = isset($productMap[$itemId]) ?
-                                        $productMap[$itemId]['productName'] : $itemId;
-                                    $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
-                                    $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
-                                    $linesData[] = [
-                                        'itemId'        => $itemId,
-                                        'productName'   => $productName,
-                                        'imageUrl'      => $imageUrl,
-                                        'imagePath'     => $imagePath,
-                                        'quantity'      => (int)(isset($itemQtyMap[$itemId]) ? $itemQtyMap[$itemId] : $quantity),
-                                        'productUrl'    => isset($productMap[$itemId]) ?
-                                            $productMap[$itemId]['productUrl'] : '',
-                                        'productUrlKey' => isset($productMap[$itemId]) ?
-                                            $productMap[$itemId]['productUrlKey'] . ".html" : ''
-                                    ];
-                                }
-                            }
-                            $resultArray[] = [
-                                'status'             => $status,
-                                'status_description' => $statusDescription,
-                                'production_time'    => $productionTime,
-                                'q_counter'          => $qCounter,
-                                'kot_no'             => $kotNo,
-                                'lines'              => $linesData,
-                                'table_no'           => $tableNo,
-                                'receipt_no'         => $receiptNo
-                            ];
                         }
-                    } else {
-                        $status    = $orderStatusResult->getStatus();
-                        $qCounter  = $orderStatusResult->getQueueCounter();
-                        $kotNo     = $orderStatusResult->getKotNo();
-                        $receiptNo = $orderStatusResult->getReceiptNo();
 
-                        if ($this->lsr->displayEstimatedDeliveryTime()) {
-                            $productionTime = $orderStatusResult->getProductionTime();
-                        }
-                        if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                            if ($status != KOTStatus::SENT && $status != KOTStatus::STARTED) {
-                                $productionTime = 0;
+                        $linesData = [];
+                        foreach ($itemCounts as $itemId => $quantity) {
+                            if ($itemId) {
+                                $productName = isset($productMap[$itemId]) ? $productMap[$itemId]['productName'] : $itemId;
+                                $imageUrl    = isset($productMap[$itemId]) ? $productMap[$itemId]['imageUrl'] : '';
+                                $imagePath   = isset($productMap[$itemId]) ? $productMap[$itemId]['imagePath'] : '';
+                                $linesData[] = [
+                                    'itemId'        => $itemId,
+                                    'productName'   => $productName,
+                                    'imageUrl'      => $imageUrl,
+                                    'imagePath'     => $imagePath,
+                                    'quantity'      => (int)(isset($itemQtyMap[$itemId]) ? $itemQtyMap[$itemId] : $quantity),
+                                    'productUrl'    => $productMap[$itemId]['productUrl'],
+                                    'productUrlKey' => $productMap[$itemId]['productUrlKey'] . ".html"
+                                ];
                             }
-                            $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
                         }
                         $resultArray[] = [
                             'status'             => $status,
@@ -1147,17 +1033,6 @@ class HospitalityHelper extends AbstractHelper
                             'receipt_no'         => $receiptNo
                         ];
                     }
-                } else {
-                    $status = $response->getHospOrderKotStatusResult()->getStatus();
-                    if (array_key_exists($status, $this->lsr->kitchenStatusMapping())) {
-                        $statusDescription = $this->lsr->kitchenStatusMapping()[$status];
-                    }
-                    $resultArray[] = [
-                        'status'             => $status,
-                        'status_description' => $statusDescription,
-                        'lines'              => $linesData,
-                        'table_no'           => $tableNo
-                    ];
                 }
             }
         }
@@ -1194,11 +1069,11 @@ class HospitalityHelper extends AbstractHelper
      */
     public function uploadFile($fileInfo)
     {
-        $media    = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $media = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
         $fileName = null;
 
         if (is_array($fileInfo)) {
-            $uploader   = $this->uploaderFactory->create(['fileId' => $fileInfo]);
+            $uploader = $this->uploaderFactory->create(['fileId' => $fileInfo]);
             $workingDir = $media->getAbsolutePath(self::DESTINATION_FOLDER);
             $uploader->save($workingDir);
             $fileName = self::DESTINATION_FOLDER . DIRECTORY_SEPARATOR . $uploader->getUploadedFileName();
@@ -1217,14 +1092,14 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getImage($imageId = '')
     {
-        $image     = '';
+        $image = '';
         $imageSize = [
             'height' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_HEIGHT,
-            'width'  => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
+            'width' => \Ls\Core\Model\LSR::DEFAULT_IMAGE_WIDTH
         ];
         /** @var ImageSize $imageSizeObject */
         $imageSizeObject = $this->loyaltyHelper->getImageSize($imageSize);
-        $result          = $this->loyaltyHelper->getImageById($imageId, $imageSizeObject);
+        $result = $this->loyaltyHelper->getImageById($imageId, $imageSizeObject);
         if (!empty($result) && !empty($result['format']) && !empty($result['image'])) {
             //check if directory exists or not and if it has the proper permission or not
             $offerpath = $this->getMediaPathtoStore();
@@ -1232,12 +1107,12 @@ class HospitalityHelper extends AbstractHelper
             if (!is_dir($offerpath)) {
                 $this->file->mkdir($offerpath, 0775);
             }
-            $format      = $result['format'] ? strtolower($result['format']) : 'jpg';
-            $imageName   = $this->replicationHelper->oSlug($imageId);
+            $format = $result['format'] ? $this->replicationHelper->getImageFormat($result['format']) : 'jpg';
+            $imageName = $this->replicationHelper->oSlug($imageId);
             $output_file = "{$imageName}.$format";
-            $file        = "{$offerpath}{$output_file}";
+            $file = "{$offerpath}{$output_file}";
             if (!$this->file->fileExists($file)) {
-                $base64     = $result['image'];
+                $base64 = $result['image'];
                 $image_file = fopen($file, 'wb');
                 fwrite($image_file, base64_decode($base64));
                 fclose($image_file);
@@ -1299,7 +1174,7 @@ class HospitalityHelper extends AbstractHelper
             false
         );
         /** @var ReplImageLinkSearchResults $newImagestoProcess */
-        $newImagesToProcess = $this->replImageLinkRepositoryInterface->getList($criteriaForAllImages);
+        $newImagesToProcess = $this->replImageLinkRepository->getList($criteriaForAllImages);
 
         if ($newImagesToProcess->getTotalCount() > 0) {
             $replImage = current($newImagesToProcess->getItems());
@@ -1336,12 +1211,12 @@ class HospitalityHelper extends AbstractHelper
             ['field' => 'LineNo', 'value' => $dealModLineId, 'condition_type' => 'eq'],
             ['field' => 'scope_id', 'value' => $this->lsr->getCurrentWebsiteId(), 'condition_type' => 'eq']
         ];
-        $criteria                   = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
+        $criteria = $this->replicationHelper->buildCriteriaForDirect($filterForDealLine, 1);
         $replHierarchyHospDealLines = $this->replHierarchyHospDealLineRepository->getList($criteria);
 
         if ($replHierarchyHospDealLines->getTotalCount() > 0) {
             $dealLine = current($replHierarchyHospDealLines->getItems());
-            $uom      = $dealLine->getUnitOfMeasure();
+            $uom = $dealLine->getUnitOfMeasure();
         }
 
         return $uom;
@@ -1369,7 +1244,7 @@ class HospitalityHelper extends AbstractHelper
     public function getProductFromRepositoryGivenSku($sku)
     {
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('sku', $sku)->create();
-        $productList    = $this->productRepository->getList($searchCriteria)->getItems();
+        $productList = $this->productRepository->getList($searchCriteria)->getItems();
 
         return array_pop($productList);
     }
@@ -1408,7 +1283,7 @@ class HospitalityHelper extends AbstractHelper
     public function getAnonymousAddress($anonymousOrderRequiredAttributes)
     {
         $storeInformation = $this->getStoreInformation();
-        $address          = $this->addressFactory->create();
+        $address = $this->addressFactory->create();
 
         foreach ($anonymousOrderRequiredAttributes as $addressAttribute) {
             if ($addressAttribute == 'email') {
@@ -1487,11 +1362,12 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param array $anonymousOrderRequiredAttributes
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getAnonymousOrderPrefillAttributes($anonymousOrderRequiredAttributes)
     {
-        $prefillAttributes   = [];
-        $addressAttributes   = $this->getAllAddressAttributes();
+        $prefillAttributes = [];
+        $addressAttributes = $this->getAllAddressAttributes();
         $removeCheckoutSteps = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $this->lsr->getStoreId()
@@ -1544,6 +1420,20 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
+     * Get ls_order_id given document_id
+     *
+     * @param string $documentId
+     * @return mixed
+     */
+    public function getLsOrderIdByDocumentId($documentId)
+    {
+        $magentoOrder = $this->orderHelper->getMagentoOrderGivenDocumentId($documentId);
+        $lsOrderId = ($magentoOrder) ? $magentoOrder->getData('ls_order_id') : '';
+        return !empty($lsOrderId) ? $lsOrderId : $documentId;
+    }
+
+
+    /**
      * Get order pickup date
      *
      * @param string $documentId
@@ -1574,7 +1464,7 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param array $data
      * @return void
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function fakeOrderLinesStatusWebhook(&$data)
     {
@@ -1582,7 +1472,7 @@ class HospitalityHelper extends AbstractHelper
 
         if (!empty($magentoOrder) && $this->lsr->isHospitalityStore($magentoOrder->getStoreId())) {
             $lineNo = 10000;
-            $index  = $qtyOrdered = 0;
+            $index = $qtyOrdered = 0;
             $status = $data['HeaderStatus'];
 
             foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
@@ -1687,7 +1577,6 @@ class HospitalityHelper extends AbstractHelper
         return $itemLines;
     }
 
-
     /**
      * Fix order lines status
      *
@@ -1725,24 +1614,24 @@ class HospitalityHelper extends AbstractHelper
      * Get orders by document id
      *
      * @param $documentId
-     * @param $all
-     * @return false|\Magento\Sales\Api\Data\OrderInterface|OrderSearchResultInterface | \Magento\Sales\Api\Data\OrderInterface[]
+     * @return false|OrderInterface|OrderSearchResultInterface | OrderInterface[]
      */
     public function getOrderByDocumentId($documentId)
     {
         try {
-            $order      = false;
-            $order      = $this->orderRepository->getList(
+            $order = false;
+            $order = $this->orderRepository->getList(
                 $this->searchCriteriaBuilder->addFilter('document_id', $documentId)->create()
             );
             $orderArray = $order->getItems();
-            $order      = end($orderArray);
-        } catch (\Exception $e) {
+            $order = end($orderArray);
+        } catch (Exception $e) {
             $this->_logger->error($e->getMessage());
         }
 
         return $order;
     }
+
 
     /**
      * Get orders by order id
@@ -1817,15 +1706,15 @@ class HospitalityHelper extends AbstractHelper
     public function getLine($amount, $itemId, $uom, $variantId, $status, $qty, $prevStatus, $extLineStatus, $lineNo)
     {
         return [
-            'Amount'          => $amount,
-            'ItemId'          => $itemId,
+            'Amount' => $amount,
+            'ItemId' => $itemId,
             'UnitOfMeasureId' => $uom,
-            'VariantId'       => $variantId,
-            'NewStatus'       => $status,
-            'Quantity'        => $qty,
-            'PrevStatus'      => $prevStatus,
-            'ExtLineStatus'   => $extLineStatus,
-            'LineNo'          => $lineNo
+            'VariantId' => $variantId,
+            'NewStatus' => $status,
+            'Quantity' => $qty,
+            'PrevStatus' => $prevStatus,
+            'ExtLineStatus' => $extLineStatus,
+            'LineNo' => $lineNo
         ];
     }
 
@@ -1835,11 +1724,11 @@ class HospitalityHelper extends AbstractHelper
      * @param $quote
      * @return int
      * @throws NoSuchEntityException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function removeCheckoutStepEnabled($quote = null)
     {
-        $storeId                   = $this->storeManager->getStore()->getId();
+        $storeId = $this->storeManager->getStore()->getId();
         $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
             Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
             $storeId
@@ -1853,23 +1742,6 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return $removeCheckoutStepEnabled & !empty($qrCodeParams);
-    }
-
-    /**
-     * Get remove checkout steps configuration
-     *
-     * @return int
-     * @throws NoSuchEntityException
-     */
-    public function getRemoveCheckoutStepEnabled()
-    {
-        $storeId                   = $this->storeManager->getStore()->getId();
-        $removeCheckoutStepEnabled = $this->lsr->getStoreConfig(
-            Lsr::ANONYMOUS_REMOVE_CHECKOUT_STEPS,
-            $storeId
-        );
-
-        return $removeCheckoutStepEnabled;
     }
 
     /**
@@ -1904,57 +1776,74 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param $subject
      * @param $items
-     * @param $magOrder
      * @return array
      */
-    public function getItems($subject, $items, $magOrder)
+    public function getItems($items)
     {
-        $itemsArray  = [];
         $childrenKey = 'subitems';
+        $parentArray = [];
+
         foreach ($items as $item) {
+            $product = $this->getProductFromRepositoryGivenSku($item->getNumber());
+            $isDealProduct = $product && $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE);
             $data = [
-                'amount'                 => $item->getAmount(),
+                'amount' => $item->getAmount(),
                 'click_and_collect_line' => $item->getClickAndCollectLine(),
-                'discount_amount'        => $item->getDiscountAmount(),
-                'discount_percent'       => $item->getDiscountPercent(),
-                'item_description'       => $item->getItemDescription(),
-                'item_id'                => $item->getItemId(),
-                'item_image_id'          => $item->getItemImageId(),
-                'line_number'            => $item->getLineNumber(),
-                'line_type'              => $item->getLineType(),
-                'net_amount'             => $item->getNetAmount(),
-                'net_price'              => $item->getNetPrice(),
-                'parent_line'            => $item->getParentLine(),
-                'price'                  => $item->getPrice(),
-                'quantity'               => $item->getQuantity(),
-                'store_id'               => $item->getStoreId(),
-                'tax_amount'             => $item->getTaxAmount(),
-                'uom_id'                 => $item->getUomId(),
-                'variant_description'    => $item->getVariantDescription(),
-                'variant_id'             => $item->getVariantId(),
+                'discount_amount' => $item->getDiscountAmount(),
+                'discount_percent' => $item->getDiscount(),
+                'item_description' => $item->getDescription(),
+                'item_id' => $item->getNumber(),
+                'item_image_id' => $item->getImageId(),
+                'line_number' => $item->getLineNo(),
+                'line_type' => $isDealProduct ? 'Deal' : 'Item',
+                'net_amount' => $item->getNetAmount(),
+                'net_price' => $item->getNetPrice(),
+                'parent_line' => $item->getParentLine(),
+                'price' => $item->getPrice(),
+                'quantity' => $item->getQuantity(),
+                'store_id' => $item->getStoreNo(),
+                'tax_amount' => $item->getVatAmount(),
+                'uom_id' => $item->getUnitOfMeasure(),
+                'variant_description' => $item->getVariantDescription(),
+                'variant_id' => $item->getVariantCode()
             ];
-            if ($magOrder) {
-                $data['custom_options'] = $this->formatCustomOptions($magOrder, $item->getItemId(), $subject);
-            }
-            $lineNumber = $item->getLineNumber();
-            $parentLine = $item->getParentLine();
-            if (empty($parentLine) || $lineNumber == $parentLine) {
-                if (!empty($itemsArray) && array_key_exists($lineNumber, $itemsArray)) {
-                    $tempArray[$lineNumber]                = $data;
-                    $tempArray [$lineNumber][$childrenKey] = $itemsArray[$lineNumber][$childrenKey];
-                    $itemsArray[$lineNumber]               = $tempArray[$lineNumber];
-                    $tempArray                             = null;
-                } else {
-                    $itemsArray [$lineNumber] = $data;
+            $parent = null;
+            foreach ($parentArray as &$children) {
+                foreach ($children[$childrenKey] as &$child) {
+                    if ($child['line_number'] == $data['parent_line']) {
+                        $parent = true;
+                        $child[$childrenKey][$data['line_number']] = $data;
+                    }
                 }
-            } else {
-                $itemsArray[$parentLine][$childrenKey][$lineNumber] = $data;
+            }
+
+            if (!$parent) {
+                if ($data['parent_line'] == $data['line_number'] || empty($data['parent_line'])) {
+                    if (empty($data['parent_line'])) {
+                        $lineNumber = $data['line_number'];
+                    } else {
+                        $lineNumber = $data['parent_line'];
+                    }
+                    $parentArray[$lineNumber] = $data;
+                    $parentArray[$lineNumber][$childrenKey] = [];
+                } else {
+                    $parentArray[$data['parent_line']][$childrenKey][$data['line_number']] = $data;
+                }
+            }
+        }
+        $finalLines = $parentArray;
+
+        foreach ($finalLines as $index => $lines) {
+            if (!isset($lines['item_id'])) {
+                foreach ($lines[$childrenKey] as $line) {
+                    $finalLines[$line['line_number']] = $line;
+                }
+
+                unset($finalLines[$index]);
             }
         }
 
-        $itemsArray = $this->sortItemsAsParentChild($itemsArray, $childrenKey);
-
-        return $this->sumTotalItemsAmount($itemsArray, $childrenKey);
+        return $this->sumTotalItemsAmount($finalLines, $childrenKey);
     }
 
     /**
@@ -1968,10 +1857,10 @@ class HospitalityHelper extends AbstractHelper
     {
         foreach ($itemsArray as $mainKey => $arrayData) {
             $lineType = $arrayData['line_type'];
-            $amount   = $arrayData['amount'];
+            $amount = $arrayData['amount'];
             if (array_key_exists($childrenKey, $arrayData)) {
                 foreach ($arrayData[$childrenKey] as $key => $value) {
-                    if ($lineType == Entity\Enum\LineType::DEAL) {
+                    if ($lineType == LineType::DEAL) {
                         if (array_key_exists($childrenKey, $value)) {
                             foreach ($value[$childrenKey] as $subitems) {
                                 $amount += $subitems['amount'];
@@ -1989,70 +1878,47 @@ class HospitalityHelper extends AbstractHelper
     }
 
     /**
-     * Sorting items
+     * Clear check availability cached content
      *
-     * @param $itemsArray
-     * @param $childrenKey
-     * @return array
+     * @param int $storeId
+     * @return void
      */
-    public function sortItemsAsParentChild($itemsArray, $childrenKey)
+    public function clearCheckAvailabilityCachedContent($storeId)
     {
-        foreach ($itemsArray as $mainKey => $arrayData) {
-            if (array_key_exists($childrenKey, $arrayData)) {
-                foreach ($arrayData[$childrenKey] as $key => $value) {
-                    if (array_key_exists($key, $itemsArray)) {
-                        $itemsArray[$mainKey][$childrenKey][$key][$childrenKey] = $itemsArray[$key][$childrenKey];
-                        unset($itemsArray[$key]);
-                    }
-                }
-            }
-        }
-
-        return $itemsArray;
+        $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
+        $this->cacheHelper->removeCachedContent($cacheKey);
     }
 
     /**
-     * Get custom options from magento
+     * Do housekeeping for given order
      *
-     * @param $magOrder
-     * @param $id
-     * @param $subject
-     * @return array
+     * @param OrderInterface $order
+     * @return void
+     * @throws NoSuchEntityException|GuzzleException
      */
-    public function formatCustomOptions($magOrder, $id, $subject)
+    public function doHouseKeepingForGivenOrder(OrderInterface $order)
     {
-        $outputOptions = [];
-        if (!empty($magOrder)) {
-            $items   = $magOrder->getAllVisibleItems();
-            $counter = 0;
-            foreach ($items as $item) {
-                list($itemId) = $subject->itemHelper->getComparisonValues(
-                    $item->getSku()
-                );
-                if ($itemId == $id) {
-                    $options = $item->getProductOptions();
-                    if (isset($options['options']) && !empty($options['options'])) {
-                        foreach ($options['options'] as $option) {
-                            $outputOptions[$counter]['label'] = $option['label'];
-                            $outputOptions[$counter]['value'] = $option['value'];
-                            $counter++;
-                        }
-                    }
-                }
+        if ($this->lsr->isHospitalityStore($order->getStoreId())) {
+            $this->saveHospOrderId($order);
+            $this->clearCheckAvailabilityCachedContent($order->getStoreId());
+            $productIds = [];
+            foreach ($order->getAllVisibleItems() as $item) {
+                $productIds[] = $item->getProductId();
             }
-        }
 
-        return $outputOptions;
+            $this->clearFpcCacheForGivenProducts($productIds);
+        }
     }
 
     /**
-     * Return serialize json class object
+     * Clear FPC cache for given products
      *
-     * @return QrCodeHelper
+     * @param array $productIds
+     * @return void
      */
-    public function getJson()
+    public function clearFpcCacheForGivenProducts($productIds)
     {
-        return $this->serializerJson;
+        $this->replicationHelper->flushFpcCacheAgainstIds($productIds);
     }
 
     /**
@@ -2060,7 +1926,7 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param OrderInterface $order
      * @return void
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function saveHospOrderId(OrderInterface $order)
     {
@@ -2081,50 +1947,6 @@ class HospitalityHelper extends AbstractHelper
         } catch (\Exception $e) {
             $this->_logger->error('Error processing order Hospitality Order Id: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Do housekeeping for given order
-     *
-     * @param OrderInterface $order
-     * @return void
-     * @throws NoSuchEntityException
-     */
-    public function doHouseKeepingForGivenOrder(OrderInterface $order)
-    {
-        if ($this->lsr->isHospitalityStore($order->getStoreId())) {
-            $this->saveHospOrderId($order);
-            $this->clearCheckAvailabilityCachedContent($order->getStoreId());
-            $productIds = [];
-            foreach ($order->getAllVisibleItems() as $item) {
-                $productIds[] = $item->getProductId();
-            }
-
-            $this->clearFpcCacheForGivenProducts($productIds);
-        }
-    }
-
-    /**
-     * Clear check availability cached content
-     *
-     * @param int $storeId
-     * @return void
-     */
-    public function clearCheckAvailabilityCachedContent($storeId)
-    {
-        $cacheKey = LSR::LS_HOSP_CHECK_AVAILABILITY . $storeId;
-        $this->cacheHelper->removeCachedContent($cacheKey);
-    }
-
-    /**
-     * Clear FPC cache for given products
-     *
-     * @param array $productIds
-     * @return void
-     */
-    public function clearFpcCacheForGivenProducts($productIds)
-    {
-        $this->replicationHelper->flushFpcCacheAgainstIds($productIds);
     }
 
     /**
@@ -2210,16 +2032,16 @@ class HospitalityHelper extends AbstractHelper
                 $this->quoteRepository->save($quote);
             } catch (\Throwable $ex) {
                 $this->logger->warning('Quote resource save failed: ' . $ex->getMessage());
-            }            
+            }
 
             // Reload the quote from repository to ensure saved values are persisted
             $quote = $this->quoteRepository->get($quote->getId());
 
         } catch (\Throwable $e) {
             $this->logger->warning('Failed to save tip to quote: ' . $e->getMessage());
-            return false;            
+            return false;
         }
-        
+
         return $quote;
     }
 

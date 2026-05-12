@@ -40,7 +40,7 @@ foreach ($status as $statusInfo) {
                 <strong class="box-title"><span><?= /* @escapeNotVerified */
                         __('Status:') ?></span></strong>
                 <span><?= /* @escapeNotVerified */
-                    $statusInfo['status_description']; ?></span>
+                     $statusInfo['status_description'];?></span>
             </div>
         </div>
         <?php if ($statusInfo['production_time'] > 0): ?>
@@ -88,7 +88,7 @@ foreach ($status as $statusInfo) {
                 </div>
             </div>
         <?php endif; ?>
-        <?php if ($statusInfo['receipt_no']): ?>
+         <?php if ($statusInfo['receipt_no']): ?>
             <div class="block-content">
                 <div class="custom-box">
                     <strong class="box-title"><span>
@@ -118,12 +118,12 @@ foreach ($status as $statusInfo) {
                                 <tr>
                                     <td class="product-image">
                                     <span class="product-image-container">
-                                        <?php if ($line['imageUrl']): ?>
+                                      <?php if ($line['imageUrl']): ?>
                                             <a href="<?= $line['productUrl'] ?>" target="_blank">
                                                 <img src="<?= $line['imageUrl'] ?>"
                                                      alt="<?= $block->escapeHtml($line['productName']) ?>">
                                             </a>
-                                        <?php endif; ?>
+                                      <?php endif; ?>
                                     </span>
                                         <div class="product-item-details">
                                             <a href="<?= $line['productUrl'] ?>" target="_blank">

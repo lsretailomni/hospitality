@@ -3,11 +3,11 @@
 namespace Ls\Hospitality\Plugin\QuoteGraphQl\Resolver;
 
 use \Ls\Hospitality\Model\LSR;
-use \Ls\OmniGraphQl\Helper\DataHelper;
 use \Ls\Replication\Model\ResourceModel\ReplStore\Collection;
 use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\QuoteGraphQl\Model\Resolver\AvailablePaymentMethods;
 
 /**
  * AvailablePaymentMethods plugin responsible for filtering payment methods based on click and collect configuration
