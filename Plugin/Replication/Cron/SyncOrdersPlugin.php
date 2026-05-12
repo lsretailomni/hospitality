@@ -7,7 +7,6 @@ use \Ls\Replication\Cron\SyncOrders;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Store\Api\Data\StoreInterface;
 use Psr\Log\LoggerInterface;
 
 /**

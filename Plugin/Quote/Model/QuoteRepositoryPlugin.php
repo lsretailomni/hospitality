@@ -72,7 +72,6 @@ class QuoteRepositoryPlugin
                     );
                     $quote->setPickupStore($webStore);
                 }
-                
                 if (!$removeCheckoutStepEnabled) {
                     $quote->setShippingAddress($anonymousAddress);
                 }

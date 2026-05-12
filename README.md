@@ -1,10 +1,17 @@
-# LS Ecommerce - Hospitality (2.11.0)
+# LS Ecommerce - Hospitality (3.0.0)
+
+## Note:
+This is a major release. Starting from version `3.0.0`, direct integrations to LS Central (without the Commerce Service-based solution) will be used. This will include all latest features, bug fixes and improvements.
+
+If you still want to use the Commerce Service-based solution, please refer to version `2.11.0` or any newer 2.x minor release:
+
+- [Release 2.11.0](https://github.com/lsretailomni/hospitality/releases/tag/2.11.0)
+- [Branch 2.11.0](https://github.com/lsretailomni/hospitality/tree/2.11.0)
 
 ## Compatibility:
-1. Magento Commerce/Enterprise 2.4.4 - current version
-2. LS Central 16.x - current version
-3. LS Omni 4.14.x - current version
-4. [ LS eCommerce - Base package](https://github.com/lsretailomni/lsmag-two) - v2.10.0 or onwards 
+1. Magento Open Source 2.4.5 - current version
+2. LS Central 28.0 - current version
+3. [ LS eCommerce - Base package](https://github.com/lsretailomni/lsmag-two) - v3.0.0 or onwards 
 
 ## Installation:
 

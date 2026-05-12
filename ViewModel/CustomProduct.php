@@ -13,41 +13,17 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 class CustomProduct implements ArgumentInterface
 {
     /**
-     * @var LSRModel
-     */
-    public $lsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var Repository
-     */
-    public $assetRepository;
-
-    /**
-     * @var CheckAvailability
-     */
-    public $checkAvailability;
-
-    /**
      * @param LSRModel $lsr
      * @param HospitalityHelper $hospitalityHelper
      * @param CheckAvailability $checkAvailability
      * @param Repository $assetRepository
      */
     public function __construct(
-        LSRModel $lsr,
-        HospitalityHelper $hospitalityHelper,
-        CheckAvailability $checkAvailability,
-        Repository $assetRepository
+        public LSRModel $lsr,
+        public HospitalityHelper $hospitalityHelper,
+        public CheckAvailability $checkAvailability,
+        public Repository $assetRepository
     ) {
-        $this->lsr               = $lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->checkAvailability = $checkAvailability;
-        $this->assetRepository   = $assetRepository;
     }
 
     /**
@@ -75,18 +51,6 @@ class CustomProduct implements ArgumentInterface
     }
 
     /**
-     * Check modifier availability
-     *
-     * @param $option
-     * @return bool
-     * @throws NoSuchEntityException
-     */
-    public function checkModifierAvailable(&$option)
-    {
-        return $this->checkAvailability->checkModifierAvailability($option);
-    }
-
-    /**
      * Get Media Url
      *
      * @param $swatch
@@ -103,5 +67,17 @@ class CustomProduct implements ArgumentInterface
                 ->storeManager
                 ->getStore()
                 ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . $swatch;
+    }
+
+    /**
+     * Check modifier availability
+     *
+     * @param $option
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function checkModifierAvailable(&$option)
+    {
+        return $this->checkAvailability->checkModifierAvailability($option);
     }
 }

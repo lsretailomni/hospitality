@@ -2,6 +2,7 @@
 
 namespace Ls\Hospitality\Plugin\Magento\Quote\Model\Quote;
 
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Core\Model\LSR as LSRAlias; 
 use \Ls\Hospitality\Model\Order\CheckAvailability;
@@ -15,47 +16,27 @@ use Psr\Log\LoggerInterface;
  */
 class ItemPlugin
 {
-    /** @var LSR @var */
-    private $lsr;
-
     /**
-     * @var LSRAlias
-     */
-    private $lsrAlias;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var CheckAvailability
-     */
-    private $checkAvailability;
-
-    /**
-     * @param LSR $LSR
+     * @param LSR $lsr
      * @param CheckAvailability $checkAvailability
+     * @param LSRAlias $lsrAlias
+     * @param LoggerInterface $logger
      */
     public function __construct(
-        LSR $LSR,
-        LSRAlias $lsrAlias,
-        LoggerInterface $logger,
-        CheckAvailability $checkAvailability
+        public LSR $lsr,
+        public CheckAvailability $checkAvailability,
+        public LSRAlias $lsrAlias,
+        public LoggerInterface $logger
     ) {
-        $this->lsr               = $LSR;
-        $this->lsrAlias          = $lsrAlias;
-        $this->logger            = $logger;
-        $this->checkAvailability = $checkAvailability;
     }
 
     /**
      * After plugin intercepting addQty of each quote_item
      *
      * @param Item $subject
-     * @param object $result
-     * @return mixed|void
-     * @throws LocalizedException
+     * @param Item $result
+     * @return Item
+     * @throws LocalizedException|GuzzleException
      */
     public function afterAddQty(Item $subject, $result)
     {
@@ -70,9 +51,9 @@ class ItemPlugin
                     );
                 }
             }
-            
+
             if (!$result->getParentItem()) {
-                $this->checkAvailability->validateQty(true, $result->getQty(), $result);
+                $this->checkAvailability->validateQty(true, $result);
             }
         }
         return $result;

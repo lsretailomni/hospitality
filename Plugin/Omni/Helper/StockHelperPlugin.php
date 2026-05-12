@@ -16,41 +16,17 @@ use Magento\CatalogInventory\Model\Configuration;
 class StockHelperPlugin
 {
     /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var StockItemRepository
-     */
-    public $stockItemRepository;
-
-    /**
-     * @var CheckoutSession
-     */
-    public $checkoutSession;
-
-    /**
-     * @var Configuration
-     */
-    public $configuration;
-
-    /**
      * @param HospitalityHelper $hospitalityHelper
      * @param StockItemRepository $stockItemRepository
      * @param CheckoutSession $checkoutSession
      * @param Configuration $configuration
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper,
-        StockItemRepository $stockItemRepository,
-        CheckoutSession $checkoutSession,
-        Configuration $configuration
+        public HospitalityHelper $hospitalityHelper,
+        public StockItemRepository $stockItemRepository,
+        public CheckoutSession $checkoutSession,
+        public Configuration $configuration
     ) {
-        $this->hospitalityHelper   = $hospitalityHelper;
-        $this->stockItemRepository = $stockItemRepository;
-        $this->checkoutSession     = $checkoutSession;
-        $this->configuration       = $configuration;
     }
 
     /**
@@ -74,10 +50,10 @@ class StockHelperPlugin
             );
         }
         $useManageStockConfiguration = $this->configuration->getManageStock();
-        $stockCollection             = [];
-        $useManageStockItemArray     = [];
-        $counter                     = 0;
-        $disableInventoryChecking    = $this->hospitalityHelper->getLSR()->isDisableInventory();
+        $stockCollection = [];
+        $useManageStockItemArray = [];
+        $counter = 0;
+        $disableInventoryChecking = $this->hospitalityHelper->getLSR()->isDisableInventory();
         if ($disableInventoryChecking) {
             $items = [];
             $this->checkoutSession->setNoManageStock(1);
@@ -92,7 +68,6 @@ class StockHelperPlugin
             $this->checkoutSession->setNoManageStock(0);
         }
         foreach ($items as &$item) {
-
             $itemQty = $item->getQty();
             list($parentProductSku, $childProductSku, , , $uomQty) = $subject->itemHelper->getComparisonValues(
                 $item->getSku()
@@ -101,10 +76,10 @@ class StockHelperPlugin
             if (!empty($uomQty)) {
                 $itemQty = $itemQty * $uomQty;
             }
-            $sku     = $item->getSku();
+            $sku = $item->getSku();
             $product = $this->hospitalityHelper->getProductFromRepositoryGivenSku($sku);
             try {
-                $stockItem     = $this->stockItemRepository->get($product->getId());
+                $stockItem = $this->stockItemRepository->get($product->getId());
                 $useMangeStock = $stockItem->getUseConfigManageStock();
             } catch (\Exception $e) {
                 $useMangeStock = false;
@@ -116,18 +91,18 @@ class StockHelperPlugin
 
                 if ($lineNo) {
                     $stockCollection[] = [
-                        'item_id'    => $lineNo,
+                        'item_id' => $lineNo,
                         'variant_id' => $childProductSku,
-                        'name'       => $item->getName(),
-                        'qty'        => $itemQty
+                        'name' => $item->getName(),
+                        'qty' => $itemQty
                     ];
                 }
             } else {
                 $stockCollection[] = [
-                    'item_id'    => $parentProductSku,
+                    'item_id' => $parentProductSku,
                     'variant_id' => $childProductSku,
-                    'name'       => $item->getName(),
-                    'qty'        => $itemQty
+                    'name' => $item->getName(),
+                    'qty' => $itemQty
                 ];
             }
 
@@ -138,7 +113,7 @@ class StockHelperPlugin
             if ($useMangeStock) {
                 $item = [
                     'parent' => $parentProductSku,
-                    'child'  => $childProductSku
+                    'child' => $childProductSku
                 ];
             } else {
                 unset($items[$counter]);
