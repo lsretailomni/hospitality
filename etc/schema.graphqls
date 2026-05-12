@@ -29,6 +29,7 @@ type StoreConfig {
     ls_mag_hospitality_anonymous_order_address_attributes_required: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Address\\Attributes") @doc(description: "To fetch anonymous order address attributes with information like required or optional.")
     ls_mag_hospitality_anonymous_store_info: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Store\\StoreInfo") @doc(description: "To fetch store information for anonymous ordering.")
     ls_mag_hospitality_remove_checkout_steps: Boolean @doc(description: "Indicates whether to remove checkout steps from QR code ordering")
+    ls_mag_hospitality_tips_enable: Boolean @resolver(class: "\\Ls\\Hospitality\\Model\\Resolver\\IsServiceUpResolver") @doc(description: "Indicates whether tips functionality is enabled (true) or disabled (false).")    
 }
 
 type Order {
@@ -41,11 +42,41 @@ type Mutation {
     setLsOrderCommentsOnCart(input: SetLsOrderCommentsOnCartInput): SetLsOrderCommentsOnCartOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetLsOrderCommentsOnCart") @doc(description: "Send additional information to Central via order comments.")
     setQRCodeParams(input: QrCodeInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SetQRCodeParams") @doc(description: "Set QR code params to sync on placing order with Central.")
     removeQRCodeParams(input: QrCodeRemoveInput): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\RemoveQRCodeParams") @doc(description: "Remove QR code.")
+    saveTipsToQuote(input: SaveTipsInput): SaveTipsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\SaveTipsToQuote") @doc(description: "Set tips amount to quote.")
+}
+
+input SaveTipsInput @doc(description: "Contain required input for saveing tips to quote") {
+    cart_id: String! @doc(description: "The unique ID of a `Cart` object.")
+    tips_amount: String! @doc(description: "The tips amount to be saved.")
+    tips_label: String! @doc(description: "The label of tips amount to be saved.")
+}
+
+type SaveTipsOutput {
+    success: Boolean!
+    message: String
+    tip: String
+    saved_tip: String
+    saved_base_tip: String
+    grand_total: Float
+    base_grand_total: Float
 }
 
 type Query {
     current_qr_code_params(cart_id: String @doc(description: "Cart ID.")): QrCodeParamsOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\QrCodeParams") @doc(description: "Fetch current QR Code Params.")
     fetch_order_kitchen_information (order_id: String! @doc(description: "Order ID.")): [KitchenInformation] @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Order\\KitchenInformation") @doc(description: "Fetch kot information related to status and estimated time.")
+    fetch_tip_suggestions(cart_id: String! @doc(description: "The unique ID of a Cart object.")): TipsSuggestionOutput @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Store\\FetchTipsSuggestions") @doc(description: "Returns dynamic tip suggestion options for the given cart.")
+}
+
+type TipsSuggestionOutput {
+    success: Boolean @doc(description: "Tips feature is enabled or not.")
+    message: String @doc(description: "Display error message if any.")
+    suggestions: [tipsData] @doc(description: "Array holding tip suggestions.")
+}
+
+type tipsData {
+    value: String @doc(description: "Tip amount.")
+    label: String @doc(description: "Tip label.")  
+    selected: Boolean @doc(description: "Selected tip or not")
 }
 
 input QrCodeInput @doc(description: "Contain required input for setting qrcode") {
@@ -82,6 +113,8 @@ type SetLsOrderCommentsOnCartOutput @doc(description: "Contains details about th
 
 type Cart {
     ls_order_comment: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsOrderComment") @doc(description: "Ls Order Comment.")
+    ls_tip_amount: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsQuoteTipsAmount") @doc(description: "Ls Order Comment.")
+    ls_tip_label: String @resolver(class: "Ls\\Hospitality\\Model\\Resolver\\Quote\\LsQuoteTipsLabel") @doc(description: "Ls Order Comment.")
 }
 
 type QrCodeParamsOutput {
@@ -114,6 +147,10 @@ type OrderItems {
     quantity: Int @doc(description: "Order Item Quantity")
     productUrl: String @doc(description: "Order Item Url")
     productUrlKey: String @doc(description: "Order Item Url Key")
+}
+
+type SalesEntry {
+    tip: String @doc(description: "Tip amount for the order.")
 }
 
 type SalesEntryLine {

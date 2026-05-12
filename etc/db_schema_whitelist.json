@@ -3,7 +3,9 @@
         "column": {
             "service_mode": true,
             "ls_order_comment": true,
-            "ls_qr_code_ordering": true
+            "ls_qr_code_ordering": true,
+            "ls_tip_amount": true,
+            "ls_tip_amount_label": true
         }
     },
     "sales_order": {
@@ -11,7 +13,9 @@
             "service_mode": true,
             "ls_order_comment": true,
             "ls_qr_code_ordering": true,
-            "ls_order_id": true
+            "ls_order_id": true,
+            "ls_tip_amount": true,
+            "ls_tip_amount_label": true
         }
     },
     "sales_order_grid": {
