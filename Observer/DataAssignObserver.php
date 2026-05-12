@@ -32,10 +32,19 @@ class DataAssignObserver implements ObserverInterface
     private Http $request;
 
     /**
+     * @var BasketHelper
+     */
+    private $basketHelper;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var LSR
      */
     private LSR $lsr;
-
     /**
      * @var StoreHelper
      */
@@ -50,16 +59,6 @@ class DataAssignObserver implements ObserverInterface
      * @var QrCodeHelper
      */
     private $qrCodeHelper;
-
-    /**
-     * @var BasketHelper
-     */
-    private $basketHelper;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
 
     /**
      * @param StoreHelper $storeHelper

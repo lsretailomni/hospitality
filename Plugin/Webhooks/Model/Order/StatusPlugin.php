@@ -5,7 +5,6 @@ namespace Ls\Hospitality\Plugin\Webhooks\Model\Order;
 
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Webhooks\Model\Order\Shipment;
 use \Ls\Webhooks\Model\Order\Status;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -25,12 +24,10 @@ class StatusPlugin
     /**
      * @param HospitalityHelper $hospitalityHelper
      * @param LSR $lsr
-     * @param Shipment $shipment
      */
     public function __construct(
         HospitalityHelper $hospitalityHelper,
-        LSR $lsr,
-        Shipment $shipment
+        LSR $lsr
     ) {
         $this->hospitalityHelper = $hospitalityHelper;
         $this->lsr               = $lsr;

@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Controller\Ajax;
 
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Customer\Block\Order\Info;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -18,37 +20,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
  */
 class OrderInfo implements HttpGetActionInterface
 {
-
-    /**
-     * @var PageFactory
-     */
-    public $resultPageFactory;
-
-    /**
-     * @var JsonFactory
-     */
-    public $resultJsonFactory;
-
-    /**
-     * @var RequestInterface
-     */
-    public $request;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var CheckoutSession
-     */
-    private $checkoutSession;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
     /**
      * OrderInfo constructor.
      * @param PageFactory $resultPageFactory
@@ -59,25 +30,20 @@ class OrderInfo implements HttpGetActionInterface
      * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
-        PageFactory $resultPageFactory,
-        JsonFactory $resultJsonFactory,
-        RequestInterface $request,
-        HospitalityHelper $hospitalityHelper,
-        CheckoutSession $checkoutSession,
-        OrderRepositoryInterface $orderRepository
+        public PageFactory $resultPageFactory,
+        public JsonFactory $resultJsonFactory,
+        public RequestInterface $request,
+        public HospitalityHelper $hospitalityHelper,
+        public CheckoutSession $checkoutSession,
+        public OrderRepositoryInterface $orderRepository
     ) {
-        $this->resultPageFactory = $resultPageFactory;
-        $this->resultJsonFactory = $resultJsonFactory;
-        $this->request           = $request;
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->checkoutSession   = $checkoutSession;
-        $this->orderRepository   = $orderRepository;
     }
 
     /**
      * Executing the ajax function for order status info
+     *
      * @return Json
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function execute()
     {
@@ -130,5 +96,7 @@ class OrderInfo implements HttpGetActionInterface
                 return $result;
             }
         }
+
+        return null;
     }
 }

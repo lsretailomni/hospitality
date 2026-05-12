@@ -1,12 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Plugin\Omni\Helper;
 
-use Exception;
 use \Ls\Core\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Omni\Client\Ecommerce\Entity\OrderHosp;
-use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
 use \Ls\Omni\Helper\ItemHelper;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -20,32 +18,15 @@ use Psr\Log\LoggerInterface;
 class ItemHelperPlugin
 {
     /**
-     * @var LoggerInterface
-     */
-    public $logger;
-
-    /** @var  LSR $lsr */
-    public $lsr;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * ItemHelper constructor.
      * @param LoggerInterface $logger
-     * @param LSR $Lsr
+     * @param LSR $lsr
      * @param HospitalityHelper $hospitalityHelper
      */
     public function __construct(
-        LoggerInterface $logger,
-        LSR $Lsr,
-        HospitalityHelper $hospitalityHelper
+        public LoggerInterface $logger,
+        public LSR $lsr,
+        public HospitalityHelper $hospitalityHelper
     ) {
-        $this->logger            = $logger;
-        $this->lsr               = $Lsr;
-        $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
@@ -58,7 +39,7 @@ class ItemHelperPlugin
      * @param int $type
      * @return mixed
      * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function aroundCompareQuoteItemsWithOrderLinesAndSetRelatedAmounts(
         ItemHelper $subject,
@@ -71,19 +52,19 @@ class ItemHelperPlugin
             return $proceed($quote, $basketData, $type);
         }
 
-        $orderLines    = [];
+        $orderLines = [];
         $quoteItemList = $quote->getAllVisibleItems();
 
         if (count($quoteItemList) && !empty($basketData)) {
-            $orderLines = $basketData->getOrderLines()->getOrderHospLine();
+            $orderLines = $basketData->getMobiletransactionline();
         }
 
         foreach ($quoteItemList as $quoteItem) {
             $bundleProduct = $customPrice = $taxAmount = $rowTotal = $rowTotalIncTax = $priceInclTax = 0;
-            $children      = [];
+            $children = [];
 
             if ($quoteItem->getProductType() == Type::TYPE_BUNDLE) {
-                $children      = $quoteItem->getChildren();
+                $children = $quoteItem->getChildren();
                 $bundleProduct = 1;
             } else {
                 $children[] = $quoteItem;
@@ -95,7 +76,11 @@ class ItemHelperPlugin
                         $child->getItemId() == $line->getId() :
                         $subject->isSameItem($child, $line)
                     ) {
-                        $unitPrice = $this->hospitalityHelper->getAmountGivenLine($line) / $line->getQuantity();
+                        $totalUnitPrice = $this->hospitalityHelper->getAmountGivenLine(
+                            $line,
+                            $basketData->getMobiletransactionsubline() ?? []
+                        );
+                        $unitPrice = $totalUnitPrice / $line->getQuantity();
                         $subject->setRelatedAmountsAgainstGivenQuoteItem($line, $child, $unitPrice, $type);
                         unset($orderLines[$index]);
                         break;
@@ -109,10 +94,10 @@ class ItemHelperPlugin
                     $this->logger->critical("Error saving SKU:-" . $child->getSku() . " - " . $e->getMessage());
                 }
 
-                $customPrice    += $child->getCustomPrice();
-                $priceInclTax   += $child->getPriceInclTax();
-                $taxAmount      += $child->getTaxAmount();
-                $rowTotal       += $child->getRowTotal();
+                $customPrice += $child->getCustomPrice();
+                $priceInclTax += $child->getPriceInclTax();
+                $taxAmount += $child->getTaxAmount();
+                $rowTotal += $child->getRowTotal();
                 $rowTotalIncTax += $child->getRowTotalInclTax();
             }
 
@@ -132,95 +117,6 @@ class ItemHelperPlugin
                     );
                 }
             }
-        }
-    }
-
-    /**
-     * Around plugin for comparing orderLines with discountLines and get discounted prices on cart page
-     * or order detail page
-     *
-     * @param ItemHelper $subject
-     * @param callable $proceed
-     * @param object $item
-     * @param object $orderData
-     * @param int $type
-     * @param int $graphQlRequest
-     * @return array|null
-     */
-    public function aroundGetOrderDiscountLinesForItem(
-        ItemHelper $subject,
-        callable $proceed,
-        $item,
-        $orderData,
-        $type = 1,
-        $graphQlRequest = 0
-    ) {
-        $check             = false;
-        $baseUnitOfMeasure = "";
-        $discountInfo      = $orderLines = $discountsLines = [];
-        $discountText      = __("Save");
-
-        try {
-            if ($this->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
-                return $proceed($item, $orderData, $type, $graphQlRequest);
-            }
-
-            if ($type == 2) {
-                $itemId      = $item->getItemId();
-                $variantId   = $item->getVariantId();
-                $uom         = $item->getUomId();
-                $customPrice = $item->getDiscountAmount();
-            } else {
-                $baseUnitOfMeasure = $item->getProduct()->getData('uom');
-                list($itemId, $variantId, $uom) = $subject->getComparisonValues(
-                    $item->getSku()
-                );
-                $customPrice = $item->getCustomPrice();
-            }
-
-            if ($orderData instanceof SalesEntry) {
-                $orderLines     = $orderData->getLines();
-                $discountsLines = $orderData->getDiscountLines();
-            } elseif ($orderData instanceof OrderHosp) {
-                $orderLines = $orderData->getOrderLines();
-
-                if (!empty($orderData->getOrderDiscountLines())) {
-                    $discountsLines = $orderData->getOrderDiscountLines()->getOrderDiscountLine();
-                }
-            }
-
-            foreach ($orderLines as $line) {
-                if ($subject->isValid($item, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
-                    if ($customPrice > 0 && $customPrice != null) {
-                        foreach ($discountsLines as $orderDiscountLine) {
-                            if ($line->getLineNumber() == $orderDiscountLine->getLineNumber()) {
-                                if (!in_array($orderDiscountLine->getDescription() . '<br />', $discountInfo)) {
-                                    if (!$graphQlRequest) {
-                                        $discountInfo[] = $orderDiscountLine->getDescription() . '<br />';
-                                    } else {
-                                        $discountInfo[] = [
-                                            'description' => $orderDiscountLine->getDescription(),
-                                            'value'       => $orderDiscountLine->getDiscountAmount()
-                                        ];
-                                    }
-                                }
-                            }
-                            $check = true;
-                        }
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
-        }
-
-        if ($check) {
-            if (!$graphQlRequest) {
-                return [implode($discountInfo), $discountText];
-            }
-            return [$discountInfo, $discountText];
-        } else {
-            return null;
         }
     }
 }

@@ -52,15 +52,9 @@ define([
                 success: function (response) {
                     if (response.output) {
                         var $response = $(response.output);
-                        var $contentContainer = $container.find('.hosp-info-container');
-
-                        if ($contentContainer.length) {
-                            $contentContainer.replaceWith($response);
-                        } else {
-                            $container.html($response);
-                            ensureLoaderExists();
-                        }
-
+                        $container.find('.hosp-info-container').remove();
+                        $container.append($response);
+                        ensureLoaderExists();
                         $container.find('.hosp-info-container').trigger('contentUpdated');
                     }
                 },

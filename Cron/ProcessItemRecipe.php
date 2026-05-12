@@ -1,8 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Cron;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplItemRecipeRepositoryInterface;
@@ -33,51 +35,13 @@ class ProcessItemRecipe
     /** @var int */
     public $remainingRecords;
 
-    /** @var LSR */
-    public $lsr;
-
-    /** @var ReplicationHelper */
-    public $replicationHelper;
-
-    /** @var Logger */
-    public $logger;
-
     /** @var StoreInterface $store */
     public $store;
 
-    /** @var ReplItemRecipeCollectionFactory */
-    public $replItemRecipeCollectionFactory;
-
-    /** @var ReplItemRecipeRepositoryInterface */
-    public $replItemRecipeRepositoryInterface;
-
-    /** @var ProductRepositoryInterface */
-    public $productRepository;
-
-    /** @var ProductCustomOptionInterfaceFactory */
-    public $customOptionFactory;
-
-    /** @var ProductCustomOptionRepositoryInterface */
-    public $optionRepository;
-
-    /** @var ProductCustomOptionValuesInterfaceFactory */
-    public $customOptionValueFactory;
-
     /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var LsTables
-     */
-    public LsTables $lsTables;
-
-    /**
-     * ProcessItemRecipe constructor.
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
-     * @param LSR $LSR
+     * @param LSR $lsr
      * @param ReplItemRecipeCollectionFactory $replItemRecipeCollectionFactory
      * @param ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface
      * @param ProductRepositoryInterface $productRepository
@@ -88,29 +52,18 @@ class ProcessItemRecipe
      * @param LsTables $lsTables
      */
     public function __construct(
-        ReplicationHelper $replicationHelper,
-        Logger $logger,
-        LSR $LSR,
-        ReplItemRecipeCollectionFactory $replItemRecipeCollectionFactory,
-        ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface,
-        ProductRepositoryInterface $productRepository,
-        ProductCustomOptionRepositoryInterface $optionRepository,
-        ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
-        ProductCustomOptionInterfaceFactory $customOptionFactory,
-        HospitalityHelper $hospitalityHelper,
-        LsTables $lsTables
+        public ReplicationHelper $replicationHelper,
+        public Logger $logger,
+        public LSR $lsr,
+        public ReplItemRecipeCollectionFactory $replItemRecipeCollectionFactory,
+        public ReplItemRecipeRepositoryInterface $replItemRecipeRepositoryInterface,
+        public ProductRepositoryInterface $productRepository,
+        public ProductCustomOptionRepositoryInterface $optionRepository,
+        public ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
+        public ProductCustomOptionInterfaceFactory $customOptionFactory,
+        public HospitalityHelper $hospitalityHelper,
+        public LsTables $lsTables
     ) {
-        $this->logger                            = $logger;
-        $this->replicationHelper                 = $replicationHelper;
-        $this->lsr                               = $LSR;
-        $this->replItemRecipeCollectionFactory   = $replItemRecipeCollectionFactory;
-        $this->replItemRecipeRepositoryInterface = $replItemRecipeRepositoryInterface;
-        $this->productRepository                 = $productRepository;
-        $this->customOptionFactory               = $customOptionFactory;
-        $this->customOptionValueFactory          = $customOptionValueFactory;
-        $this->optionRepository                  = $optionRepository;
-        $this->hospitalityHelper                 = $hospitalityHelper;
-        $this->lsTables                          = $lsTables;
     }
 
     /**
@@ -118,7 +71,7 @@ class ProcessItemRecipe
      *
      * @param mixed $storeData
      * @return void
-     * @throws LocalizedException
+     * @throws LocalizedException|GuzzleException
      */
     public function execute($storeData = null)
     {
@@ -168,7 +121,7 @@ class ProcessItemRecipe
      * @param mixed $storeData
      * @return int[]
      * @throws LocalizedException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function executeManually($storeData = null)
     {
@@ -273,7 +226,7 @@ class ProcessItemRecipe
                                         ->setPriceType('fixed')
                                         ->setSortOrder($optionValueData->getLineNo())
                                         ->setSku($optionValueData->getItemNo())
-                                        ->setPrice(-$optionValueData->getExclusionPrice());
+                                        ->setPrice(-$optionValueData->getExclusionPrice() ?? 0);
 
                                     if (!empty($optionValueData->getImageId())) {
                                         $swatchPath = $this->hospitalityHelper->getImage(

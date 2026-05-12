@@ -1,8 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Ls\Hospitality\Cron;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use \Ls\Hospitality\Helper\HospitalityHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Replication\Api\ReplItemModifierRepositoryInterface;
@@ -34,40 +36,8 @@ class ProcessItemModifier
     /** @var int */
     public $remainingRecords;
 
-    /** @var LSR */
-    public $lsr;
-
-    /** @var ReplicationHelper */
-    public $replicationHelper;
-
-    /** @var Logger */
-    public $logger;
-
     /** @var StoreInterface $store */
     public $store;
-
-    /** @var ReplItemModifierCollectionFactory */
-    public $replItemModifierCollectionFactory;
-
-    /** @var ReplItemModifierRepositoryInterface */
-    public $replItemModifierRepositoryInterface;
-
-    /** @var ProductRepositoryInterface */
-    public $productRepository;
-
-    /** @var ProductCustomOptionInterfaceFactory */
-    public $customOptionFactory;
-
-    /** @var ProductCustomOptionRepositoryInterface */
-    public $optionRepository;
-
-    /** @var ProductCustomOptionValuesInterfaceFactory */
-    public $customOptionValueFactory;
-
-    /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
 
     /**
      * @var string[]
@@ -75,15 +45,9 @@ class ProcessItemModifier
     public static $triggerFunctionToSkip = ['Infocode'];
 
     /**
-     * @var LsTables
-     */
-    public  LsTables $lsTables;
-
-    /**
-     * ProcessItemModifier constructor.
      * @param ReplicationHelper $replicationHelper
      * @param Logger $logger
-     * @param LSR $LSR
+     * @param LSR $lsr
      * @param ReplItemModifierCollectionFactory $replItemModifierCollectionFactory
      * @param ReplItemModifierRepositoryInterface $replItemModifierRepositoryInterface
      * @param ProductRepositoryInterface $productRepository
@@ -94,29 +58,18 @@ class ProcessItemModifier
      * @param LsTables $lsTables
      */
     public function __construct(
-        ReplicationHelper $replicationHelper,
-        Logger $logger,
-        LSR $LSR,
-        ReplItemModifierCollectionFactory $replItemModifierCollectionFactory,
-        ReplItemModifierRepositoryInterface $replItemModifierRepositoryInterface,
-        ProductRepositoryInterface $productRepository,
-        ProductCustomOptionRepositoryInterface $optionRepository,
-        ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
-        ProductCustomOptionInterfaceFactory $customOptionFactory,
-        HospitalityHelper $hospitalityHelper,
-        LsTables $lsTables
+        public ReplicationHelper $replicationHelper,
+        public Logger $logger,
+        public LSR $lsr,
+        public ReplItemModifierCollectionFactory $replItemModifierCollectionFactory,
+        public ReplItemModifierRepositoryInterface $replItemModifierRepositoryInterface,
+        public ProductRepositoryInterface $productRepository,
+        public ProductCustomOptionRepositoryInterface $optionRepository,
+        public ProductCustomOptionValuesInterfaceFactory $customOptionValueFactory,
+        public ProductCustomOptionInterfaceFactory $customOptionFactory,
+        public HospitalityHelper $hospitalityHelper,
+        public LsTables $lsTables
     ) {
-        $this->logger                              = $logger;
-        $this->replicationHelper                   = $replicationHelper;
-        $this->lsr                                 = $LSR;
-        $this->replItemModifierCollectionFactory   = $replItemModifierCollectionFactory;
-        $this->replItemModifierRepositoryInterface = $replItemModifierRepositoryInterface;
-        $this->productRepository                   = $productRepository;
-        $this->customOptionFactory                 = $customOptionFactory;
-        $this->customOptionValueFactory            = $customOptionValueFactory;
-        $this->optionRepository                    = $optionRepository;
-        $this->hospitalityHelper                   = $hospitalityHelper;
-        $this->lsTables                            = $lsTables;
     }
 
     /**
@@ -125,7 +78,7 @@ class ProcessItemModifier
      * @param mixed $storeData
      * @return void
      * @throws LocalizedException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function execute($storeData = null)
     {
@@ -175,7 +128,7 @@ class ProcessItemModifier
      * @param mixed $storeData
      * @return int[]
      * @throws LocalizedException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GuzzleException
      */
     public function executeManually($storeData = null)
     {
@@ -364,7 +317,7 @@ class ProcessItemModifier
                                                 $optionValueData->getSubCode()) {
                                                 $existingOptionValue
                                                     ->setTitle($optionValueData->getDescription())
-                                                    ->setPrice($optionValueData->getAmountPercent());
+                                                    ->setPrice($optionValueData->getAmountPercent() ?? 0);
                                                 $isOptionValueExist = true;
                                             }
                                             $optionData['values'][$finalCode] = $existingOptionValue;
@@ -376,7 +329,7 @@ class ProcessItemModifier
                                             ->setPriceType('fixed')
                                             ->setSortOrder($subcode)
                                             ->setSku($subcode)
-                                            ->setPrice($optionValueData->getAmountPercent());
+                                            ->setPrice($optionValueData->getAmountPercent() ?? 0);
 
                                         if (!empty($optionValueData->getTriggerCode())) {
                                             $replImage = $this->hospitalityHelper->getImageGivenItem(

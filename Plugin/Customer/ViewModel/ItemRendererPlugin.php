@@ -12,7 +12,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
  */
 class ItemRendererPlugin
 {
-
     /**
      * @var LSR
      */
@@ -31,29 +30,83 @@ class ItemRendererPlugin
         LSR $lsr,
         HospitalityHelper $hospitalityHelper
     ) {
-        $this->lsr               = $lsr;
+        $this->lsr = $lsr;
         $this->hospitalityHelper = $hospitalityHelper;
     }
 
     /**
-     * Around plugin to format modifiers and ingredients in sales entries
+     * Get matched line and discount info
      *
-     * @param DataHelper $subject
+     * @param ItemRenderer $subject
      * @param callable $proceed
-     * @param $items
-     * @param $magOrder
+     * @param $orderItem
      * @return array
      * @throws NoSuchEntityException
      */
-    public function aroundGetItems(
+    public function aroundGetDiscountInfoGivenOrderItem(
         ItemRenderer $subject,
         callable $proceed,
-        $item
+        $orderItem
     ) {
         if (!$this->lsr->isHospitalityStore()) {
-            return $proceed($item);
+            return $proceed($orderItem);
         }
-        $items = $subject->getOrder()->getLines()->getSalesEntryLine();
-        return $this->hospitalityHelper->getItems($subject, $items, null);
+        $discount = [];
+        $line = null;
+        $currentOrder = $subject->getOrder();
+
+        if ($currentOrder) {
+            if (empty($this->lines)) {
+                $subject->lines = $currentOrder->getLscMemberSalesDocLine();
+            }
+            list($itemId, $variantId, $uom) = $subject->itemHelper->getComparisonValues(
+                $orderItem->getSku()
+            );
+            $baseUnitOfMeasure = $orderItem->getProduct()->getData('uom');
+
+            foreach ($subject->lines as $index => $line) {
+                if ($subject->itemHelper->isValid($orderItem, $line, $itemId, $variantId, $uom, $baseUnitOfMeasure)) {
+                    $discount = $subject->itemHelper->getOrderDiscountLinesForItem($line, $currentOrder, 2);
+                    $options = $orderItem->getProductOptions();
+                    $optionsCheck = ($options) ? isset($options['options']) : null;
+
+                    if ($optionsCheck) {
+                        $lineNo = $line->getLineNo();
+
+                        if ($orderItem->getProduct()->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE)) {
+                            $mainDealLine = current($this->hospitalityHelper->getMainDealLine($itemId));
+                            $mainDealItemId = $mainDealLine ? $mainDealLine->getNo() : null;
+
+                            if ($mainDealItemId) {
+                                foreach ($subject->lines as $orderLine) {
+                                    if ($mainDealItemId == $orderLine->getNumber() &&
+                                        $lineNo == $orderLine->getParentLine()
+                                    ) {
+                                        $lineNo = $orderLine->getLineNo();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        foreach ($subject->lines as $orderLine) {
+                            if ($orderLine->getParentLine() != 0 &&
+                                $orderLine->getParentLine() !== $orderLine->getLineNo() &&
+                                $lineNo == $orderLine->getParentLine()
+                            ) {
+                                $line->setAmount($line->getAmount() + $orderLine->getAmount());
+                            }
+                        }
+                    }
+
+                    unset($subject->lines[$index]);
+                    break;
+                } else {
+                    $line = null;
+                }
+            }
+        }
+
+        return [$discount, $line];
     }
 }

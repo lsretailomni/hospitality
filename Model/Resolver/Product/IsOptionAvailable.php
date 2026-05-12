@@ -13,18 +13,12 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 class IsOptionAvailable implements ResolverInterface
 {
     /**
-     * @var CheckAvailability
-     */
-    private $checkAvailability;
-
-    /**
      * @param CheckAvailability $checkAvailability
      */
     public function __construct(
-        CheckAvailability $checkAvailability
+        public CheckAvailability $checkAvailability
     ) {
-        $this->checkAvailability = $checkAvailability;
-    }
+    }    
 
     /**
      * Resolve is_available for product option

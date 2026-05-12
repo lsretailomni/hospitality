@@ -5,7 +5,6 @@ namespace Ls\Hospitality\Block\Order;
 use \Ls\Core\Model\LSR;
 use Magento\Framework\View\Element\Html\Link;
 use Magento\Framework\View\Element\Template\Context;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 
 /**
  * Block for Kitchen Status Link in the Footer
