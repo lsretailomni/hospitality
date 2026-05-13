@@ -16,6 +16,7 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 class IsServiceUpResolver implements ResolverInterface
 {
     private const CONFIG_PATHS_MAPPING = [
+        'ls_mag_hospitality_tips_enable' => LSR::TIPS_ENABLE,
         'ls_mag_hospitality_order_tracking' => LSR::ORDER_TRACKING_ON_SUCCESS_PAGE
     ];
 

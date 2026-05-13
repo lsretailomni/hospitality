@@ -12,7 +12,6 @@ use \Ls\Omni\Helper\ItemHelper;
 use \Ls\Omni\Helper\CacheHelper;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
@@ -63,7 +62,6 @@ class CheckAvailability
     public $optionCollectionFactory;
 
     /**
-     * @param Context $context
      * @param ProductRepositoryInterface $productRepository
      * @param OptionCollectionFactory $optionCollectionFactory
      * @param LSR $lsr
@@ -74,7 +72,6 @@ class CheckAvailability
      * @param LoggerInterface $logger
      */
     public function __construct(
-        Context $context,
         ProductRepositoryInterface $productRepository,
         OptionCollectionFactory $optionCollectionFactory,
         LSR $lsr,

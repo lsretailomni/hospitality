@@ -71,6 +71,7 @@ class LayoutProcessorPlugin
 
         if ($this->hospLsr->getCurrentIndustry() == \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
             $storeId = $this->storeManager->getStore()->getId();
+            $websiteId = $this->storeManager->getStore()->getWebsiteId();
 
             $anonymousOrderEnabled = $this->hospLsr->getStoreConfig(
                 Lsr::ANONYMOUS_ORDER_ENABLED,
@@ -88,12 +89,23 @@ class LayoutProcessorPlugin
             if ($anonymousOrderEnabled || $removeCheckoutStepEnabled) {
                 unset($jsLayout['components']['checkout']['children']['sidebar']['children']['shipping-information']);
             }
+
+            // Get the tipsEnabled value
+            $tipsEnabled = (bool)$this->hospLsr->getStoreConfig(LSR::TIPS_ENABLE,$storeId);
+
+            // Set the tipsEnabled flag in the tips component config
+            if (isset($jsLayout['components']['checkout']['children']['sidebar']['children']['summary']['children']['tips']['config'])) {
+                $jsLayout['components']['checkout']['children']['sidebar']['children']['summary']['children']['tips']['config']['tipsEnabled'] = $tipsEnabled;
+            }
         }
 
         if (!$this->hospLsr->isEnabled()) {
             unset($shippingAdditionalChildren['ls-shipping-option-wrapper']);
             unset($billingStep['children']['payment']['children']['payments-list']['children']['before-place-order']['children']['comment']);
             unset($billingStep['children']['payment']['children']['additional-payment-validators']['children']['order-comment-validator']);
+            if(array_key_exists('ls_tips_selected',$sideBar['children']['summary']['children']['totals']['children'])) {
+                unset($sideBar['children']['summary']['children']['totals']['children']['ls_tips_selected']);
+            }
         }
 
         if ($this->hospLsr->getCurrentIndustry() != \Ls\Core\Model\LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {

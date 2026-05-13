@@ -19,6 +19,8 @@
                 <order_tracking>1</order_tracking>
                 <delivery_salas_type>POS</delivery_salas_type>
                 <takeaway_sales_type>POS</takeaway_sales_type>
+                <tips_enabled>0</tips_enabled>
+                <tips_item_id>3</tips_item_id>                
                 <show_in_checkout>1</show_in_checkout>
                 <collapse_state>0</collapse_state>
                 <max_length>150</max_length>

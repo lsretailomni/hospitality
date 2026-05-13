@@ -15,6 +15,7 @@ class LSR extends \Ls\Core\Model\LSR
     const LSR_ITEM_MODIFIER_PREFIX = 'ls_mod_';
     const LSR_RECIPE_PREFIX = 'ls_rec';
     const LS_ORDER_COMMENT = 'ls_order_comment';
+    const LS_TIP_AMOUNT = 'ls_tip_amount';
     const LS_QR_CODE_ORDERING = 'ls_qr_code_ordering';
     const LS_CURRENT_AVAILABILITY_ATTRIBUTE = 'lsr_current_availability'; //unavailable = 1, available = 0
 
@@ -39,6 +40,8 @@ class LSR extends \Ls\Core\Model\LSR
     const DISABLE_INVENTORY_CHECKING = 'ls_mag/hospitality/disable_inventory_checking';
     const ENABLE_REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/enable_refresh_kitchen_status_interval';
     const REFRESH_KITCHEN_STATUS_INTERVAL = 'ls_mag/hospitality/refresh_kitchen_status_interval';
+    const TIPS_ENABLE = 'ls_mag/hospitality/tips_enabled';
+    const TIPS_ITEM_ID = 'ls_mag/hospitality/tips_item_id';
 
     //For Item Modifiers in Hospitality
     const SC_SUCCESS_CRON_ITEM_MODIFIER = 'ls_mag/replication/success_process_item_modifier';

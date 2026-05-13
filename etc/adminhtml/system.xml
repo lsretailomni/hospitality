@@ -129,6 +129,21 @@
                     </depends>
                     <source_model>Ls\Hospitality\Block\Adminhtml\System\Config\SalesType</source_model>
                 </field>
+                
+                <field id="tips_enabled" translate="label" type="select" sortOrder="51" showInDefault="0"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Enable Tips Feature</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>                
+                <field id="tips_item_id" translate="label" type="text" sortOrder="52"
+                       showInDefault="0"
+                       showInWebsite="1" showInStore="1">
+                    <label>Tips Item Id</label>                    
+                    <depends>
+                        <field id="ls_mag/hospitality/tips_enabled">1</field>
+                    </depends>
+                </field>
                 <field id="show_in_checkout"
                        sortOrder="60"
                        type="select"

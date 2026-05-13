@@ -5,8 +5,13 @@
         <arguments>
             <argument name="configProviders" xsi:type="array">
                 <!-- For Service Mode  -->
-                <item name="service_mode_config_provider" xsi:type="object">Ls\Hospitality\Model\Checkout\DataProvider
+                <item name="service_mode_config_provider" xsi:type="object">
+                    Ls\Hospitality\Model\Checkout\DataProvider
                 </item>
+                <!-- For Tips suggestions  -->
+                <!--                <item name="ls_hospitality_tips_config_provider" xsi:type="object">-->
+                <!--                    Ls\Hospitality\Model\Checkout\TipsConfigProvider-->
+                <!--                </item>-->
             </argument>
         </arguments>
     </type>
@@ -52,5 +57,10 @@
     </type>
     <type name="Ls\Omni\Observer\OrderObserver">
         <plugin name="ls_hospitality_order_observer" type="Ls\Hospitality\Plugin\Omni\Observer\OrderObserverPlugin" sortOrder="100"/>
+    </type>
+    <type name="Ls\Customer\Block\Order\Totals">
+        <plugin name="add_extra_to_order_total"
+                type="Ls\Hospitality\Plugin\Customer\Block\Order\ModifyOrderTotalPlugin"
+                sortOrder="1"/>
     </type>
 </config>
