@@ -40,7 +40,7 @@ class TipsSuggestions implements HttpGetActionInterface
                     'enabled' => false,
                     'suggestions' => []
                 ]);
-            };
+            }
             $suggestions = $this->hospitalityHelper->getTipsSuggestionsFromStore();
 
             return $result->setData([
