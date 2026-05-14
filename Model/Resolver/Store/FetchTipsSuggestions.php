@@ -31,7 +31,11 @@ class FetchTipsSuggestions implements ResolverInterface
         }
         $tipsEnabled = (bool)$this->hospitalityHelper->isTipsEnabled();
         if(!$tipsEnabled) {
-            return [];
+            return [
+                'success'     => true,
+                'message'     => '',
+                'suggestions' => []
+            ];
         }
 
         try {

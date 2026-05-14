@@ -8,10 +8,6 @@
                 <item name="service_mode_config_provider" xsi:type="object">
                     Ls\Hospitality\Model\Checkout\DataProvider
                 </item>
-                <!-- For Tips suggestions  -->
-                <!--                <item name="ls_hospitality_tips_config_provider" xsi:type="object">-->
-                <!--                    Ls\Hospitality\Model\Checkout\TipsConfigProvider-->
-                <!--                </item>-->
             </argument>
         </arguments>
     </type>

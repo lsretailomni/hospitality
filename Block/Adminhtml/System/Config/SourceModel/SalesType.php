@@ -41,7 +41,7 @@ class SalesType implements OptionSourceInterface
 
         if ($this->lsr->isLSR($websiteId, ScopeInterface::SCOPE_WEBSITE)) {
             $salesType = $this->storeHelper->getSalesType($websiteId);
-            if ($salesType) {
+            if (!empty($salesType)) {
                 foreach ($salesType as $item) {
                     $salesTypeArray[] = [
                         'value' => $item->getCode(),

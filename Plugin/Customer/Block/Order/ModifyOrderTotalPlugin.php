@@ -21,12 +21,12 @@ class ModifyOrderTotalPlugin
      */
     public function afterToHtml(Totals $subject, $result)
     {
-        $orderLines = $subject->getLines();
+        $orderLines = $subject->getCurrentOrder()->getLSCMemberSalesDocLine();
         $fee        = 0.0;
 
         // First: try to get tip from LS Central sales entry lines via TIPS_ITEM_ID
         foreach ($orderLines as $key => $line) {
-            if ($line->getItemId() == $subject->lsr->getStoreConfig(
+            if ($line->getNumber() == $subject->lsr->getStoreConfig(
                     LSR::TIPS_ITEM_ID,
                     $subject->lsr->getCurrentStoreId()
                 )) {

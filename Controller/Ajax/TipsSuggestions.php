@@ -6,6 +6,7 @@ namespace Ls\Hospitality\Controller\Ajax;
 use Ls\Hospitality\Helper\HospitalityHelper;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Exception\LocalizedException;
 
 class TipsSuggestions implements HttpGetActionInterface
 {
@@ -33,6 +34,13 @@ class TipsSuggestions implements HttpGetActionInterface
 
         try {
             $tipsEnabled = (bool)$this->hospitalityHelper->isTipsEnabled();
+            if(!$tipsEnabled) {
+                return $result->setData([
+                    'success' => true,
+                    'enabled' => false,
+                    'suggestions' => []
+                ]);
+            };
             $suggestions = $this->hospitalityHelper->getTipsSuggestionsFromStore();
 
             return $result->setData([

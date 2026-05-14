@@ -165,6 +165,9 @@ class HospitalityHelper extends AbstractHelper
         public Url $productUrlBuilder,
         public CacheHelper $cacheHelper,
         public Order $orderResourceModel,
+        public StoreHelper $storeHelper,
+        public CartRepositoryInterface $quoteRepository,
+        public LoggerInterface $logger
     ) {
         parent::__construct($context);
     }
@@ -2024,7 +2027,7 @@ class HospitalityHelper extends AbstractHelper
      *
      * @param \Magento\Quote\Model\Quote $quote The quote object to which the tip amount will be saved.
      * @param float $tipAmount The tip amount to be added to the quote.
-     * @return \Magento\Quote\Model\Quote The updated quote object.
+     * @return \Magento\Quote\Api\Data\CartInterface The updated quote object.
      */
     public function saveTipsToQuote($quote, $tipAmount, $tipLabel)
     {
@@ -2064,19 +2067,15 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * @param $salesType
-     * @return void
+     * @return array
      * @throws NoSuchEntityException
      */
     public function getTipsSuggestionsFromStore()
     {
-        $webStore       = $this->lsr->getActiveWebStore();
         $quote          = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
 
         $qrCodeParams = $this->qrcodeHelperObject()->getQrCode($quote->getId());
-        if (!empty($qrCodeParams)) {
-            $qrCodeQueryString = http_build_query($qrCodeParams);
-        }
 
         if ($shippingMethod !== null) {
             $isClickCollect = ($shippingMethod == 'clickandcollect_clickandcollect');
@@ -2089,22 +2088,25 @@ class HospitalityHelper extends AbstractHelper
                 $salesType = $this->getLSR()->getDeliverySalesType();
             }
 
-            $tips = $this->getTipsBySalesType($salesType, $quote);
-            return $tips;
+            return $this->getTipsBySalesType($salesType, $quote);
         }
 
         return [];
     }
 
     /**
+     * Get Tips by SalesType
+     * 
      * @param $salesType
+     * @param $quote
      * @return array|void
      * @throws NoSuchEntityException
      */
     public function getTipsBySalesType($salesType, $quote)
     {
-        $store              = $this->storeHelper->getStore($this->lsr->getStoreId());
-        $storeData          = $this->storeHelper->getStore($this->lsr->getCurrentWebsiteId(), "", "", "");
+        $websiteId          = (string) $this->lsr->getCurrentWebsiteId();
+        $webStore           = $this->lsr->getActiveWebStore();
+        $storeData          = $this->storeHelper->getStore($websiteId, $webStore, "", "");
         $salesTypeTipsArray = $storeTipsArray = [];
         $selectedTipsLabel  = $quote->getData('ls_tip_amount_label');
         $selectedTipsFlag   = false;
@@ -2120,13 +2122,13 @@ class HospitalityHelper extends AbstractHelper
                 'label'    => __('Other'),
                 'selected' => ($selectedTipsFlag == "other") ? true : false
             ];
-            $data               = $storeData->getHospTypes();
+            $data               = array_key_exists('LSC_Hospitality_Type', $storeData) ? $storeData['LSC_Hospitality_Type'] : [];
 
             foreach ($data as $item) {
 
-                $tip1 = (int)$item->getTip1Percentage();
-                $tip2 = (int)$item->getTip2Percentage();
-                $tip3 = (int)$item->getTip3Percentage();
+                $tip1 = (int)$item->getSuggestedTips1Percentage();
+                $tip2 = (int)$item->getSuggestedTips2Percentage();
+                $tip3 = (int)$item->getSuggestedTips3Percentage();
 
                 if (empty($item->getSalesType())) {
                     if ($tip1 > 0) {

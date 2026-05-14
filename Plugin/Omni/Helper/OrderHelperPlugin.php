@@ -30,6 +30,7 @@ use Magento\Sales\Model;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
+use Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
 
 /**
  * OrderHelper plugin responsible for intercepting required methods
@@ -278,7 +279,7 @@ class OrderHelperPlugin
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
             $customerOrderCoLines = $subject->updateShippingAmount($customerOrderCoLines, $order, $storeId);
-            $customerOrderCoLines = $this->updateTipsAmount($customerOrderCoLines, $order, $storeId);
+            $customerOrderCoLines = $this->updateTipsAmount($customerOrderCoLines, $order, $storeId, $subject);
 
             foreach ($orderPayments ?? [] as $orderPayment) {
                 $currentLineNo = end($customerOrderCoLines)->getLineno();
@@ -444,31 +445,39 @@ class OrderHelperPlugin
     }
 
     /**
+     * Update tip amount to order request
+     * 
      * @param $orderLinesArray
      * @param $order
-     * @param $storeId
+     * @param $storeCode
+     * @param $subject
      * @return array
-     * @throws InvalidEnumException
      */
-    public function updateTipsAmount($orderLinesArray, $order, $storeId)
+    public function updateTipsAmount($orderLinesArray, $order, $storeCode, $subject)
     {
         $tipsEnabled        = $this->lsr->getStoreConfig(LSR::TIPS_ENABLE, $order->getStoreId());
-        $tipsItemId         = $this->lsr->getStoreConfig(LSR::TIPS_ITEM_ID, $order->getStoreId());
-        
         if($tipsEnabled) {
-            $lsTipAmount = $order->getLsTipAmount();
-            $tipOrderLine = new Entity\OrderHospLine();
-            $tipOrderLine->setPrice($lsTipAmount)
-                ->setAmount($lsTipAmount)
-                ->setNetPrice($lsTipAmount)
-                ->setNetAmount($lsTipAmount)
-                ->setTaxAmount(0)
-                ->setItemId($tipsItemId)
-                ->setLineType(Entity\Enum\LineType::INCOME_EXPENSE)
-                ->setQuantity(1)
-                ->setDiscountAmount(0);
-            
-            array_push($orderLinesArray, $tipOrderLine);
+            $tipsItemId     = $this->lsr->getStoreConfig(LSR::TIPS_ITEM_ID, $order->getStoreId());
+            $lsTipAmount    = $order->getLsTipAmount();
+            $currentLineNo  = end($orderLinesArray)->getLineno();
+            $currentLineNo  += 10000;
+
+            $tipOrderCoLine = $subject->createInstance(
+                HospTransactionLine::class
+            );
+
+            $tipOrderCoLine->addData([
+                HospTransactionLine::LINE_NO => $currentLineNo,
+                HospTransactionLine::LINE_TYPE => 4,
+                HospTransactionLine::NUMBER => $tipsItemId,
+                HospTransactionLine::NET_PRICE => $lsTipAmount,
+                HospTransactionLine::MANUAL_PRICE => $lsTipAmount,
+                HospTransactionLine::QUANTITY => 1,
+                HospTransactionLine::NET_AMOUNT => $lsTipAmount,
+                HospTransactionLine::TAXAMOUNT => 0,
+                HospTransactionLine::STORE_ID => $storeCode
+            ]);
+            $orderLinesArray[] = $tipOrderCoLine;
         }
 
         return $orderLinesArray;
