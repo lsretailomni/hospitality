@@ -33,6 +33,13 @@ class TipsSuggestions implements HttpGetActionInterface
 
         try {
             $tipsEnabled = (bool)$this->hospitalityHelper->isTipsEnabled();
+            if(!$tipsEnabled) {
+                return $result->setData([
+                    'success' => true,
+                    'enabled' => false,
+                    'suggestions' => []
+                ]);
+            }
             $suggestions = $this->hospitalityHelper->getTipsSuggestionsFromStore();
 
             return $result->setData([
