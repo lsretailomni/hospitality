@@ -31,7 +31,6 @@ use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory 
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
 use \Ls\Omni\Helper\StoreHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -123,8 +122,8 @@ class HospitalityHelper extends AbstractHelper
      * @param CustomerSession $customerSession
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
-     * @param Order $orderResourceModel
      * @param CacheHelper $cacheHelper
+     * @param Order $orderResourceModel
      * @param LoggerInterface $logger
      * @param CartRepositoryInterface $quoteRepository
      * @param StoreHelper $storeHelper
