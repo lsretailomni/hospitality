@@ -198,7 +198,7 @@ class CheckAvailability
                         $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE))
                     && $option['ls_modifier_recipe_id'] != LSR::LSR_RECIPE_PREFIX
                 ) {
-                    $itemId = $option->getProduct()->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
+                    $itemId = $product->getData(LSR::LS_ITEM_ID_ATTRIBUTE_CODE);
                     $qty = 1;
                     $modifier = current($this->hospitalityHelper->getModifierByDescription($option['value']));
                     $source = $modifier ?:
