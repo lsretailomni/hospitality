@@ -201,4 +201,24 @@
                 type="Ls\Hospitality\Plugin\Replication\Cron\SyncInventoryPlugin"
                 sortOrder="10"/>
     </type>
+    <!-- Register Tip total collector -->
+    <type name="Magento\Quote\Model\Quote\Address\Total\Collector">
+        <arguments>
+            <argument name="totals" xsi:type="array">
+                <item name="ls_tip" xsi:type="array">
+                    <item name="class" xsi:type="string">Ls\Hospitality\Model\Total\Tip</item>
+                    <item name="sort_order" xsi:type="string">900</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Ls\Omni\Block\Order\Custom\Totals">
+        <plugin name="ls_hospitality_addiitonal_email_total"
+                type="Ls\Hospitality\Plugin\Omni\Block\Order\Custom\TotalsPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Ls\Omni\Observer\SalesObserver">
+        <plugin name="ls_hospitality_sales_observer_tip_grand_total"
+                type="Ls\Hospitality\Plugin\Omni\Observer\SalesObserverPlugin"/>
+    </type>
 </config>

@@ -30,6 +30,7 @@ use Magento\Sales\Model;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
+use Ls\Omni\Client\Ecommerce\Entity\Enum\LineType;
 
 /**
  * OrderHelper plugin responsible for intercepting required methods
@@ -278,6 +279,7 @@ class OrderHelperPlugin
             //For click and collect we need to remove shipment charge orderline
             //For flat shipment it will set the correct shipment value into the order
             $customerOrderCoLines = $subject->updateShippingAmount($customerOrderCoLines, $order, $storeId);
+            $customerOrderCoLines = $this->updateTipsAmount($customerOrderCoLines, $order, $storeId, $subject);
 
             foreach ($orderPayments ?? [] as $orderPayment) {
                 $currentLineNo = end($customerOrderCoLines)->getLineno();
@@ -440,6 +442,45 @@ class OrderHelperPlugin
         }
 
         return $orderPaymentArray;
+    }
+
+    /**
+     * Update tip amount to order request
+     * 
+     * @param $orderLinesArray
+     * @param $order
+     * @param $storeCode
+     * @param $subject
+     * @return array
+     */
+    public function updateTipsAmount($orderLinesArray, $order, $storeCode, $subject)
+    {
+        $tipsEnabled        = $this->lsr->getStoreConfig(LSR::TIPS_ENABLE, $order->getStoreId());
+        if($tipsEnabled) {
+            $tipsItemId     = $this->lsr->getStoreConfig(LSR::TIPS_ITEM_ID, $order->getStoreId());
+            $lsTipAmount    = $order->getLsTipAmount();
+            $currentLineNo  = end($orderLinesArray)->getLineno();
+            $currentLineNo  += 10000;
+
+            $tipOrderCoLine = $subject->createInstance(
+                HospTransactionLine::class
+            );
+
+            $tipOrderCoLine->addData([
+                HospTransactionLine::LINE_NO => $currentLineNo,
+                HospTransactionLine::LINE_TYPE => 4,
+                HospTransactionLine::NUMBER => $tipsItemId,
+                HospTransactionLine::NET_PRICE => $lsTipAmount,
+                HospTransactionLine::MANUAL_PRICE => $lsTipAmount,
+                HospTransactionLine::QUANTITY => 1,
+                HospTransactionLine::NET_AMOUNT => $lsTipAmount,
+                HospTransactionLine::TAXAMOUNT => 0,
+                HospTransactionLine::STORE_ID => $storeCode
+            ]);
+            $orderLinesArray[] = $tipOrderCoLine;
+        }
+
+        return $orderLinesArray;
     }
 
     /**

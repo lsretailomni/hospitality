@@ -11,16 +11,12 @@ use Magento\Quote\Model\QuoteRepository;
  */
 class ShippingInformationManagement
 {
-    /** @var QuoteRepository */
-    public $quoteRepository;
-
     /**
      * @param QuoteRepository $quoteRepository
      */
     public function __construct(
-        QuoteRepository $quoteRepository
+        public QuoteRepository $quoteRepository
     ) {
-        $this->quoteRepository = $quoteRepository;
     }
 
     /**

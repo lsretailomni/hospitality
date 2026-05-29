@@ -4,6 +4,7 @@
     <!-- For service mode extension attribute -->
     <event name="sales_model_service_quote_submit_before">
         <observer name="ls_hospitality_extension_attributes_from_quote_to_order" instance="Ls\Hospitality\Observer\DataAssignObserver"/>
+        <observer name="ls_hospitality_copy_quote_fields_to_order" instance="Ls\Hospitality\Observer\CopyTipToOrderObserver" />
     </event>
     <event name="email_order_set_template_vars_before">
         <observer name="order_add_custom_field_data" instance="Ls\Hospitality\Observer\EmailTemplateVars"/>

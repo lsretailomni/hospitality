@@ -29,6 +29,8 @@ use \Ls\Replication\Helper\ReplicationHelper;
 use \Ls\Replication\Model\ReplImageLinkSearchResults;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDeal\CollectionFactory as DealCollectionFactory;
 use \Ls\Replication\Model\ResourceModel\ReplHierarchyHospDealLine\CollectionFactory as DealLineCollectionFactory;
+use \Ls\Omni\Helper\StoreHelper;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Helper\Product\Configuration;
@@ -67,6 +69,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product\Url;
 use Magento\Sales\Model\ResourceModel\Order;
+use Psr\Log\LoggerInterface;
 use Zend_Db_Select_Exception;
 
 /**
@@ -83,7 +86,7 @@ class HospitalityHelper extends AbstractHelper
             'lastname'  => 'name',
             'telephone' => 'phone',
             'street'    => ['street_line1', 'street_line2']
-        ];
+        ];    
 
     /**
      * @param Context $context
@@ -119,8 +122,11 @@ class HospitalityHelper extends AbstractHelper
      * @param CustomerSession $customerSession
      * @param ImageHelper $imageHelper
      * @param Url $productUrlBuilder
-     * @param Order $orderResourceModel
      * @param CacheHelper $cacheHelper
+     * @param Order $orderResourceModel
+     * @param LoggerInterface $logger
+     * @param CartRepositoryInterface $quoteRepository
+     * @param StoreHelper $storeHelper
      */
     public function __construct(
         Context $context,
@@ -158,6 +164,9 @@ class HospitalityHelper extends AbstractHelper
         public Url $productUrlBuilder,
         public CacheHelper $cacheHelper,
         public Order $orderResourceModel,
+        public StoreHelper $storeHelper,
+        public CartRepositoryInterface $quoteRepository,
+        public LoggerInterface $logger
     ) {
         parent::__construct($context);
     }
@@ -1774,7 +1783,15 @@ class HospitalityHelper extends AbstractHelper
         $childrenKey = 'subitems';
         $parentArray = [];
 
+        $tipsItemId  = $this->lsr->getStoreConfig(
+            LSR::TIPS_ITEM_ID,
+            $this->lsr->getCurrentStoreId()
+        );
+
         foreach ($items as $item) {
+            if ($item->getItemId() == $tipsItemId) {
+                continue;
+            }
             $product = $this->getProductFromRepositoryGivenSku($item->getNumber());
             $isDealProduct = $product && $product->getData(LSR::LS_ITEM_IS_DEAL_ATTRIBUTE);
             $data = [
@@ -2002,5 +2019,179 @@ class HospitalityHelper extends AbstractHelper
         }
 
         return true;
+    }
+
+    /**
+     * Saves the specified tip amount to the given quote and updates quote totals.
+     *
+     * @param \Magento\Quote\Model\Quote $quote The quote object to which the tip amount will be saved.
+     * @param float $tipAmount The tip amount to be added to the quote.
+     * @return \Magento\Quote\Api\Data\CartInterface The updated quote object.
+     */
+    public function saveTipsToQuote($quote, $tipAmount, $tipLabel)
+    {
+        // Save ls_tip_amount and label
+        try {
+            $quote->setData('ls_tip_amount', $tipAmount);
+            $quote->setData('ls_tip_amount_label', $tipLabel);
+            $quote->setTotalsCollectedFlag(false);
+            $quote->collectTotals();
+
+            try {
+                $this->quoteRepository->save($quote);
+            } catch (\Throwable $ex) {
+                $this->logger->warning('Quote resource save failed: ' . $ex->getMessage());
+            }
+
+            // Reload the quote from repository to ensure saved values are persisted
+            $quote = $this->quoteRepository->get($quote->getId());
+
+        } catch (\Throwable $e) {
+            $this->logger->warning('Failed to save tip to quote: ' . $e->getMessage());
+            return false;
+        }
+
+        return $quote;
+    }
+
+    /**
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isTipsEnabled()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        return $this->getLSR()->getStoreConfig(LSR::TIPS_ENABLE, $storeId);
+    }
+
+    /**
+     * @param $salesType
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getTipsSuggestionsFromStore()
+    {
+        $quote          = $this->qrcodeHelperObject()->getCheckoutSessionObject()->getQuote();
+        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+
+        $qrCodeParams = $this->qrcodeHelperObject()->getQrCode($quote->getId());
+
+        if ($shippingMethod !== null) {
+            $isClickCollect = ($shippingMethod == 'clickandcollect_clickandcollect');
+            if ($isClickCollect) {
+                $salesType = $this->lsr->getTakeAwaySalesType($this->getLSR()->getCurrentWebsiteId());
+                if (!empty($qrCodeParams) && array_key_exists('sales_type', $qrCodeParams)) {
+                    $salesType = $qrCodeParams['sales_type'];
+                }
+            } else {
+                $salesType = $this->getLSR()->getDeliverySalesType();
+            }
+
+            return $this->getTipsBySalesType($salesType, $quote);
+        }
+
+        return [];
+    }
+
+    /**
+     * Get Tips by SalesType
+     * 
+     * @param $salesType
+     * @param $quote
+     * @return array|void
+     * @throws NoSuchEntityException
+     */
+    public function getTipsBySalesType($salesType, $quote)
+    {
+        $websiteId          = (string) $this->lsr->getCurrentWebsiteId();
+        $webStore           = $this->lsr->getActiveWebStore();
+        $storeData          = $this->storeHelper->getStore($websiteId, $webStore, "", "");
+        $salesTypeTipsArray = $storeTipsArray = [];
+        $selectedTipsLabel  = $quote->getData('ls_tip_amount_label');
+        $selectedTipsFlag   = false;
+
+        if ($storeData) {
+            $tipsArray[]        = [
+                'value'    => 0,
+                'label'    => "No Tips",
+                'selected' => $selectedTipsFlag
+            ];
+            $otherSuggestions[] = [
+                'value'    => 'other',
+                'label'    => __('Other'),
+                'selected' => ($selectedTipsFlag == "other") ? true : false
+            ];
+            $data               = array_key_exists('LSC_Hospitality_Type', $storeData) ? $storeData['LSC_Hospitality_Type'] : [];
+
+            foreach ($data as $item) {
+
+                $tip1 = (int)$item->getSuggestedTips1Percentage();
+                $tip2 = (int)$item->getSuggestedTips2Percentage();
+                $tip3 = (int)$item->getSuggestedTips3Percentage();
+
+                if (empty($item->getSalesType())) {
+                    if ($tip1 > 0) {
+                        $storeTipsArray[] = [
+                            'value'    => $tip1,
+                            'label'    => $tip1 . '%',
+                            'selected' => ($selectedTipsLabel == $tip1) ? true : false
+                        ];
+                    }
+
+                    if ($tip2 > 0) {
+                        $storeTipsArray[] = [
+                            'value'    => $tip2,
+                            'label'    => $tip2 . '%',
+                            'selected' => ($selectedTipsLabel == $tip2) ? true : false
+                        ];
+                    }
+
+                    if ($tip3 > 0) {
+                        $storeTipsArray[] = [
+                            'value'    => $tip3,
+                            'label'    => $tip3 . '%',
+                            'selected' => ($selectedTipsLabel == $tip3) ? true : false
+                        ];
+                    }
+                }
+
+                if ($item->getSalesType() == $salesType) {
+                    if ($tip1 > 0) {
+                        $salesTypeTipsArray[] = [
+                            'value'    => (int)$tip1,
+                            'label'    => $tip1 . '%',
+                            'selected' => ($selectedTipsLabel == $tip1) ? true : false
+                        ];
+                    }
+
+                    if ($tip2 > 0) {
+                        $salesTypeTipsArray[] = [
+                            'value'    => $tip2,
+                            'label'    => $tip2 . '%',
+                            'selected' => ($selectedTipsLabel == $tip2) ? true : false
+                        ];
+                    }
+
+                    if ($tip3 > 0) {
+                        $salesTypeTipsArray[] = [
+                            'value'    => $tip3,
+                            'label'    => $tip3 . '%',
+                            'selected' => ($selectedTipsLabel == $tip3) ? true : false
+                        ];
+                    }
+                    break;
+                }
+            }
+
+            if (!empty($salesTypeTipsArray)) {
+                return array_merge($tipsArray, $salesTypeTipsArray, $otherSuggestions);
+            } else {
+                if (empty($salesTypeTipsArray) && !empty($storeTipsArray)) {
+                    return array_merge($tipsArray, $storeTipsArray, $otherSuggestions);
+                } else {
+                    return [];
+                }
+            }
+        }
     }
 }

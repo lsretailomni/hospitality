@@ -5,10 +5,11 @@ namespace Ls\Hospitality\Observer;
 use Carbon\Carbon;
 use \Ls\Hospitality\Helper\QrCodeHelper;
 use \Ls\Hospitality\Model\LSR;
-use \Ls\Omni\Client\Ecommerce\Entity\Enum\StoreHourCalendarType;
 use \Ls\Omni\Helper\BasketHelper;
+use \Ls\Omni\Helper\Data;
 use \Ls\Omni\Helper\StoreHelper;
 use \Ls\Hospitality\Model\Order\CheckAvailability;
+use \Ls\Omni\Model\Checkout\DataProvider;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -27,40 +28,6 @@ use Zend_Log_Exception;
 class DataAssignObserver implements ObserverInterface
 {
     /**
-     * @var Http
-     */
-    private Http $request;
-
-    /**
-     * @var BasketHelper
-     */
-    private $basketHelper;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var LSR
-     */
-    private LSR $lsr;
-    /**
-     * @var StoreHelper
-     */
-    private StoreHelper $storeHelper;
-
-    /**
-     * @var CheckAvailability
-     */
-    private $checkAvailability;
-
-    /**
-     * @var QrCodeHelper
-     */
-    private $qrCodeHelper;
-
-    /**
      * @param StoreHelper $storeHelper
      * @param BasketHelper $basketHelper
      * @param CheckAvailability $checkAvailability
@@ -68,23 +35,20 @@ class DataAssignObserver implements ObserverInterface
      * @param LSR $lsr
      * @param LoggerInterface $logger
      * @param QrCodeHelper $qrCodeHelper
+     * @param Data $dataHelper
+     * @param DataProvider $checkoutDataProvider
      */
     public function __construct(
-        StoreHelper $storeHelper,
-        BasketHelper $basketHelper,
-        CheckAvailability $checkAvailability,
-        Http $request,
-        LSR $lsr,
-        LoggerInterface $logger,
-        QrCodeHelper $qrCodeHelper
+        public StoreHelper $storeHelper,
+        public BasketHelper $basketHelper,
+        public CheckAvailability $checkAvailability,
+        public Http $request,
+        public LSR $lsr,
+        public LoggerInterface $logger,
+        public QrCodeHelper $qrCodeHelper,
+        public Data $dataHelper,
+        public DataProvider $checkoutDataProvider
     ) {
-        $this->storeHelper       = $storeHelper;
-        $this->basketHelper      = $basketHelper;
-        $this->checkAvailability = $checkAvailability;
-        $this->request           = $request;
-        $this->lsr               = $lsr;
-        $this->logger            = $logger;
-        $this->qrCodeHelper      = $qrCodeHelper;
     }
 
     /**
@@ -226,14 +190,11 @@ class DataAssignObserver implements ObserverInterface
             /**
              * @var \Magento\Quote\Model\Quote $quote
              */
-            $websiteId       = $quote->getStore()->getWebsiteId();
-            $store           = $this->storeHelper->getStore($websiteId, $storeId);
-            $storeHoursArray = $this->storeHelper->formatDateTimeSlotsValues(
-                $store->getStoreHours(),
-                $shippingMethod == 'flatrate_flatrate' ? StoreHourCalendarType::RECEIVING : null
-            );
+            $webStore = $this->lsr->getWebsiteConfig(\Ls\Core\Model\LSR::SC_SERVICE_STORE, $this->lsr->getCurrentWebsiteId());
+            $allStores = $this->storeHelper->getAllStoresFromCentral();
+            $storeHours = $this->checkoutDataProvider->getRelevantStoreHours(null, $allStores);
 
-            foreach ($storeHoursArray as $date => $hoursArr) {
+            foreach ($storeHours[$webStore] as $date => $hoursArr) {
                 $openHoursCnt = count($hoursArr);
                 if ($date == "Today") {
                     $date = $this->storeHelper->getCurrentDate();

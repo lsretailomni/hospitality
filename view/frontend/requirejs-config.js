@@ -39,6 +39,9 @@ var config = {
             },
             'Magento_Checkout/js/action/place-order': {
                 'Ls_Hospitality/js/mixin/order-comment-place-order-mixin' : true
+            },
+            'Magento_Checkout/js/action/set-shipping-information': {
+                'Ls_Hospitality/js/mixin/set-shipping-information-mixin': true
             }
         }
     },
