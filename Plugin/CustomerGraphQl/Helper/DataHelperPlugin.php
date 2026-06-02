@@ -65,7 +65,7 @@ class DataHelperPlugin
     public function afterGetSaleEntry(
         DataHelper $subject,
         array $result,
-        SalesEntry $salesEntry,
+        $salesEntry,
         $magOrder = null
     ): array {
         if ($this->lsr->isHospitalityStore()) {
