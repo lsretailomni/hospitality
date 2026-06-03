@@ -6,7 +6,7 @@ namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
 use \Ls\CustomerGraphQl\Helper\DataHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use Ls\Omni\Client\CentralEcommerce\Entity\LSCMemberSalesBuffer;
+use \Ls\Omni\Client\CentralEcommerce\Entity\LSCMemberSalesBuffer;
 use \Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -94,10 +94,6 @@ class DataHelperPlugin
                 }
 
                 if (!$tip) {
-                    if (!$magOrder) {
-                        $magOrder = $this->orderHelper->getOrderByDocumentId($salesEntry);
-                    }
-
                     if ($magOrder) {
                         $tip = $magOrder->getData('ls_tip_amount');
                     }
