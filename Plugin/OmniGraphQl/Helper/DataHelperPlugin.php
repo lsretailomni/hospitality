@@ -63,7 +63,7 @@ class DataHelperPlugin
             }
 
             if (!empty($takeAwaySalesType)) {
-                $storeCollection->addFieldToFilter('no', ['in' => $requiredStores]);
+                $storeCollection->addFieldToFilter('nav_id', ['in' => $requiredStores]);
             }
         }
 
@@ -72,7 +72,7 @@ class DataHelperPlugin
                 'scope_id',
                 $scopeId
             )
-        ->addFieldToFilter('click_and_collect', 1);
+        ->addFieldToFilter('ClickAndCollect', 1);
 
         if (!$this->availableStoresOnlyEnabled()) {
             return $storesData;

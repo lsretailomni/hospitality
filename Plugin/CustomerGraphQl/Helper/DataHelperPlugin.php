@@ -6,7 +6,7 @@ namespace Ls\Hospitality\Plugin\CustomerGraphQl\Helper;
 use \Ls\CustomerGraphQl\Helper\DataHelper;
 use \Ls\Hospitality\Model\LSR;
 use \Ls\Hospitality\Helper\HospitalityHelper;
-use \Ls\Omni\Client\Ecommerce\Entity\SalesEntry;
+use \Ls\Omni\Client\CentralEcommerce\Entity\LSCMemberSalesBuffer;
 use \Ls\Omni\Helper\OrderHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -24,7 +24,7 @@ class DataHelperPlugin
         public LSR $lsr,
         public HospitalityHelper $hospitalityHelper,
         public OrderHelper $orderHelper
-    ) {        
+    ) {
     }
 
     /**
@@ -57,7 +57,8 @@ class DataHelperPlugin
      *
      * @param DataHelper $subject
      * @param array $result
-     * @param SalesEntry $salesEntry
+     * @param LSCMemberSalesBuffer $salesEntry
+     * @param $salesEntryDetails
      * @param mixed|null $magOrder
      * @return array
      * @throws NoSuchEntityException
@@ -65,40 +66,41 @@ class DataHelperPlugin
     public function afterGetSaleEntry(
         DataHelper $subject,
         array $result,
-        SalesEntry $salesEntry,
+        LSCMemberSalesBuffer $salesEntry,
+        $salesEntryDetails,
         $magOrder = null
     ): array {
         if ($this->lsr->isHospitalityStore()) {
-            $tip        = 0.0;
+            $tip = 0.0;
             $tipsItemId = $this->lsr->getStoreConfig(
                 LSR::TIPS_ITEM_ID,
                 $this->lsr->getCurrentStoreId()
             );
 
             if ($tipsItemId) {
-                $orderLines = $salesEntry->getLines();
+                $orderLines = [];
 
-                if ($orderLines) {
-                    foreach ($orderLines->getSalesEntryLine() as $line) {
-                        if ($line->getItemId() == $tipsItemId) {
-                            $tip = $line->getAmount();
-                            break;
-                        }
+                if (!empty($salesEntryDetails->getLscMemberSalesDocLine())) {
+                    $orderLines = is_array($salesEntryDetails->getLscMemberSalesDocLine()) ?
+                        $salesEntryDetails->getLscMemberSalesDocLine() :
+                        [$salesEntryDetails->getLscMemberSalesDocLine()];
+                }
+
+                foreach ($orderLines as $line) {
+                    if ($line->getNumber() == $tipsItemId) {
+                        $tip = $line->getAmount();
+                        break;
                     }
                 }
-            }
 
-            if (!$tip) {
-                if (!$magOrder) {
-                    $magOrder = $this->orderHelper->getOrderByDocumentId($salesEntry);
+                if (!$tip) {
+                    if ($magOrder) {
+                        $tip = $magOrder->getData('ls_tip_amount');
+                    }
                 }
 
-                if ($magOrder) {
-                    $tip = $magOrder->getData('ls_tip_amount');
-                }
+                $result['tip'] = $tip;
             }
-
-            $result['tip'] = $tip;
         }
 
         return $result;
