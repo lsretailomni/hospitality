@@ -23,16 +23,6 @@ use Magento\Framework\Escaper;
 class Info extends \Ls\Customer\Block\Order\Info
 {
     /**
-     * @var HospitalityLsr
-     */
-    public $hospitalityLsr;
-
-    /**
-     * @var Escaper
-     */
-    public $escaper;
-
-    /**
      * @param Context $context
      * @param PriceCurrencyInterface $priceCurrency
      * @param LoyaltyHelper $loyaltyHelper
@@ -46,6 +36,7 @@ class Info extends \Ls\Customer\Block\Order\Info
      * @param CountryFactory $countryFactory
      * @param HospitalityLsr $hospitalityLsr
      * @param Escaper $escaper
+     * @param \Magento\Framework\App\Http\Context $httpContext
      * @param array $data
      */
     public function __construct(
@@ -60,8 +51,9 @@ class Info extends \Ls\Customer\Block\Order\Info
         SearchCriteriaBuilder $searchCriteriaBuilder,
         Session $customerSession,
         CountryFactory $countryFactory,
-        HospitalityLsr $hospitalityLsr,
-        Escaper $escaper,
+        \Magento\Framework\App\Http\Context $httpContext,
+        public HospitalityLsr $hospitalityLsr,
+        public Escaper $escaper,
         array $data = []
     ) {
         parent::__construct(
@@ -76,11 +68,9 @@ class Info extends \Ls\Customer\Block\Order\Info
             $searchCriteriaBuilder,
             $customerSession,
             $countryFactory,
+            $httpContext,
             $data
         );
-
-        $this->hospitalityLsr = $hospitalityLsr;
-        $this->escaper = $escaper;
     }
 
     /**

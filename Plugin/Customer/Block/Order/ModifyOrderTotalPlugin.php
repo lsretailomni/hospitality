@@ -11,6 +11,14 @@ use Magento\Framework\Exception\NoSuchEntityException;
  */
 class ModifyOrderTotalPlugin
 {
+
+    /**
+     * @param LSR $lsr
+     */
+    public function __construct(public LSR $lsr)
+    {
+    }
+
     /**
      * Modify the output of the Totals block
      *
@@ -21,6 +29,10 @@ class ModifyOrderTotalPlugin
      */
     public function afterToHtml(Totals $subject, $result)
     {
+        if (!$this->lsr->isHospitalityStore()) {
+            return $result;
+        }
+
         $orderLines = $subject->getCurrentOrder()->getLSCMemberSalesDocLine();
         $fee        = 0.0;
 
