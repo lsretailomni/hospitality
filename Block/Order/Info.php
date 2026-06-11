@@ -54,6 +54,7 @@ class Info extends \Ls\Customer\Block\Order\Info
         \Magento\Framework\App\Http\Context $httpContext,
         public HospitalityLsr $hospitalityLsr,
         public Escaper $escaper,
+        \Magento\Framework\App\Request\Http $request,
         array $data = []
     ) {
         parent::__construct(
@@ -69,6 +70,7 @@ class Info extends \Ls\Customer\Block\Order\Info
             $customerSession,
             $countryFactory,
             $httpContext,
+            $request,
             $data
         );
     }
