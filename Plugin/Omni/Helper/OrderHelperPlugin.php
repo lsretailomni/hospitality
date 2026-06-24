@@ -446,7 +446,7 @@ class OrderHelperPlugin
 
     /**
      * Update tip amount to order request
-     * 
+     *
      * @param $orderLinesArray
      * @param $order
      * @param $storeCode
@@ -673,5 +673,27 @@ class OrderHelperPlugin
         }
 
         return $response;
+    }
+
+    /**
+     * Get respective magento order given Central sales entry Object
+     *
+     * @param $subject
+     * @param $proceed
+     * @param $salesEntry
+     * @return mixed
+     */
+    public function aroundSetCurrentMagOrderInRegistry($subject, $proceed, $salesEntry)
+    {
+        if ($subject->lsr->getCurrentIndustry() != LSR::LS_INDUSTRY_VALUE_HOSPITALITY) {
+            return $proceed($salesEntry);
+        }
+
+        $lscMemberSalesBuffer = $subject->getLscMemberSalesBuffer($salesEntry);
+        $documentId = !empty($lscMemberSalesBuffer->getCustomerDocumentId()) ?
+            $lscMemberSalesBuffer->getCustomerDocumentId() : "";
+        $order = $this->hospitalityHelper->getOrderByOrderId($documentId);
+
+        return $subject->registerGivenValueInRegistry('current_mag_order', $order);
     }
 }

@@ -17,6 +17,14 @@
         <plugin name="ls_hospitality_order_view_page_items_grid" type="Ls\Hospitality\Plugin\Customer\Block\Order\Custom\ItemsPlugin"/>
     </type>
 
+    <type name="Ls\Customer\Block\Order\Custom\Hyva\Items">
+        <plugin name="ls_hospitality_order_view_page_items_grid" type="Ls\Hospitality\Plugin\Customer\Block\Order\Custom\ItemsPlugin"/>
+    </type>
+    <type name="Ls\Customer\Block\Order\History">
+        <plugin name="ls_hospitality_history" type="Ls\Hospitality\Plugin\Customer\Block\Order\HistoryPlugin"/>
+    </type>
+
+
     <!-- For Service Mode  -->
     <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
         <plugin name="hosp_checkout_layout_processor" type="Ls\Hospitality\Plugin\Checkout\Model\LayoutProcessorPlugin"
