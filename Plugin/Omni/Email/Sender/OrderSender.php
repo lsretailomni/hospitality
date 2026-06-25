@@ -54,7 +54,12 @@ class OrderSender
             $result = $proceed($order, $forceSyncMode);
             $order->setIncrementId($incrementId);
         } else {
+            $incrementId = $order->getIncrementId();
+            if (!empty($order->getDocumentId())) {
+                $order->setIncrementId($order->getDocumentId());
+            }
             $result = $proceed($order, $forceSyncMode);
+            $order->setIncrementId($incrementId);
         }
 
         return $result;
