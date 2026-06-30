@@ -86,7 +86,7 @@ class HospitalityHelper extends AbstractHelper
             'lastname'  => 'name',
             'telephone' => 'phone',
             'street'    => ['street_line1', 'street_line2']
-        ];    
+        ];
 
     /**
      * @param Context $context
@@ -1485,7 +1485,7 @@ class HospitalityHelper extends AbstractHelper
 
                 while ($index <= $qtyOrdered - 1) {
                     $data['Lines'][$index] = $this->getLine(
-                        $orderItem->getPrice() / $orderItem->getQtyOrdered(),
+                        $orderItem->getRowTotalInclTax() / $orderItem->getQtyOrdered(),
                         $itemId,
                         $uom,
                         $variantId,
@@ -2095,7 +2095,7 @@ class HospitalityHelper extends AbstractHelper
 
     /**
      * Get Tips by SalesType
-     * 
+     *
      * @param $salesType
      * @param $quote
      * @return array|void
