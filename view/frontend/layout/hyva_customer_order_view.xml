@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Hyvä-only override for the hospitality "Kitchen Information" block.
+ *
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="custom.hospitality.order.info"
+                        template="Ls_Hospitality::customer/order/hyva/info.phtml"/>
+    </body>
+</page>
