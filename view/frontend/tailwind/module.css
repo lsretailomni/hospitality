@@ -2,22 +2,12 @@
  * Ls_Hospitality — Hyvä (Tailwind CSS-first) module styles.
  *
  * Discovered by `hyva-sources` at view/frontend/tailwind/module.css and @imported
- * into the theme's generated/hyva-source.css, so these rules compile into the
+ * into the theme's generated/hyva-source.css, so anything here compiles into the
  * single global styles.css (no runtime <css src>, no extra CSS request).
  *
- * @source registers this module's templates so the Tailwind utility classes they
- * use survive purge.
+ * @source registers this module's Hyvä templates so the Tailwind utility classes
+ * used by the customizable-options swatch modal (grid, overlay, modal, etc.)
+ * survive purge. The interactive behaviour lives in Alpine.js in
+ * templates/product/view/options/hyva/wrapper.phtml.
  */
 @source "../templates/**/*.phtml";
-
-/**
- * Customizable options — uniform control width.
- *
- * Hyvä renders custom-option selects/multiselects sized to their content
- * (with only a max-width cap), so each control ends up a different width.
- * Force them to fill the option value column so all dropdowns and multiselects
- * share the same width.
- */
-.product-options-wrapper select.product-custom-option {
-    width: 100%;
-}
