@@ -11,21 +11,35 @@ use \Ls\Replication\Helper\ReplicationHelper;
 class AbstractReplicationTaskPlugin
 {
     /**
-     * After plugin to set the respective app_id and full_replication
+     * Handle repl_item_modifier saves.
+     *
+     * This job needs custom existence matching and a cascade soft-delete (a single delete message
+     * can soft-delete several flat rows matched by a partial key) that the batched
+     * INSERT ... ON DUPLICATE KEY UPDATE write path in the core task cannot express. For it we
+     * therefore bypass the batch buffer (do not call $proceed) and persist via the ORM path, then
+     * apply the modifier-specific logic below. Every other config falls through to the core task
+     * unchanged (which may batch or use the ORM path per its own rules).
      *
      * @param AbstractReplicationTask $subject
-     * @param mixed $result
+     * @param callable $proceed
      * @param array $properties
      * @param mixed $source
      * @return mixed
      */
-    public function afterSaveSource(AbstractReplicationTask $subject, $result, $properties, $source)
+    public function aroundSaveSource(AbstractReplicationTask $subject, callable $proceed, $properties, $source)
     {
-        if ($subject->getConfigPath() != "ls_mag/replication/repl_item_modifier" &&
-            $subject->getConfigPath() != "ls_mag/replication/repl_item_recipe"
-        ) {
-            return $result;
+        $configPath = $subject->getConfigPath();
+
+        if ($configPath != "ls_mag/replication/repl_item_modifier") {
+            return $proceed($properties, $source);
         }
+
+        // Apply the config-specific source formatting (item-modifier enum decode) that the core
+        // dispatcher normally runs before its batch/ORM split, then do a generic ORM save (sets
+        // identity_value/checksum, no batching). Together these mirror the original pre-batch flow
+        // where the vendor saveSource ran before this plugin's corrective logic.
+        $subject->formatSourceColumns($source, $configPath);
+        $subject->saveSourceOrm($properties, $source);
 
         if ($source->getIsDeleted()) {
             $uniqueAttributes = (array_key_exists(
@@ -109,7 +123,7 @@ class AbstractReplicationTaskPlugin
             }
         }
 
-        return $result;
+        return null;
     }
 
     /**
