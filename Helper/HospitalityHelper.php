@@ -1762,13 +1762,16 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getProductImageUrl($product)
     {
-        if ($product->getSmallImage()) {
+        $smallImage = $product->getSmallImage();
+
+        if (!empty($smallImage) && $smallImage !== 'no_selection') {
             return $this->imageHelper->init($product, 'product_small_image')
-                ->setImageFile($product->getSmallImage())
+                ->setImageFile($smallImage)
                 ->getUrl();
         }
 
-        return null;
+        // Fall back to the configured placeholder so the item still renders with an image.
+        return $this->imageHelper->init($product, 'product_small_image')->getUrl();
     }
 
     /**
