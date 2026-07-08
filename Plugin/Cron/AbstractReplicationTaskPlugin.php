@@ -11,21 +11,32 @@ use \Ls\Replication\Helper\ReplicationHelper;
 class AbstractReplicationTaskPlugin
 {
     /**
-     * After plugin to set the respective app_id and full_replication
+     * Handle repl_item_modifier / repl_item_recipe saves.
+     *
+     * These two jobs need custom existence matching and a cascade soft-delete (a single delete
+     * message can soft-delete several flat rows matched by a partial key) that the batched
+     * INSERT ... ON DUPLICATE KEY UPDATE write path in the core task cannot express. For them we
+     * therefore bypass the batch buffer (do not call $proceed), persist via the ORM path, and
+     * then apply the modifier/recipe-specific logic below. Every other config falls through to
+     * the core task unchanged (which may batch or use the ORM path per its own rules).
      *
      * @param AbstractReplicationTask $subject
-     * @param mixed $result
+     * @param callable $proceed
      * @param array $properties
      * @param mixed $source
      * @return mixed
      */
-    public function afterSaveSource(AbstractReplicationTask $subject, $result, $properties, $source)
+    public function aroundSaveSource(AbstractReplicationTask $subject, callable $proceed, $properties, $source)
     {
-        if ($subject->getConfigPath() != "ls_mag/replication/repl_item_modifier" &&
-            $subject->getConfigPath() != "ls_mag/replication/repl_item_recipe"
-        ) {
-            return $result;
+        $configPath = $subject->getConfigPath();
+
+        if ($configPath != "ls_mag/replication/repl_item_modifier") {
+            return $proceed($properties, $source);
         }
+
+        // Generic ORM save (sets identity_value/checksum, no batching), mirroring the original
+        // pre-batch flow where the vendor saveSource ran before this plugin's corrective logic.
+        $subject->saveSourceOrm($properties, $source);
 
         if ($source->getIsDeleted()) {
             $uniqueAttributes = (array_key_exists(
@@ -93,7 +104,7 @@ class AbstractReplicationTaskPlugin
             }
         }
 
-        return $result;
+        return null;
     }
 
     /**
