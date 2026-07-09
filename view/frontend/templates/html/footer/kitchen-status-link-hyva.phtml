@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+use Ls\Hospitality\ViewModel\KitchenStatus;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var KitchenStatus $viewModel */
+$viewModel = $block->getData('view_model');
+
+if (!$viewModel instanceof KitchenStatus || !$viewModel->isHospitalityStore()) {
+    return;
+}
+?>
+<li class="mt-4">
+    <a href="<?= $escaper->escapeUrl($block->getUrl('hospitality/kitchenstatus')) ?>"
+       class="ls-footer-kitchen-status text-base leading-6">
+        <?= $escaper->escapeHtml(__('Kitchen Status')) ?>
+    </a>
+</li>

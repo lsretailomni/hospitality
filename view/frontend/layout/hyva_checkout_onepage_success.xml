@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Hyvä-only override for the hospitality "Kitchen Information" block on the
+ * checkout success page.
+ *
+ * The base checkout_onepage_success.xml adds "custom.hospitality.order.info" with the Luma
+ * template, which relies on an x-magento-init/RequireJS component to run the Kitchen Info AJAX
+ * call. Hyvä does not load RequireJS, so that component never runs and the loader spins forever.
+ * Here we swap in the Alpine.js template (customer/order/hyva/info.phtml), which performs the same
+ * hospitality/ajax/OrderInfo call via fetch() and renders the response, matching the Luma behaviour.
+ * Only rendered for hospitality stores (ifconfig on the base block still applies).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="custom.hospitality.order.info"
+                        template="Ls_Hospitality::customer/order/hyva/info.phtml"/>
+    </body>
+</page>

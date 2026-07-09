@@ -36,7 +36,7 @@ class ItemsPlugin
             $magentoOrder = $subject->getMagOrder();
             $order = $subject->getLscMemberSalesBuffer($subject->getOrder(true));
 
-            if (!empty($magentoOrder) && !empty($order->getStoreCurrencyCode())) {
+            if (!empty($magentoOrder) && !empty($order) && !empty($order->getStoreCurrencyCode())) {
                 if ($order->getStoreCurrencyCode() != $magentoOrder->getOrderCurrencyCode()) {
                     $magentoOrder = null;
                 }

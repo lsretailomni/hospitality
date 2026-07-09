@@ -1,0 +1,181 @@
+<?php
+/**
+ * Hyvä (Alpine.js) swatch-modal renderer for LS Hospitality customizable options.
+ *
+ * Reproduces the Luma "options-modal" UX on Hyvä:
+ *   - a clickable swatch tile (image + title + pencil) per option;
+ *   - clicking opens a popup grid of value tiles with swatch images;
+ *   - selecting a value marks it with a green tick (checked.png); for
+ *     "Exclude Ingredients" (data recipe id 'ls_rec') the tile is greyed out
+ *     with a cross (crossed.png) instead;
+ *   - "Continue" closes the popup.
+ *
+ * Integration: Hyvä's real <select> (rendered via the CustomOption view model)
+ * stays in the DOM (visually hidden) so form submission, required validation
+ * and price calculation keep working. The Alpine modal drives that select by id
+ * and dispatches a native "change" event, which Hyvä's own option handlers pick
+ * up — no price/submit logic is duplicated here.
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\CustomOption;
+use Hyva\Theme\ViewModel\ProductPrice;
+use Ls\Hospitality\ViewModel\CustomProduct;
+use Magento\Catalog\Api\Data\ProductCustomOptionInterface;
+use Magento\Catalog\Block\Product\View\Options\Type\Select;
+use Magento\Catalog\Pricing\Price\CustomOptionPrice;
+use Magento\Framework\Escaper;
+
+/** @var Select $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$_option = $block->getOption();
+$product = $block->getProduct();
+
+/** @var CustomProduct $viewModel */
+$viewModel = $block->getData('view_model');
+$criteria  = $viewModel->isHospitalityStore() && $viewModel->currentProductHasOptions();
+if ($criteria) {
+    $_option = $viewModel->checkModifierAvailable($_option);
+}
+
+/** @var CustomOption $customOptionsViewModel */
+$customOptionsViewModel = $viewModels->require(CustomOption::class);
+
+/** @var ProductPrice $productPriceViewModel */
+$productPriceViewModel = $viewModels->require(ProductPrice::class);
+
+$optionId   = (int) $_option->getId();
+$isMultiple = $_option->getType() === ProductCustomOptionInterface::OPTION_TYPE_MULTIPLE;
+$isExclude  = $_option->getLsModifierRecipeId() === 'ls_rec';
+$tickUrl    = $block->getViewFileUrl('Ls_Hospitality::images/checked.png');
+$crossUrl   = $block->getViewFileUrl('Ls_Hospitality::images/crossed.png');
+$markUrl    = $isExclude ? $crossUrl : $tickUrl;
+$modalId    = 'ls-hosp-option-' . $optionId;
+?>
+<?php if (!$criteria): ?>
+    <?php /* Non-hospitality context: plain Hyvä option row */ ?>
+    <div class="flex flex-col sm:flex-row border-t border-gray-300 py-2 last:mb-6 last:border-b w-full items-center">
+        <label class="label text-gray-700 text-left w-full sm:w-1/2" for="options_<?= $escaper->escapeHtmlAttr($optionId) ?>">
+            <span><?= $escaper->escapeHtml($_option->getTitle()) ?></span>
+            <?php if ($_option->getIsRequire()): ?><span class="sup text-sm">*</span><?php endif; ?>
+        </label>
+        <div class="sm:ml-2 text-gray-900 text-left w-full sm:w-1/2">
+            <?= /* @noEscape */ $customOptionsViewModel->getOptionHtml($_option, $product) ?>
+        </div>
+    </div>
+    <?php return; ?>
+<?php endif; ?>
+
+<div class="flex flex-col sm:flex-row border-t border-gray-300 py-3 last:mb-6 last:border-b w-full items-center"
+     x-data="lsHospitalityOption({
+        optionId: <?= /* @noEscape */ $optionId ?>,
+        isMultiple: <?= $isMultiple ? 'true' : 'false' ?>,
+        isExclude: <?= $isExclude ? 'true' : 'false' ?>,
+        placeholder: '<?= /* @noEscape */ $escaper->escapeJs(__('-- Please Select --')) ?>'
+     })"
+>
+    <label class="label text-gray-700 text-left w-full sm:w-1/2">
+        <span><?= $escaper->escapeHtml($_option->getTitle()) ?></span>
+        <?php if ($_option->getIsRequire()): ?><span class="sup text-sm">*</span><?php endif; ?>
+    </label>
+
+    <div class="sm:ml-2 w-full sm:w-1/2">
+        <?php /* Real Hyvä select — kept for submit/validation/price, visually hidden */ ?>
+        <div class="sr-only" aria-hidden="false">
+            <?= /* @noEscape */ $customOptionsViewModel->getOptionHtml($_option, $product) ?>
+        </div>
+
+        <?php /* Clickable swatch trigger tile */ ?>
+        <button type="button"
+                @click="openModal()"
+                class="group relative flex flex-col items-center justify-center w-full max-w-[12rem] mx-auto p-3 border border-gray-300 rounded-lg hover:border-primary transition-colors cursor-pointer">
+            <span class="absolute top-1.5 right-1.5 text-gray-400 group-hover:text-primary">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </span>
+            <img class="w-20 h-20 object-contain" loading="lazy"
+                 src="<?= $escaper->escapeUrl($viewModel->getMediaUrl($_option->getSwatch())) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr($_option->getTitle()) ?>"/>
+            <span class="mt-1 font-semibold text-gray-900 text-sm text-center"><?= $escaper->escapeHtml($_option->getTitle()) ?></span>
+            <span class="mt-0.5 text-xs text-gray-500 text-center"
+                  x-text="summary()"></span>
+        </button>
+
+        <?php /* Popup modal */ ?>
+        <template x-teleport="body">
+            <div x-show="open" x-cloak
+                 role="dialog" aria-modal="true"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                 x-on:keydown.escape.window="closeModal()">
+                <div x-show="open" x-transition.opacity class="absolute inset-0 bg-black/50" @click="closeModal()"></div>
+
+                <div x-show="open" x-transition
+                     class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+                    <header class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-900 mx-auto"><?= $escaper->escapeHtml($_option->getTitle()) ?></h2>
+                        <button type="button" @click="closeModal()" aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                                class="absolute right-4 top-4 text-gray-400 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </header>
+
+                    <div class="overflow-y-auto p-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                            <?php foreach ($_option->getValues() as $val): ?>
+                                <?php
+                                $valueId     = (int) $val->getOptionTypeId();
+                                $isAvailable = $val['is_available'] ?? true;
+                                $title       = $escaper->escapeHtml($val->getTitle());
+                                ?>
+                                <div class="relative flex flex-col items-center text-center p-2 rounded-lg select-none <?= $isAvailable ? 'cursor-pointer hover:bg-gray-50' : 'opacity-40 cursor-not-allowed' ?>"
+                                     <?php if ($isAvailable): ?>@click="toggle(<?= /* @noEscape */ $valueId ?>)"<?php endif; ?>
+                                     :class="{ 'grayscale': isExclude && isSelected(<?= /* @noEscape */ $valueId ?>) }">
+                                    <div class="relative w-20 h-20 mx-auto">
+                                        <img class="w-20 h-20 object-contain" loading="lazy"
+                                             src="<?= $escaper->escapeUrl($viewModel->getMediaUrl($val->getSwatch())) ?>"
+                                             alt="<?= $title ?>"/>
+                                        <img x-show="isSelected(<?= /* @noEscape */ $valueId ?>)" x-cloak
+                                             class="absolute inset-0 m-auto w-16 h-16 object-contain pointer-events-none"
+                                             src="<?= $escaper->escapeUrl($markUrl) ?>" alt=""/>
+                                    </div>
+                                    <p class="mt-1 font-semibold text-sm text-gray-900"><?= $title ?></p>
+                                    <?php
+                                    $valuePrice = (float) $productPriceViewModel->getCustomOptionPrice(
+                                        $val,
+                                        CustomOptionPrice::PRICE_CODE,
+                                        $product
+                                    );
+                                    $priceLabel = '';
+                                    if (abs($valuePrice) > 0.00001) {
+                                        $priceLabel = ($valuePrice > 0 ? '+' : '-')
+                                            . $productPriceViewModel->format(abs($valuePrice), false);
+                                    }
+                                    ?>
+                                    <?php if ($priceLabel !== ''): ?>
+                                        <p class="text-xs text-gray-600"><?= $escaper->escapeHtml($priceLabel) ?></p>
+                                    <?php endif; ?>
+                                    <?php if (!$isAvailable): ?>
+                                        <p class="text-xs font-semibold text-red-600 uppercase mt-0.5"><?= $escaper->escapeHtml(__('Out of Stock')) ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <footer class="flex justify-end px-6 py-4 border-t border-gray-200">
+                        <button type="button" @click="closeModal()"
+                                class="btn btn-primary">
+                            <?= $escaper->escapeHtml(__('Continue')) ?>
+                        </button>
+                    </footer>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>

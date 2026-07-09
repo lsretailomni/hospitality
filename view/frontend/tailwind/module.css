@@ -1,0 +1,161 @@
+/**
+ * Ls_Hospitality — Hyvä (Tailwind CSS-first) module styles.
+ *
+ * Compiled into the Hyvä theme via the auto-generated web/tailwind/generated/hyva-source.css,
+ * which @imports this file. Covers the "Kitchen Information" block (order success + customer
+ * order-view pages) and the "Check Your Order Status" / kitchen-status page.
+ *
+ * The AJAX-injected markup (customer/order/view/info.phtml) is shared with Luma, so these rules
+ * style those Luma class names, scoped under the .ls-kitchen-order-status result container so
+ * nothing leaks into the rest of the Hyvä theme.
+ */
+@source "../templates/**/*.phtml";
+
+/* ---- Kitchen Information card ---- */
+.ls-kitchen-order-status {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--color-white, #ffffff);
+    border: 1px solid var(--color-slate-200, #e2e8f0);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+}
+
+.ls-kitchen-order-status > .block-title {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-slate-200, #e2e8f0);
+}
+
+.ls-kitchen-order-status > .block-title strong {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-slate-900, #0f172a);
+}
+
+/* ---- Loading state (both the kitchen block and the kitchen-status form) ---- */
+.ls-kitchen-order-status .loader,
+.order-status-form .loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 0;
+    color: var(--color-slate-500, #64748b);
+}
+
+.ls-kitchen-order-status .loader img,
+.order-status-form .loader img {
+    width: 48px;
+    height: 48px;
+}
+
+/* ---- Status container / label-value rows ---- */
+.ls-kitchen-order-status .hosp-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+/* Separate multiple status blocks (e.g. split KOTs) with a divider */
+.ls-kitchen-order-status .hosp-info-container + .hosp-info-container {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-slate-200, #e2e8f0);
+}
+
+.ls-kitchen-order-status .hosp-info-container .block-content {
+    margin: 0;
+}
+
+.ls-kitchen-order-status .custom-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+}
+
+.ls-kitchen-order-status .custom-box .box-title {
+    flex: 0 0 auto;
+    min-width: 11rem;
+    font-weight: 600;
+    color: var(--color-slate-700, #334155);
+}
+
+.ls-kitchen-order-status .custom-box > span:last-child {
+    color: var(--color-slate-900, #0f172a);
+}
+
+/* ---- Items ordered table ---- */
+.ls-kitchen-order-status .custom-table-wrapper {
+    flex: 1 1 100%;
+    overflow-x: auto;
+    margin-top: 0.25rem;
+}
+
+.ls-kitchen-order-status .custom-product-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--color-slate-200, #e2e8f0);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.ls-kitchen-order-status .custom-product-table thead th {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-slate-700, #334155);
+    background: var(--color-slate-50, #f8fafc);
+    border-bottom: 1px solid var(--color-slate-200, #e2e8f0);
+}
+
+.ls-kitchen-order-status .custom-product-table tbody td {
+    padding: 0.75rem;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--color-slate-100, #f1f5f9);
+}
+
+.ls-kitchen-order-status .custom-product-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Item cell: keep the <td> a normal table-cell (flex breaks the column layout);
+   lay the thumbnail and name out inline so they sit on one baseline. */
+.ls-kitchen-order-status .custom-product-table td.product-image .product-image-container {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.75rem;
+}
+
+.ls-kitchen-order-status .custom-product-table td.product-image .product-item-details {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.ls-kitchen-order-status .custom-product-table td.product-image img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border: 1px solid var(--color-slate-200, #e2e8f0);
+    border-radius: 0.5rem;
+    background: var(--color-white, #ffffff);
+}
+
+.ls-kitchen-order-status .product-item-details a {
+    color: var(--color-primary, #2563eb);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.ls-kitchen-order-status .product-item-details a:hover {
+    text-decoration: underline;
+}
+
+.ls-kitchen-order-status .custom-product-table td.product-qty {
+    font-weight: 600;
+    color: var(--color-slate-900, #0f172a);
+    white-space: nowrap;
+}

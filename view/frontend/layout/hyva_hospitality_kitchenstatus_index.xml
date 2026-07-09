@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Hyvä-only override of the Kitchen Status page form.
+ *
+ * The block is declared in hospitality_kitchenstatus_index.xml (Luma template, x-magento-init/jQuery).
+ * On Hyvä this handle swaps in the Alpine.js template that performs the AJAX lookup.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="hospitality.kitchenstatus.form"
+                        template="Ls_Hospitality::customer/order/hyva/kitchenstatus.phtml"/>
+    </body>
+</page>

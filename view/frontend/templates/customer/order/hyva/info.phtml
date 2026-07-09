@@ -1,0 +1,124 @@
+<?php
+/**
+ * Hyvä (Alpine.js) version of the hospitality "Kitchen Information" block.
+ *
+ * @var Ls\Customer\Block\Order\Info $block
+ * @var Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel
+ */
+
+$viewModel = $block->getData("view_model");
+$escaper   = $block->getEscaper();
+
+if ($viewModel->isHospitalityEnabled() == "1"):
+    $ajaxUrl         = $block->getUrl('hospitality/ajax/OrderInfo');
+    $order           = $block->getOrder();
+    $magOrder        = $block->getMagOrder();
+    $statusInfo      = $viewModel->getOrderStatusInfo($magOrder);
+    $orderId         = null;
+    $pickupOrderTime = '';
+    $orderComment    = '';
+    $storeId         = '';
+    $refreshInterval = (int) $viewModel->getRefreshInterval();
+
+    if (!empty($statusInfo)) {
+        $orderId         = $statusInfo['orderId'];
+        $storeId         = $statusInfo['storeId'];
+        $pickupOrderTime = $statusInfo['pickupDateTimeslot'];
+    }
+    if (!empty($order) && empty($statusInfo)) {
+        $orderId = $order->getId();
+        $storeId = $order->getStoreId();
+    }
+    if (!empty($magOrder)) {
+        $pickupOrderTime = $magOrder->getPickupDateTimeslot();
+        $orderComment    = $magOrder->getLsOrderComment();
+    }
+    ?>
+    <div class="block block-order-details-view-loyalty ls-kitchen-order-status"
+         x-data="lsKitchenOrderInfo({
+            ajaxUrl: '<?= /* @noEscape */ $escaper->escapeJs($ajaxUrl) ?>',
+            orderId: '<?= /* @noEscape */ $escaper->escapeJs((string) $orderId) ?>',
+            storeId: '<?= /* @noEscape */ $escaper->escapeJs((string) $storeId) ?>',
+            pickupOrderTime: '<?= /* @noEscape */ $escaper->escapeJs((string) $pickupOrderTime) ?>',
+            autoRefreshEnabled: <?= $viewModel->isAutoRefreshEnabled() ? 'true' : 'false' ?>,
+            refreshInterval: <?= $refreshInterval > 0 ? $refreshInterval : 10000 ?>
+         })"
+         x-init="load()">
+        <div class="block-title">
+            <strong><?= $escaper->escapeHtml(__('Kitchen Information')) ?></strong>
+        </div>
+        <div id="ls-hosp-order-info">
+            <div class="loader" x-show="loading" x-cloak>
+                <img src="<?= $escaper->escapeUrl($block->getViewFileUrl('images/loader-1.gif')) ?>"
+                     alt="<?= $escaper->escapeHtmlAttr(__('Loading...')) ?>">
+                <div><?= $escaper->escapeHtml(__('Loading Kitchen Info...')) ?></div>
+            </div>
+            <div class="ls-hosp-info-content" x-show="!loading" x-cloak x-html="content"></div>
+        </div>
+    </div>
+
+    <script>
+        function lsKitchenOrderInfo(config) {
+            return {
+                loading: true,
+                content: '',
+                timer: null,
+
+                async load() {
+                    this.loading = true;
+                    try {
+                        const url = new URL(config.ajaxUrl, window.location.origin);
+                        url.searchParams.set('orderId', config.orderId || '');
+                        url.searchParams.set('storeId', config.storeId || '');
+                        url.searchParams.set('pickupOrderTime', config.pickupOrderTime || '');
+
+                        const response = await fetch(url.toString(), {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const data = await response.json();
+                        if (data && data.output) {
+                            this.content = data.output;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load kitchen information', error);
+                    } finally {
+                        this.loading = false;
+                        if (config.autoRefreshEnabled) {
+                            this.scheduleRefresh();
+                        }
+                    }
+                },
+
+                scheduleRefresh() {
+                    if (this.timer) {
+                        clearTimeout(this.timer);
+                    }
+                    this.timer = setTimeout(() => this.load(), config.refreshInterval);
+                },
+
+                destroy() {
+                    if (this.timer) {
+                        clearTimeout(this.timer);
+                    }
+                }
+            };
+        }
+    </script>
+
+    <?php if ($orderComment): ?>
+        <div class="block block-order-details-view-loyalty">
+            <div class="block-title">
+                <strong><?= $escaper->escapeHtml(__('Additional Information')) ?></strong>
+            </div>
+            <div class="block-content">
+                <div class="custom-box">
+                    <span><?= nl2br($escaper->escapeHtml($orderComment)) ?></span>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endif; ?>

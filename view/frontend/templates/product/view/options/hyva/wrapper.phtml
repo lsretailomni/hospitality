@@ -1,0 +1,111 @@
+<?php
+/**
+ * Hyvä options wrapper for LS Hospitality.
+ *
+ * Renders the standard Hyvä options wrapper structure and registers the
+ * `lsHospitalityOption` Alpine component once (the per-option select template
+ * only instantiates it via x-data). The component keeps the visible swatch UI
+ * in sync with Hyvä's real (hidden) <select> for the option.
+ */
+
+use Magento\Catalog\Block\Product\View as ProductView;
+
+/** @var ProductView $block */
+
+$childHtml = $block->getChildHtml('', true);
+?>
+<?php if (strlen($childHtml)): ?>
+    <div class="product-options-wrapper" id="product-options-wrapper">
+        <div class="fieldset" tabindex="0">
+            <?= /* @noEscape */ $childHtml ?>
+        </div>
+    </div>
+
+    <script>
+        function lsHospitalityOption(config) {
+            return {
+                open: false,
+                optionId: config.optionId,
+                isMultiple: config.isMultiple,
+                isExclude: config.isExclude,
+                placeholder: config.placeholder || '',
+                selectedIds: [],
+
+                getSelect() {
+                    return document.getElementById('options_' + this.optionId);
+                },
+
+                init() {
+                    this.syncFromSelect();
+                    const select = this.getSelect();
+                    if (select) {
+                        // Reflect external changes (e.g. preconfigured/cart-edit values).
+                        select.addEventListener('change', () => this.syncFromSelect());
+                    }
+                },
+
+                syncFromSelect() {
+                    const select = this.getSelect();
+                    this.selectedIds = select
+                        ? Array.from(select.selectedOptions).map(o => o.value).filter(v => v !== '')
+                        : [];
+                },
+
+                isSelected(id) {
+                    return this.selectedIds.includes(String(id));
+                },
+
+                toggle(id) {
+                    const select = this.getSelect();
+                    if (!select) {
+                        return;
+                    }
+                    id = String(id);
+                    const options = Array.from(select.options);
+
+                    if (this.isMultiple) {
+                        options.forEach(o => {
+                            if (o.value === id) {
+                                o.selected = !o.selected;
+                            }
+                        });
+                    } else {
+                        const alreadySelected = this.isSelected(id);
+                        options.forEach(o => {
+                            o.selected = false;
+                        });
+                        if (!alreadySelected) {
+                            const target = options.find(o => o.value === id);
+                            if (target) {
+                                target.selected = true;
+                            }
+                        }
+                    }
+
+                    // Let Hyvä's option handlers recompute price / active state.
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    this.syncFromSelect();
+                },
+
+                summary() {
+                    const select = this.getSelect();
+                    if (!select) {
+                        return this.placeholder;
+                    }
+                    const labels = Array.from(select.selectedOptions)
+                        .filter(o => o.value !== '')
+                        .map(o => o.textContent.trim().replace(/\s+/g, ' '));
+                    return labels.length ? labels.join(', ') : this.placeholder;
+                },
+
+                openModal() {
+                    this.open = true;
+                },
+
+                closeModal() {
+                    this.open = false;
+                }
+            };
+        }
+    </script>
+<?php endif; ?>

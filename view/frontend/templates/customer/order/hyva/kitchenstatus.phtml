@@ -1,0 +1,149 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Hyvä (Alpine.js) version of the hospitality "Check Your Order Status" form.
+ *
+ * The user enters an order number and clicks "Check Status"; an AJAX request to hospitality/ajax/OrderInfo
+ * returns the kitchen-status HTML (same endpoint/output used on the Hyvä order view page), which is
+ * injected into the result container styled by the module's Tailwind .ls-kitchen-order-status rules.
+ *
+ * A plain container (not a <form>) is used on purpose: it removes any chance of a native page-reload
+ * submit before Alpine has hydrated. Enter in the field and the button both call checkStatus().
+ *
+ * @var Ls\Hospitality\Block\Order\KitchenStatus $block
+ * @var Ls\Hospitality\ViewModel\CustomerOrderInfo $viewModel
+ */
+
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+$escaper         = $block->getEscaper();
+$viewModel       = $block->getData('view_model');
+$ajaxUrl         = $block->getAjaxUrl();
+$autoRefresh     = $viewModel->isAutoRefreshEnabled() ? 'true' : 'false';
+$refreshInterval = (int)$viewModel->getRefreshInterval();
+$serviceDownMsg  = __('Kitchen service is down. Please try again.');
+?>
+<div class="order-status-form max-w-2xl"
+     x-data="lsKitchenStatusForm({
+         ajaxUrl: '<?= /* @noEscape */ $escaper->escapeJs($ajaxUrl) ?>',
+         autoRefreshEnabled: <?= /* @noEscape */ $autoRefresh ?>,
+         refreshInterval: <?= /* @noEscape */ $refreshInterval > 0 ? $refreshInterval : 30000 ?>
+     })"
+     x-on:beforeunload.window="destroy()">
+    <div class="field mb-4">
+        <label class="label block font-medium mb-2" for="ls_order_id">
+            <span><?= $escaper->escapeHtml(__('Enter your order number:')) ?></span>
+            <span class="text-red-600">*</span>
+        </label>
+        <input type="text"
+               id="ls_order_id"
+               name="orderId"
+               required
+               autocomplete="off"
+               x-model="orderId"
+               x-on:keydown.enter.prevent="checkStatus()"
+               class="form-input w-full"/>
+    </div>
+
+    <div class="actions-toolbar mt-6">
+        <button type="button" class="btn btn-primary" x-on:click="checkStatus()" x-bind:disabled="loading">
+            <span x-show="!loading"><?= $escaper->escapeHtml(__('Check Status')) ?></span>
+            <span x-show="loading" x-cloak><?= $escaper->escapeHtml(__('Checking...')) ?></span>
+        </button>
+    </div>
+
+    <div class="mt-6">
+        <div class="loader flex flex-col items-center gap-2 py-6" x-show="loading" x-cloak>
+            <img src="<?= $escaper->escapeUrl($block->getViewFileUrl('images/loader-1.gif')) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr(__('Loading...')) ?>"
+                 class="w-12 h-12"/>
+        </div>
+        <div class="ls-kitchen-order-status" x-show="!loading && content" x-cloak x-html="content"></div>
+        <div class="message error text-red-600 mt-4" x-show="error" x-cloak x-text="error"></div>
+    </div>
+</div>
+
+<script>
+    function lsKitchenStatusForm(config) {
+        return {
+            orderId: '',
+            loading: false,
+            content: '',
+            error: '',
+            timer: null,
+
+            init() {
+                const orderId = new URLSearchParams(window.location.search).get('orderId');
+                if (orderId) {
+                    this.orderId = orderId;
+                    this.load();
+                }
+            },
+
+            checkStatus() {
+                if (!this.orderId) {
+                    return;
+                }
+                this.stopRefresh();
+                this.load();
+            },
+
+            async load() {
+                this.loading = true;
+                this.error = '';
+                try {
+                    const url = new URL(config.ajaxUrl, window.location.origin);
+                    url.searchParams.set('orderId', this.orderId);
+
+                    const response = await fetch(url.toString(), {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (data && data.output) {
+                        this.content = data.output;
+                        if (config.autoRefreshEnabled) {
+                            this.scheduleRefresh();
+                        }
+                    } else if (data && data.error) {
+                        this.content = '';
+                        this.error = data.error;
+                    } else {
+                        this.content = '';
+                        this.error = '<?= /* @noEscape */ $escaper->escapeJs($serviceDownMsg) ?>';
+                    }
+                } catch (e) {
+                    this.content = '';
+                    this.error = '<?= /* @noEscape */ $escaper->escapeJs($serviceDownMsg) ?>';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            scheduleRefresh() {
+                this.stopRefresh();
+                if (config.refreshInterval > 0 && this.orderId) {
+                    this.timer = setTimeout(() => this.load(), config.refreshInterval);
+                }
+            },
+
+            stopRefresh() {
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                    this.timer = null;
+                }
+            },
+
+            destroy() {
+                this.stopRefresh();
+            }
+        };
+    }
+</script>

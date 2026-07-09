@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Hyvä-only footer link to the hospitality Kitchen Status page.
+ *
+ * Luma adds this link to the core "footer_links" block (see default.xml). The Hyvä theme footer does
+ * not render "footer_links", so the link is injected as a list item into the LS "Quick Links" column
+ * contributed by Ls_Omni (ls-links-hyva.phtml), alongside Stores / Check Gift Card Balance.
+ * Only rendered for hospitality stores.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="ls.omni.footer.links.hyva">
+            <block name="ls.hospitality.footer.kitchenstatus.hyva"
+                   template="Ls_Hospitality::html/footer/kitchen-status-link-hyva.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Ls\Hospitality\ViewModel\KitchenStatus</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>
