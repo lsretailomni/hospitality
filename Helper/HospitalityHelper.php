@@ -285,7 +285,7 @@ class HospitalityHelper extends AbstractHelper
                         $lineNumber += 10000;
                         $subCode = reset($itemModifier)->getSubcode();
                         $selectedOrderHospSubLine['modifier'][]
-                            = [
+                                    = [
                             'ModifierGroupCode' => $formattedItemSubLineCode,
                             'ModifierSubCode' => $subCode,
                             'DealLineId' => $mainDealLineNo,
@@ -1587,26 +1587,76 @@ class HospitalityHelper extends AbstractHelper
     {
         $status       = $data['HeaderStatus'];
         $magentoOrder = $this->getOrderByDocumentId($data['OrderId']);
+
+        if (empty($magentoOrder) || empty($data['Lines'])) {
+            return;
+        }
+
         foreach ($magentoOrder->getAllVisibleItems() as $orderItem) {
             list($itemId, $variantId, $uom) = $this->itemHelper->getComparisonValues(
                 $orderItem->getSku(),
                 $orderItem->getProductId()
             );
             foreach ($data['Lines'] as &$line) {
-                if ($line['Quantity'] == 0 || $line['NewStatus'] == null) {
-                    $line['Quantity']  = 1;
+                if ($line['ItemId'] != $itemId) {
+                    continue;
+                }
+
+                if (!empty($line['UnitOfMeasureId']) && $line['UnitOfMeasureId'] != $uom) {
+                    continue;
+                }
+
+                // Preserve the quantity and UOM sent by LS Central
+                if (empty($line['Quantity'])) {
+                    $line['Quantity'] = 1;
+                }
+                if (empty($line['NewStatus'])) {
                     $line['NewStatus'] = $status;
                 }
-                if (empty($line['UnitOfMeasureId']) && $itemId == $line['ItemId']) {
+                if (empty($line['UnitOfMeasureId'])) {
                     $line['UnitOfMeasureId'] = $uom;
                 }
-                if ($line['Amount'] == 0 && $itemId == $line['ItemId'] && $uom == $line['UnitOfMeasureId']) {
-                    $line['Quantity']  = 1;
-                    $line['NewStatus'] = $status;
-                    $line['Amount']    = $orderItem->getQtyOrdered() > 0
-                        ? $orderItem->getPrice() / $orderItem->getQtyOrdered() : 0;
+                if (empty($line['VariantId'])) {
+                    $line['VariantId'] = $variantId;
+                }
+                if (empty($line['Amount'])) {
+                    $qtyOrdered     = (float) $orderItem->getQtyOrdered();
+                    $lineQty        = (float) ($line['Quantity'] ?: 1);
+                    $line['Amount'] = $qtyOrdered > 0
+                        ? ($orderItem->getRowTotalInclTax() / $qtyOrdered) * $lineQty
+                        : 0;
                 }
             }
+        }
+        unset($line);
+
+        $shippingItemId = $this->lsr->getStoreConfig(LSR::LSR_SHIPMENT_ITEM_ID, $magentoOrder->getStoreId());
+        $hasShippingLine = false;
+        foreach ($data['Lines'] as $existingLine) {
+            if ((string) $existingLine['ItemId'] === (string) $shippingItemId) {
+                $hasShippingLine = true;
+                break;
+            }
+        }
+
+        if (!$this->isClickAndcollectOrder($magentoOrder)
+            && $magentoOrder->getShippingAmount() > 0
+            && (float) $magentoOrder->getShippingInvoiced() <= 0
+            && !$hasShippingLine
+        ) {
+            $lineNumbers = array_filter(array_column($data['Lines'], 'LineNo'));
+            $nextLineNo  = ($lineNumbers ? max($lineNumbers) : 0) + 10000;
+            $data['Lines'][] = $this->getLine(
+                $magentoOrder->getShippingInclTax(),
+                $shippingItemId,
+                '',
+                '',
+                $status,
+                1,
+                '',
+                '',
+                $nextLineNo
+            );
         }
     }
 

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Ls\Hospitality\Plugin\Webhooks\Model\Order;
 
-use Ls\Webhooks\Helper\Data;
-use Ls\Webhooks\Model\Order\Payment;
+use \Ls\Core\Model\LSR;
+use \Ls\Webhooks\Helper\Data;
+use \Ls\Webhooks\Model\Order\Payment;
 
 /**
- * Includes the hospitality tip in the invoice amount built from LS Central order lines.
+ * Builds the complete invoice amount for hospitality webhook invoices.
  */
 class PaymentPlugin
 {
@@ -21,8 +22,8 @@ class PaymentPlugin
     }
 
     /**
-     * Add the hospitality tip to the invoice amount for offline (e.g. pay at store) orders.
-     *
+     * Preset the full invoice total for hospitality webhook invoices.
+     *     
      *
      * @param Payment $subject
      * @param array $data
@@ -43,10 +44,25 @@ class PaymentPlugin
             return [$data, $linesMerged, $magentoOrder];
         }
 
-        $tipAmount = (float)$order->getLsTipAmount();
+        // Only hospitality (non-retail) orders route their total through $data['Amount']; retail
+        // drives its own amount, so leave it untouched. Mirrors generateInvoice's own industry check.
+        $industry = $this->webhookHelper->getLsrObject()->getStoreConfig(
+            LSR::LS_INDUSTRY_VALUE,
+            $order->getStoreId()
+        );
+        if ($industry === LSR::LS_INDUSTRY_VALUE_RETAIL) {
+            return [$data, $linesMerged, $magentoOrder];
+        }
 
-        if ($tipAmount > 0 && $order->getPayment()->getMethodInstance()->isOffline()) {
-            $data['Amount'] = $tipAmount;
+        // Do not change an Amount already provided upstream.
+        if (!array_key_exists('Amount', $data)) {
+            $linesTotal = 0.0;
+            foreach ($data['Lines'] ?? [] as $line) {
+                $linesTotal += (float)($line['Amount'] ?? 0);
+            }
+            // The tip is one-time, so only add it on the first invoice.
+            $tipAmount = $order->hasInvoices() ? 0.0 : (float)$order->getLsTipAmount();
+            $data['Amount'] = $linesTotal + $tipAmount;
         }
 
         return [$data, $linesMerged, $magentoOrder];
