@@ -2,7 +2,17 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Sales:etc/sales.xsd">
     <section name="quote">
         <group name="totals">
-            <item name="ls_tips_selected" instance="Ls\Hospitality\Model\Total\Quote\LsTipsSelected" sort_order="650"/>            
+            <item name="ls_tips_selected" instance="Ls\Hospitality\Model\Total\Quote\LsTipsSelected" sort_order="650"/>
         </group>
-    </section>    
+    </section>
+    <section name="order_invoice">
+        <group name="totals">
+            <item name="ls_tips_selected" instance="Ls\Hospitality\Model\Total\Invoice\LsTips" sort_order="650"/>
+        </group>
+    </section>
+    <section name="order_creditmemo">
+        <group name="totals">
+            <item name="ls_tips_selected" instance="Ls\Hospitality\Model\Total\Creditmemo\LsTips" sort_order="650"/>
+        </group>
+    </section>
 </config>
