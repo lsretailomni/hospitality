@@ -1432,7 +1432,6 @@ class HospitalityHelper extends AbstractHelper
         return !empty($lsOrderId) ? $lsOrderId : $documentId;
     }
 
-
     /**
      * Get order pickup date
      *
@@ -1525,8 +1524,8 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Fix lines order status webhook for group ordering
      *
-     * @param $data
-     * @param $magentoOrder
+     * @param array $data
+     * @param OrderInterface $magentoOrder
      * @return array
      * @throws NoSuchEntityException
      */
@@ -1580,8 +1579,9 @@ class HospitalityHelper extends AbstractHelper
     /**
      * Fix order lines status
      *
-     * @param $data
+     * @param array $data
      * @return void
+     * @throws NoSuchEntityException
      */
     public function fixOrderLinesStatus(&$data)
     {
@@ -1681,7 +1681,6 @@ class HospitalityHelper extends AbstractHelper
 
         return $order;
     }
-
 
     /**
      * Get orders by order id
@@ -2153,25 +2152,26 @@ class HospitalityHelper extends AbstractHelper
      */
     public function getTipsBySalesType($salesType, $quote)
     {
-        $websiteId          = (string) $this->lsr->getCurrentWebsiteId();
-        $webStore           = $this->lsr->getActiveWebStore();
-        $storeData          = $this->storeHelper->getStore($websiteId, $webStore, "", "");
+        $websiteId = (string)$this->lsr->getCurrentWebsiteId();
+        $webStore = $this->lsr->getActiveWebStore();
+        $storeData = $this->storeHelper->getStore($websiteId, $webStore);
         $salesTypeTipsArray = $storeTipsArray = [];
-        $selectedTipsLabel  = $quote->getData('ls_tip_amount_label');
-        $selectedTipsFlag   = false;
+        $selectedTipsLabel = $quote->getData('ls_tip_amount_label');
+        $selectedTipsFlag = false;
 
         if ($storeData) {
-            $tipsArray[]        = [
-                'value'    => 0,
-                'label'    => "No Tips",
+            $tipsArray[] = [
+                'value' => 0,
+                'label' => "No Tips",
                 'selected' => $selectedTipsFlag
             ];
             $otherSuggestions[] = [
-                'value'    => 'other',
-                'label'    => __('Other'),
-                'selected' => ($selectedTipsFlag == "other") ? true : false
+                'value' => 'other',
+                'label' => __('Other'),
+                'selected' => $selectedTipsFlag == "other"
             ];
-            $data               = array_key_exists('LSC_Hospitality_Type', $storeData) ? $storeData['LSC_Hospitality_Type'] : [];
+            $data = array_key_exists('LSC_Hospitality_Type', $storeData) ?
+                $storeData['LSC_Hospitality_Type'] : [];
 
             foreach ($data as $item) {
 
@@ -2182,25 +2182,25 @@ class HospitalityHelper extends AbstractHelper
                 if (empty($item->getSalesType())) {
                     if ($tip1 > 0) {
                         $storeTipsArray[] = [
-                            'value'    => $tip1,
-                            'label'    => $tip1 . '%',
-                            'selected' => ($selectedTipsLabel == $tip1) ? true : false
+                            'value' => $tip1,
+                            'label' => $tip1 . '%',
+                            'selected' => $selectedTipsLabel == $tip1
                         ];
                     }
 
                     if ($tip2 > 0) {
                         $storeTipsArray[] = [
-                            'value'    => $tip2,
-                            'label'    => $tip2 . '%',
-                            'selected' => ($selectedTipsLabel == $tip2) ? true : false
+                            'value' => $tip2,
+                            'label' => $tip2 . '%',
+                            'selected' => $selectedTipsLabel == $tip2
                         ];
                     }
 
                     if ($tip3 > 0) {
                         $storeTipsArray[] = [
-                            'value'    => $tip3,
-                            'label'    => $tip3 . '%',
-                            'selected' => ($selectedTipsLabel == $tip3) ? true : false
+                            'value' => $tip3,
+                            'label' => $tip3 . '%',
+                            'selected' => $selectedTipsLabel == $tip3
                         ];
                     }
                 }
@@ -2208,25 +2208,25 @@ class HospitalityHelper extends AbstractHelper
                 if ($item->getSalesType() == $salesType) {
                     if ($tip1 > 0) {
                         $salesTypeTipsArray[] = [
-                            'value'    => (int)$tip1,
-                            'label'    => $tip1 . '%',
-                            'selected' => ($selectedTipsLabel == $tip1) ? true : false
+                            'value' => (int)$tip1,
+                            'label' => $tip1 . '%',
+                            'selected' => $selectedTipsLabel == $tip1
                         ];
                     }
 
                     if ($tip2 > 0) {
                         $salesTypeTipsArray[] = [
-                            'value'    => $tip2,
-                            'label'    => $tip2 . '%',
-                            'selected' => ($selectedTipsLabel == $tip2) ? true : false
+                            'value' => $tip2,
+                            'label' => $tip2 . '%',
+                            'selected' => $selectedTipsLabel == $tip2
                         ];
                     }
 
                     if ($tip3 > 0) {
                         $salesTypeTipsArray[] = [
-                            'value'    => $tip3,
-                            'label'    => $tip3 . '%',
-                            'selected' => ($selectedTipsLabel == $tip3) ? true : false
+                            'value' => $tip3,
+                            'label' => $tip3 . '%',
+                            'selected' => $selectedTipsLabel == $tip3
                         ];
                     }
                     break;

@@ -12,25 +12,13 @@ use Magento\Framework\Exception\NoSuchEntityException;
 class StatusPlugin
 {
     /**
-     * @var HospitalityHelper
-     */
-    public $hospitalityHelper;
-
-    /**
-     * @var LSR
-     */
-    public $lsr;
-
-    /**
      * @param HospitalityHelper $hospitalityHelper
      * @param LSR $lsr
      */
     public function __construct(
-        HospitalityHelper $hospitalityHelper,
-        LSR $lsr
+        public HospitalityHelper $hospitalityHelper,
+        public LSR $lsr
     ) {
-        $this->hospitalityHelper = $hospitalityHelper;
-        $this->lsr               = $lsr;
     }
 
     /**
@@ -39,7 +27,7 @@ class StatusPlugin
      * @param Status $subject
      * @param array $data
      * @return array
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function beforeProcess(Status $subject, $data)
     {
@@ -64,35 +52,40 @@ class StatusPlugin
      */
     public function beforeCheckAndProcessStatus(Status $subject, $status, $itemsInfo, $magentoOrder, $data)
     {
-        $mgOrder       = $this->hospitalityHelper->getOrderByDocumentId($data['OrderId']);
+        $mgOrder = $this->hospitalityHelper->getOrderByDocumentId($data['OrderId']);
         $magentoOrders = is_array($mgOrder) ? $mgOrder : [$mgOrder];
-        $dataInfo      = $data;
-        
+        $dataInfo = $data;
+
         foreach ($magentoOrders as $magOrder) {
             if (!empty($magOrder) && $this->lsr->isHospitalityStore($magOrder->getStoreId())) {
                 if (count($magentoOrders) > 1) {
-                    $lines         = $this->hospitalityHelper->fixOrderLinesStatusWebhookGroupOrdering($dataInfo,
-                        $magOrder);
+                    $lines = $this->hospitalityHelper->fixOrderLinesStatusWebhookGroupOrdering(
+                        $dataInfo,
+                        $magOrder
+                    );
                     $data['Lines'] = $lines;
                 }
-                $isClickAndCollectOrder = $subject->helper->isClickAndcollectOrder($magOrder);
-                $storeId                = $magOrder->getStoreId();
-                $invoiceKotStatus       = $this->lsr->getStoreConfig(
+                $storeId = $magOrder->getStoreId();
+                $invoiceKotStatus = $this->lsr->getStoreConfig(
                     LSR::SC_INVOICE_KOTSTATUS,
                     $storeId
                 );
-                $shipmentKotStatus      = $this->lsr->getStoreConfig(
+                $shipmentKotStatus = $this->lsr->getStoreConfig(
                     LSR::SC_SHIPMENT_KOTSTATUS,
                     $storeId
                 );
 
-                if (isset($data['orderKOTStatus']) && $invoiceKotStatus == $data['orderKOTStatus']
-                    && $magOrder->canInvoice()) {
+                if (isset($data['orderKOTStatus']) &&
+                    $invoiceKotStatus == $data['orderKOTStatus'] &&
+                    $magOrder->canInvoice()
+                ) {
                     $subject->payment->generateInvoice($data, true, $magOrder);
                 }
 
-                if (isset($data['orderKOTStatus']) && $shipmentKotStatus == $data['orderKOTStatus']
-                    && $magOrder->canShip()) {
+                if (isset($data['orderKOTStatus']) &&
+                    $shipmentKotStatus == $data['orderKOTStatus'] &&
+                    $magOrder->canShip()
+                ) {
                     $subject->payment->createShipment($magOrder, $data['Lines']);
                 }
             }

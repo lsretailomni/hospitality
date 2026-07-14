@@ -23,7 +23,6 @@ class PaymentPlugin
 
     /**
      * Preset the full invoice total for hospitality webhook invoices.
-     *     
      *
      * @param Payment $subject
      * @param array $data
